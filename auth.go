@@ -17,11 +17,6 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-const (
-	envSection      = "AKAMAI_EDGERC_SECTION"
-	envEdgercConfig = "AKAMAI_EDGERC_CONFIG"
-)
-
 // Akamai {OPEN} EdgeGrid Authentication Service
 type AuthService struct {
 	client *Client

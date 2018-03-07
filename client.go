@@ -3,12 +3,24 @@ package edgegrid
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
+)
+
+// AkamaiEnvironmentVar represents Akamai's env variables used
+//
+// client
+type AkamaiEnvironmentVar string
+
+// AkamaiEnvironmentVar const represents Akamai's env variables to be used.
+//
+// client
+const (
+	EnvVarEdgercPath    AkamaiEnvironmentVar = "AKAMAI_EDGERC_CONFIG"
+	EnvVarEdgercSection AkamaiEnvironmentVar = "AKAMAI_EDGERC_SECTION"
 )
 
 // AkamaiEnvironment represents Akamai's target environment type.
@@ -75,8 +87,8 @@ func NewClient(httpClient *http.Client, conf *ClientOptions) *Client {
 		path = conf.ConfigPath
 		section = conf.ConfigSection
 	} else {
-		path = os.Getenv("AKAMAI_EDGERC_PATH")
-		section = os.Getenv("AKAMAI_EDGERC_SECTION")
+		path = os.Getenv(string(EnvVarEdgercPath))
+		section = os.Getenv(string(EnvVarEdgercSection))
 	}
 
 	return newClient(httpClient, path, section)
@@ -110,8 +122,6 @@ func newClient(httpClient *http.Client, edgercPath, edgercSection string) *Clien
 func (cl *Client) NewRequest(method, path string, v interface{}) (*http.Response, error) {
 
 	targetURL, _ := prepareURL(cl.baseURL, path)
-
-	fmt.Println(fmt.Sprintf("client.NewRequest() => Target URL: %s ", targetURL))
 
 	req, err := http.NewRequest(method, targetURL.String(), nil)
 	if err != nil {
@@ -162,18 +172,18 @@ func (cl *Client) NewRequest(method, path string, v interface{}) (*http.Response
 // client
 func (cl *Client) SetBaseURL(urlStr string) error {
 
+	var err error
+
 	if strings.HasPrefix(urlStr, "https://") {
-		cl.baseURL, _ = url.Parse(urlStr)
+		cl.baseURL, err = url.Parse(urlStr)
 	} else {
-		cl.baseURL, _ = url.Parse("https://" + urlStr)
+		cl.baseURL, err = url.Parse("https://" + urlStr)
 	}
 	// // Make sure the given URL end with a slash
 	// if !strings.HasSuffix(urlStr, "/") {
 	// 	urlStr += "/"
 	// }
 
-	var err error
-	cl.baseURL, err = url.Parse(urlStr)
 	return err
 }
 
