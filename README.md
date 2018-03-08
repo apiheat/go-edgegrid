@@ -28,15 +28,25 @@ Construct a new Akamai client, then use the various services on the client to
 access different parts of the akamai API.
 
 ```go
+apiClientOpts := &edgegrid.ClientOptions{}
+apiClientOpts.ConfigPath =  "/path/to/.edgerc/"
+apiClientOpts.ConfigSection = "default"
+
 // create new Akamai API client
-akamaiApi := edgegrid.NewClient(nil, "/path/to/.edgerc/", "section-name")
+akamaiApi := edgegrid.NewClient(nil, apiClientOpts)
 ```
+
+Passing `nil` into client options will cause it to try and initiate using `ENV VARS`
 
 Some API methods have optional parameters that can be passed.
 
 ```go
-// create new Akamai API client
-akamaiApi := edgegrid.NewClient(nil, "/path/to/.edgerc/", "section-name")
+
+
+// create new API client - using ENV VARS
+// * AKAMAI_EDGERC_CONFIG
+// * AKAMAI_EDGERC_SECTION
+akamaiApi := edgegrid.NewClient(nil,nil)
 
 // Set options for working with network lists
 opt := edgegrid.ListNetworkListsOptions{
@@ -47,7 +57,11 @@ opt := edgegrid.ListNetworkListsOptions{
 }
 
 // List all network lists
-allLists, _ := akamaiApi.NetworkLists.ListNetworkLists(opt)
+netLists, resp, err := apiClient.NetworkLists.ListNetworkLists(opt)
+
+if err != nil {
+	return err
+}
 ```
 
 ### Examples
@@ -77,6 +91,7 @@ func main() {
 		Description: "",
 		List:        newListItems,
 	}
+	
 	newList, err := api.NetworkLists.CreateNetworkList(newListOpts)
 	if err != nil {
 		log.Fatal(err)

@@ -78,8 +78,8 @@ type NetworkListResponse struct {
 		Rel  string `json:"rel,omitempty"`
 		Href string `json:"href,omitempty"`
 	} `json:"links"`
-	SyncPoint        int `json:"sync-point,omitempty"`
-	ActivationStatus int `json:"activation-status,omitempty"`
+	SyncPoint        int    `json:"sync-point,omitempty"`
+	ActivationStatus string `json:"activation-status,omitempty"`
 }
 
 // ActivateNetworkListOptions represents options for network list activation
@@ -316,13 +316,6 @@ func (nls *NetworkListService) ActivateNetworkList(ListID string, targetEnvironm
 	if err != nil {
 		return nil, resp, err
 	}
-
-	// networkListResponse := new(NetworkListResponse)
-	// byt, _ := ioutil.ReadAll(resp.Response.Body)
-
-	// if err = json.Unmarshal([]byte(byt), &networkListResponse); err != nil {
-	// 	return nil, resp, err
-	// }
 
 	return k, resp, err
 }

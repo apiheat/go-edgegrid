@@ -8,8 +8,12 @@ import (
 
 func main() {
 
-	// create new API client
-	api := edgegrid.NewClient(nil, "~/.edgerc", "dummy")
+	apiClientOpts := &edgegrid.ClientOptions{}
+	apiClientOpts.ConfigPath = "/path/to/.edgerc/"
+	apiClientOpts.ConfigSection = "default"
+
+	// create new Akamai API client
+	api := edgegrid.NewClient(nil, apiClientOpts)
 
 	// Set options for working with network lists
 	opt := edgegrid.ListNetworkListsOptions{
@@ -20,35 +24,57 @@ func main() {
 	}
 
 	// List all network lists
-	allLists, _ := api.NetworkLists.ListNetworkLists(opt)
-	for i, c := range allLists {
+	allLists, resp, err := api.NetworkLists.ListNetworkLists(opt)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	// We return response from our API call
+	fmt.Println(resp)
+
+	for i, c := range *allLists {
 		fmt.Println(i, c.Name)
 	}
 
 	// List single network list
-	singleList, _ := api.NetworkLists.GetNetworkList("LIST_ID", opt)
+	singleList, resp, err := api.NetworkLists.GetNetworkList("LIST_ID", opt)
+	if err != nil {
+		fmt.Println(err)
+	}
 	fmt.Println(singleList.Name, singleList.NumEntries, singleList.Account, singleList.ProductionActivationStatus, singleList.StagingActivationStatus)
 
 	// create dummy network list
 	newListItems := []string{"1.2.3.4/32", "5.6.7.8/32"}
-	newListOpts := edgegrid.CreateNetworkListsOptions{
+	newListOpts := edgegrid.CreateNetworkListOptions{
 		Name:        "dummy_delete_1",
 		Type:        "IP",
 		Description: "",
 		List:        newListItems,
 	}
-	newList, _ := api.NetworkLists.CreateNetworkList(newListOpts)
+	newList, resp, err := api.NetworkLists.CreateNetworkList(newListOpts)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(newList.UniqueID)
 
 	// Modify existing network list
-	newListItems := []string{"4.4.3.4/32"}
+	newListItemsToMod := []string{"4.4.3.4/32"}
 	editListOpts := edgegrid.CreateNetworkListOptions{
-		List: newListItems,
+		List: newListItemsToMod,
 	}
 
-	api.NetworkLists.AddNetworkListItems("LIST_ID", editListOpts)
+	modifyResp, resp, err := api.NetworkLists.AddNetworkListItems("LIST_ID", editListOpts)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(modifyResp.Message)
 
 	// Remove item from network list
-	api.NetworkLists.RemoveNetworkListItem("LIST_ID", "4.4.3.4/32")
+	removeItemResp, resp, err := api.NetworkLists.RemoveNetworkListItem("LIST_ID", "4.4.3.4/32")
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(removeItemResp.Message)
 
 	// Activate a network list
 	activateListOpts := edgegrid.ActivateNetworkListOptions{
@@ -56,8 +82,16 @@ func main() {
 		NotificationRecipients: []string{},
 		Comments:               "activated by new API client",
 	}
-	activateList, _ := api.NetworkLists.ActivateNetworkList("LIST_ID", edgegrid.Staging, activateListOpts)
 
-	activationStatus, _ := api.NetworkLists.GetNetworkListActivationStatus("LIST_ID", edgegrid.Staging)
+	activateList, resp, err := api.NetworkLists.ActivateNetworkList("LIST_ID", edgegrid.Staging, activateListOpts)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(activateList.ActivationStatus)
+
+	activationStatus, resp, err := api.NetworkLists.GetNetworkListActivationStatus("LIST_ID", edgegrid.Staging)
+	if err != nil {
+		fmt.Println(err)
+	}
 	fmt.Println(activationStatus.ActivationStatus)
 }
