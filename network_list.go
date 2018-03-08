@@ -1,9 +1,7 @@
 package edgegrid
 
 import (
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
 )
 
 // NetworkListService represents exposed services to manage network lists
@@ -108,7 +106,7 @@ type ActivateNetworkListStatus struct {
 // ListNetworkLists List all configured Network Lists for the authenticated user.
 //
 // Akamai API docs: https://developer.akamai.com/api/luna/network-list/resources.html#listnetworklists
-func (nls *NetworkListService) ListNetworkLists(opts ListNetworkListsOptions) ([]AkamaiNetworkList, *ClientResponse, error) {
+func (nls *NetworkListService) ListNetworkLists(opts ListNetworkListsOptions) (*[]AkamaiNetworkList, *ClientResponse, error) {
 
 	apiURI := fmt.Sprintf("%s?listType=%s&extended=%t&includeDeprecated=%t&includeElements=%t",
 		apiPaths["network_list"],
@@ -118,12 +116,12 @@ func (nls *NetworkListService) ListNetworkLists(opts ListNetworkListsOptions) ([
 		opts.IncludeElements)
 
 	var k *AkamaiNetworkLists
-	resp, err := nls.client.NewRequest("GET", apiURI, &k)
+	resp, err := nls.client.NewRequest("GET", apiURI, nil, &k)
 	if err != nil {
 		return nil, resp, err
 	}
 
-	return k.NetworkLists, resp, err
+	return &k.NetworkLists, resp, err
 
 }
 
@@ -141,7 +139,7 @@ func (nls *NetworkListService) GetNetworkList(ListID string, opts ListNetworkLis
 		opts.IncludeElements)
 
 	var k *AkamaiNetworkList
-	resp, err := nls.client.NewRequest("GET", apiURI, &k)
+	resp, err := nls.client.NewRequest("GET", apiURI, nil, &k)
 
 	if err != nil {
 		return nil, resp, err
@@ -158,19 +156,20 @@ func (nls *NetworkListService) CreateNetworkList(opts CreateNetworkListOptions) 
 
 	apiURI := apiPaths["network_list"]
 
-	resp, err := nls.client.NewRequest("POST", apiURI, opts)
+	var k *NetworkListResponse
+	resp, err := nls.client.NewRequest("POST", apiURI, opts, &k)
 	if err != nil {
 		return nil, resp, err
 	}
 
-	networkListResponse := new(NetworkListResponse)
-	byt, _ := ioutil.ReadAll(resp.Response.Body)
+	// networkListResponse := new(NetworkListResponse)
+	// byt, _ := ioutil.ReadAll(resp.Response.Body)
 
-	if err = json.Unmarshal([]byte(byt), &networkListResponse); err != nil {
-		return nil, resp, err
-	}
+	// if err = json.Unmarshal([]byte(byt), &networkListResponse); err != nil {
+	// 	return nil, resp, err
+	// }
 
-	return networkListResponse, resp, err
+	return k, resp, err
 }
 
 // ModifyNetworkList Modify an existing Network List
@@ -182,19 +181,20 @@ func (nls *NetworkListService) ModifyNetworkList(ListID string, opts AkamaiNetwo
 		apiPaths["network_list"],
 		ListID)
 
-	resp, err := nls.client.NewRequest("POST", apiURI, opts)
+	var k *NetworkListResponse
+	resp, err := nls.client.NewRequest("POST", apiURI, opts, &k)
 	if err != nil {
 		return nil, resp, err
 	}
 
-	networkListResponse := new(NetworkListResponse)
-	byt, _ := ioutil.ReadAll(resp.Response.Body)
+	// networkListResponse := new(NetworkListResponse)
+	// byt, _ := ioutil.ReadAll(resp.Response.Body)
 
-	if err = json.Unmarshal([]byte(byt), &networkListResponse); err != nil {
-		return nil, resp, err
-	}
+	// if err = json.Unmarshal([]byte(byt), &networkListResponse); err != nil {
+	// 	return nil, resp, err
+	// }
 
-	return networkListResponse, resp, err
+	return k, resp, err
 }
 
 // AddNetworkListItems Appends a set of IP addresses or geo locations to a list.
@@ -206,19 +206,20 @@ func (nls *NetworkListService) AddNetworkListItems(ListID string, opts CreateNet
 		apiPaths["network_list"],
 		ListID)
 
-	resp, err := nls.client.NewRequest("POST", apiURI, opts)
+	var k *NetworkListResponse
+	resp, err := nls.client.NewRequest("POST", apiURI, opts, &k)
 	if err != nil {
 		return nil, resp, err
 	}
 
-	networkListResponse := new(NetworkListResponse)
-	byt, _ := ioutil.ReadAll(resp.Response.Body)
+	// networkListResponse := new(NetworkListResponse)
+	// byt, _ := ioutil.ReadAll(resp.Response.Body)
 
-	if err = json.Unmarshal([]byte(byt), &networkListResponse); err != nil {
-		return nil, resp, err
-	}
+	// if err = json.Unmarshal([]byte(byt), &networkListResponse); err != nil {
+	// 	return nil, resp, err
+	// }
 
-	return networkListResponse, resp, err
+	return k, resp, err
 
 }
 
@@ -233,19 +234,20 @@ func (nls *NetworkListService) AddNetworkListElement(ListID, ListElement string)
 		ListElement,
 	)
 
-	resp, err := nls.client.NewRequest("PUT", apiURI, nil)
+	var k *NetworkListResponse
+	resp, err := nls.client.NewRequest("PUT", apiURI, nil, &k)
 	if err != nil {
 		return nil, resp, err
 	}
 
-	networkListResponse := new(NetworkListResponse)
-	byt, _ := ioutil.ReadAll(resp.Response.Body)
+	// networkListResponse := new(NetworkListResponse)
+	// byt, _ := ioutil.ReadAll(resp.Response.Body)
 
-	if err = json.Unmarshal([]byte(byt), &networkListResponse); err != nil {
-		return nil, resp, err
-	}
+	// if err = json.Unmarshal([]byte(byt), &networkListResponse); err != nil {
+	// 	return nil, resp, err
+	// }
 
-	return networkListResponse, resp, err
+	return k, resp, err
 
 }
 
@@ -259,26 +261,27 @@ func (nls *NetworkListService) RemoveNetworkListItem(ListID, ListItem string) (*
 		ListID,
 		ListItem)
 
-	resp, err := nls.client.NewRequest("DELETE", apiURI, nil)
+	var k *NetworkListResponse
+	resp, err := nls.client.NewRequest("DELETE", apiURI, nil, &k)
 	if err != nil {
 		return nil, resp, err
 	}
 
-	networkListResponse := new(NetworkListResponse)
-	byt, _ := ioutil.ReadAll(resp.Response.Body)
+	// networkListResponse := new(NetworkListResponse)
+	// byt, _ := ioutil.ReadAll(resp.Response.Body)
 
-	if err = json.Unmarshal([]byte(byt), &networkListResponse); err != nil {
-		return nil, resp, err
-	}
+	// if err = json.Unmarshal([]byte(byt), &networkListResponse); err != nil {
+	// 	return nil, resp, err
+	// }
 
-	return networkListResponse, resp, err
+	return k, resp, err
 
 }
 
 // SearchNetworkListItem Retrieves a list of all Network Lists having elements containing the search terms. Each Network List’s status is also provided.
 //
 // Akamai API docs: https://developer.akamai.com/api/luna/network-list/resources.html#searchnetworklists
-func (nls *NetworkListService) SearchNetworkListItem(ListItem string, opts ListNetworkListsOptions) ([]AkamaiNetworkList, *ClientResponse, error) {
+func (nls *NetworkListService) SearchNetworkListItem(ListItem string, opts ListNetworkListsOptions) (*[]AkamaiNetworkList, *ClientResponse, error) {
 
 	apiURI := fmt.Sprintf("%s/search?expression=%s&listType=%s&extended=%t&includeDeprecated=%t",
 		apiPaths["network_list"],
@@ -288,12 +291,13 @@ func (nls *NetworkListService) SearchNetworkListItem(ListItem string, opts ListN
 		opts.IncludeDeprecated)
 
 	var k *AkamaiNetworkLists
-	resp, err := nls.client.NewRequest("GET", apiURI, &k)
+	resp, err := nls.client.NewRequest("GET", apiURI, nil, &k)
+
 	if err != nil {
 		return nil, resp, err
 	}
 
-	return k.NetworkLists, resp, err
+	return &k.NetworkLists, resp, err
 
 }
 
@@ -307,19 +311,20 @@ func (nls *NetworkListService) ActivateNetworkList(ListID string, targetEnvironm
 		ListID,
 		targetEnvironment)
 
-	resp, err := nls.client.NewRequest("POST", apiURI, opts)
+	var k *NetworkListResponse
+	resp, err := nls.client.NewRequest("POST", apiURI, opts, &k)
 	if err != nil {
 		return nil, resp, err
 	}
 
-	networkListResponse := new(NetworkListResponse)
-	byt, _ := ioutil.ReadAll(resp.Response.Body)
+	// networkListResponse := new(NetworkListResponse)
+	// byt, _ := ioutil.ReadAll(resp.Response.Body)
 
-	if err = json.Unmarshal([]byte(byt), &networkListResponse); err != nil {
-		return nil, resp, err
-	}
+	// if err = json.Unmarshal([]byte(byt), &networkListResponse); err != nil {
+	// 	return nil, resp, err
+	// }
 
-	return networkListResponse, resp, err
+	return k, resp, err
 }
 
 // GetNetworkListActivationStatus Gets activation status of selected network list in specific env
@@ -333,7 +338,7 @@ func (nls *NetworkListService) GetNetworkListActivationStatus(ListID string, tar
 		targetEnvironment)
 
 	var k *ActivateNetworkListStatus
-	resp, err := nls.client.NewRequest("GET", apiURI, &k)
+	resp, err := nls.client.NewRequest("GET", apiURI, nil, &k)
 	if err != nil {
 		return nil, resp, err
 	}

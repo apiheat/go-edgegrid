@@ -127,7 +127,7 @@ func newClient(httpClient *http.Client, edgercPath, edgercSection string) *Clien
 // Host specified in Config. If body is specified, it will be sent as the request body.
 //
 // client
-func (cl *Client) NewRequest(method, path string, v interface{}) (*ClientResponse, error) {
+func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*ClientResponse, error) {
 
 	targetURL, _ := prepareURL(cl.baseURL, path)
 
@@ -137,7 +137,7 @@ func (cl *Client) NewRequest(method, path string, v interface{}) (*ClientRespons
 	}
 
 	if method == "POST" || method == "PUT" {
-		bodyBytes, err := json.Marshal(v)
+		bodyBytes, err := json.Marshal(vreq)
 		if err != nil {
 			return nil, err
 		}
@@ -173,6 +173,12 @@ func (cl *Client) NewRequest(method, path string, v interface{}) (*ClientRespons
 
 	clientResp.Response = resp
 	clientResp.Body = string(byt)
+
+	if vresp != nil {
+		if err = json.Unmarshal([]byte(byt), &vresp); err != nil {
+			return clientResp, err
+		}
+	}
 
 	return clientResp, err
 }
