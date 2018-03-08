@@ -67,6 +67,14 @@ type ClientOptions struct {
 	ConfigSection string
 }
 
+// ClientResponse represents response from our API call
+//
+// client
+type ClientResponse struct {
+	Body     string
+	Response *http.Response
+}
+
 var (
 	apiPaths = map[string]string{
 		"network_list": "/network-list/v1/network_lists",
@@ -119,7 +127,7 @@ func newClient(httpClient *http.Client, edgercPath, edgercSection string) *Clien
 // Host specified in Config. If body is specified, it will be sent as the request body.
 //
 // client
-func (cl *Client) NewRequest(method, path string, v interface{}) (*http.Response, error) {
+func (cl *Client) NewRequest(method, path string, v interface{}) (*ClientResponse, error) {
 
 	targetURL, _ := prepareURL(cl.baseURL, path)
 
@@ -151,20 +159,22 @@ func (cl *Client) NewRequest(method, path string, v interface{}) (*http.Response
 	}
 	defer resp.Body.Close()
 
+	clientResp := &ClientResponse{}
+
 	err = CheckResponse(resp)
 	if err != nil {
-		// even though there was an error, we still return the response
-		// in case the caller wants to inspect it further
-		return resp, err
+		clientResp.Response = resp
+		clientResp.Body = ""
+
+		return clientResp, err
 	}
 
 	byt, _ := ioutil.ReadAll(resp.Body)
 
-	if err = json.Unmarshal([]byte(byt), &v); err != nil {
-		return nil, err
-	}
+	clientResp.Response = resp
+	clientResp.Body = string(byt)
 
-	return resp, err
+	return clientResp, err
 }
 
 // SetBaseURL sets the base URL for API requests to a custom endpoint.
