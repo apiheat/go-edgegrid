@@ -114,7 +114,7 @@ func newClient(httpClient *http.Client, edgercPath, edgercSection string) *Clien
 	c.credentials, _ = InitEdgerc(edgercPath, edgercSection)
 
 	// Set base URL for making all API requests
-	c.SetBaseURL(c.credentials.host)
+	c.SetBaseURL(c.credentials.host, false)
 
 	// Create all the public services.
 	c.Auth = &AuthService{client: c}
@@ -186,19 +186,19 @@ func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*Cli
 // SetBaseURL sets the base URL for API requests to a custom endpoint.
 //
 // client
-func (cl *Client) SetBaseURL(urlStr string) error {
+func (cl *Client) SetBaseURL(urlStr string, passThrough bool) error {
 
 	var err error
 
-	if strings.HasPrefix(urlStr, "https://") {
+	if passThrough == true {
 		cl.baseURL, err = url.Parse(urlStr)
 	} else {
-		cl.baseURL, err = url.Parse("https://" + urlStr)
+		if strings.HasPrefix(urlStr, "https://") {
+			cl.baseURL, err = url.Parse(urlStr)
+		} else {
+			cl.baseURL, err = url.Parse("https://" + urlStr)
+		}
 	}
-	// // Make sure the given URL end with a slash
-	// if !strings.HasSuffix(urlStr, "/") {
-	// 	urlStr += "/"
-	// }
 
 	return err
 }

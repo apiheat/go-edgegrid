@@ -23,7 +23,7 @@ func setup() (*http.ServeMux, *httptest.Server, *Client) {
 
 	// client is the Gitlab client being tested.
 	client := NewClient(nil, &clientconfig)
-	client.SetBaseURL(server.URL)
+	client.SetBaseURL(server.URL, true)
 
 	return mux, server, client
 }

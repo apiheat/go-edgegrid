@@ -22,26 +22,31 @@ type AkamaiNetworkLists struct {
 //
 // Akamai API docs: https://developer.akamai.com/api/luna/network-list
 type AkamaiNetworkList struct {
-	CreateEpoch                int    `json:"createEpoch"`
-	UpdateEpoch                int    `json:"updateEpoch"`
-	CreateDate                 int64  `json:"createDate"`
-	CreatedBy                  string `json:"createdBy"`
-	UpdatedBy                  string `json:"updatedBy"`
-	UpdateDate                 int64  `json:"updateDate"`
-	StagingActivationStatus    string `json:"stagingActivationStatus"`
-	ProductionActivationStatus string `json:"productionActivationStatus"`
-	Name                       string `json:"name"`
-	Type                       string `json:"type"`
-	UniqueID                   string `json:"unique-id"`
-	Account                    string `json:"account"`
-	ReadOnly                   bool   `json:"readOnly"`
-	SyncPoint                  int    `json:"sync-point"`
-	Links                      []struct {
-		Rel  string `json:"rel"`
-		Href string `json:"href"`
-	} `json:"links"`
-	List       []string `json:"list"`
-	NumEntries int      `json:"numEntries"`
+	CreateEpoch                int                      `json:"createEpoch"`
+	UpdateEpoch                int                      `json:"updateEpoch"`
+	CreateDate                 int64                    `json:"createDate"`
+	CreatedBy                  string                   `json:"createdBy"`
+	UpdatedBy                  string                   `json:"updatedBy"`
+	UpdateDate                 int64                    `json:"updateDate"`
+	StagingActivationStatus    string                   `json:"stagingActivationStatus"`
+	ProductionActivationStatus string                   `json:"productionActivationStatus"`
+	Name                       string                   `json:"name"`
+	Type                       string                   `json:"type"`
+	UniqueID                   string                   `json:"unique-id"`
+	Account                    string                   `json:"account"`
+	ReadOnly                   bool                     `json:"readOnly"`
+	SyncPoint                  int                      `json:"sync-point"`
+	Links                      []AkamaiNetworkListLinks `json:"links"`
+	List                       []string                 `json:"list"`
+	NumEntries                 int                      `json:"numEntries"`
+}
+
+// AkamaiNetworkListLinks represents the network list `links` structure
+//
+// Akamai API docs: https://developer.akamai.com/api/luna/network-list
+type AkamaiNetworkListLinks struct {
+	Rel  string `json:"rel"`
+	Href string `json:"href"`
 }
 
 // ListNetworkListsOptions represents the available options for listing network lists
@@ -71,15 +76,12 @@ type CreateNetworkListOptions struct {
 //
 // Akamai API docs: https://developer.akamai.com/api/luna/network-list
 type NetworkListResponse struct {
-	Status   int    `json:"status,omitempty"`
-	UniqueID string `json:"unique-id,omitempty"`
-	Message  string `json:"message,omitempty"`
-	Links    []struct {
-		Rel  string `json:"rel,omitempty"`
-		Href string `json:"href,omitempty"`
-	} `json:"links"`
-	SyncPoint        int    `json:"sync-point,omitempty"`
-	ActivationStatus string `json:"activation-status,omitempty"`
+	Status           int                      `json:"status,omitempty"`
+	UniqueID         string                   `json:"unique-id,omitempty"`
+	Message          string                   `json:"message,omitempty"`
+	Links            []AkamaiNetworkListLinks `json:"links"`
+	SyncPoint        int                      `json:"sync-point,omitempty"`
+	ActivationStatus string                   `json:"activation-status,omitempty"`
 }
 
 // ActivateNetworkListOptions represents options for network list activation
@@ -162,13 +164,6 @@ func (nls *NetworkListService) CreateNetworkList(opts CreateNetworkListOptions) 
 		return nil, resp, err
 	}
 
-	// networkListResponse := new(NetworkListResponse)
-	// byt, _ := ioutil.ReadAll(resp.Response.Body)
-
-	// if err = json.Unmarshal([]byte(byt), &networkListResponse); err != nil {
-	// 	return nil, resp, err
-	// }
-
 	return k, resp, err
 }
 
@@ -182,17 +177,10 @@ func (nls *NetworkListService) ModifyNetworkList(ListID string, opts AkamaiNetwo
 		ListID)
 
 	var k *NetworkListResponse
-	resp, err := nls.client.NewRequest("POST", apiURI, opts, &k)
+	resp, err := nls.client.NewRequest("PUT", apiURI, opts, &k)
 	if err != nil {
 		return nil, resp, err
 	}
-
-	// networkListResponse := new(NetworkListResponse)
-	// byt, _ := ioutil.ReadAll(resp.Response.Body)
-
-	// if err = json.Unmarshal([]byte(byt), &networkListResponse); err != nil {
-	// 	return nil, resp, err
-	// }
 
 	return k, resp, err
 }
@@ -211,13 +199,6 @@ func (nls *NetworkListService) AddNetworkListItems(ListID string, opts CreateNet
 	if err != nil {
 		return nil, resp, err
 	}
-
-	// networkListResponse := new(NetworkListResponse)
-	// byt, _ := ioutil.ReadAll(resp.Response.Body)
-
-	// if err = json.Unmarshal([]byte(byt), &networkListResponse); err != nil {
-	// 	return nil, resp, err
-	// }
 
 	return k, resp, err
 
@@ -266,13 +247,6 @@ func (nls *NetworkListService) RemoveNetworkListItem(ListID, ListItem string) (*
 	if err != nil {
 		return nil, resp, err
 	}
-
-	// networkListResponse := new(NetworkListResponse)
-	// byt, _ := ioutil.ReadAll(resp.Response.Body)
-
-	// if err = json.Unmarshal([]byte(byt), &networkListResponse); err != nil {
-	// 	return nil, resp, err
-	// }
 
 	return k, resp, err
 
