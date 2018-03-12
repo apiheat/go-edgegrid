@@ -22,6 +22,7 @@ type AkamaiNetworkLists struct {
 //
 // Akamai API docs: https://developer.akamai.com/api/luna/network-list
 type AkamaiNetworkList struct {
+	Description                string                   `json:"description,omitempty"`
 	CreateEpoch                int                      `json:"createEpoch"`
 	UpdateEpoch                int                      `json:"updateEpoch"`
 	CreateDate                 int64                    `json:"createDate"`
