@@ -51,6 +51,11 @@ type PropertyAPIProducts struct {
 	} `json:"products"`
 }
 
+type PropertyAPICPCodeNew struct {
+	ProductID  string `json:"productId"`
+	CpcodeName string `json:"cpcodeName"`
+}
+
 type PropertyAPICPCode struct {
 	CpcodeID    string    `json:"cpcodeId"`
 	CpcodeName  string    `json:"cpcodeName"`
@@ -112,6 +117,25 @@ func (pas *PropertyAPIService) ListPropertyAPICPCodes(contractId, groupId string
 		groupId)
 
 	var k *PropertyAPICPCodes
+	resp, err := pas.client.NewRequest("GET", apiURI, nil, &k)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return k, resp, err
+
+}
+
+// ListPropertyAPIProducts ListPropertyAPIProducts.
+//
+// Akamai API docs: https://developer.akamai.com/api/luna/papi/resources.html#getcpcodes
+func (pas *PropertyAPIService) ListPropertyAPIProducts(contractId string) (*PropertyAPIProducts, *ClientResponse, error) {
+
+	apiURI := fmt.Sprintf("%s/products?contractId=%s",
+		apiPaths["papi_v1"],
+		contractId)
+
+	var k *PropertyAPIProducts
 	resp, err := pas.client.NewRequest("GET", apiURI, nil, &k)
 	if err != nil {
 		return nil, resp, err
