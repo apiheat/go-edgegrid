@@ -109,12 +109,12 @@ func (pas *PropertyAPIService) ListPropertyAPIGroups() (*PropertyAPIGroups, *Cli
 // ListPropertyAPICPCodes This operation lists CP codes available within your contract/group pairing.
 //
 // Akamai API docs: https://developer.akamai.com/api/luna/papi/resources.html#getcpcodes
-func (pas *PropertyAPIService) ListPropertyAPICPCodes(contractId, groupId string) (*PropertyAPICPCodes, *ClientResponse, error) {
+func (pas *PropertyAPIService) ListPropertyAPICPCodes(contractID, groupID string) (*PropertyAPICPCodes, *ClientResponse, error) {
 
 	apiURI := fmt.Sprintf("%s/cpcodes?contractId=%s&groupId=%s",
 		apiPaths["papi_v1"],
-		contractId,
-		groupId)
+		contractID,
+		groupID)
 
 	var k *PropertyAPICPCodes
 	resp, err := pas.client.NewRequest("GET", apiURI, nil, &k)
@@ -142,5 +142,24 @@ func (pas *PropertyAPIService) ListPropertyAPIProducts(contractId string) (*Prop
 	}
 
 	return k, resp, err
+
+}
+
+// NewPropertyAPICPcode Creates new CP Code
+//
+// Akamai API docs: https://developer.akamai.com/api/luna/papi/resources.html#postcpcodes
+func (pas *PropertyAPIService) NewPropertyAPICPcode(newCPcode *PropertyAPICPCodeNew, contractID, groupID string) (*ClientResponse, error) {
+
+	apiURI := fmt.Sprintf("%s/cpcodes?contractId=%s&groupId=%s",
+		apiPaths["papi_v1"],
+		contractID,
+		groupID)
+
+	resp, err := pas.client.NewRequest("POST", apiURI, newCPcode, nil)
+	if err != nil {
+		return resp, err
+	}
+
+	return resp, err
 
 }
