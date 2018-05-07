@@ -72,6 +72,27 @@ type PropertyAPICPCodes struct {
 	} `json:"cpcodes"`
 }
 
+type PropertyAPICPEdgehost struct {
+	EdgeHostnameID         string `json:"edgeHostnameId"`
+	EdgeHostnameDomain     string `json:"edgeHostnameDomain"`
+	ProductID              string `json:"productId"`
+	DomainPrefix           string `json:"domainPrefix"`
+	DomainSuffix           string `json:"domainSuffix"`
+	Secure                 bool   `json:"secure"`
+	IPVersionBehavior      string `json:"ipVersionBehavior"`
+	MapDetailsSerialNumber int    `json:"mapDetails:serialNumber"`
+	MapDetailsMapDomain    string `json:"mapDetails:mapDomain"`
+}
+
+type PropertyAPICPEdgehosts struct {
+	AccountID     string `json:"accountId"`
+	ContractID    string `json:"contractId"`
+	GroupID       string `json:"groupId"`
+	EdgeHostnames struct {
+		Items []PropertyAPICPEdgehost `json:"items"`
+	} `json:"edgeHostnames"`
+}
+
 // ListPropertyAPIContracts This operation provides a read-only list of contract names and identifiers
 //
 // Akamai API docs: https://developer.akamai.com/api/luna/papi/resources.html#getcontracts
@@ -161,5 +182,24 @@ func (pas *PropertyAPIService) NewPropertyAPICPcode(newCPcode *PropertyAPICPCode
 	}
 
 	return resp, err
+
+}
+
+// ListPropertyAPICPEdgehosts This lists all edge hostnames available under a contract..
+//
+// Akamai API docs: https://developer.akamai.com/api/luna/papi/resources.html#getedgehostnames
+func (pas *PropertyAPIService) ListPropertyAPICPEdgehosts(contractId string) (*PropertyAPICPEdgehosts, *ClientResponse, error) {
+
+	apiURI := fmt.Sprintf("%s/edgehostnames?contractId=%s&groupId=%s&options=mapDetails",
+		apiPaths["papi_v1"],
+		contractId)
+
+	var k *PropertyAPICPEdgehosts
+	resp, err := pas.client.NewRequest("GET", apiURI, nil, &k)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return k, resp, err
 
 }
