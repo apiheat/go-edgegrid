@@ -57,6 +57,7 @@ type Client struct {
 	// Services used for talking to different parts of the Akamai API.
 	Auth         *AuthService
 	NetworkLists *NetworkListService
+	PropertyAPI  *PropertyAPIService
 }
 
 // ClientOptions represents options we can pass during client creation
@@ -78,6 +79,7 @@ type ClientResponse struct {
 var (
 	apiPaths = map[string]string{
 		"network_list": "/network-list/v1/network_lists",
+		"papi_v1":      "/papi/v1",
 	}
 )
 
@@ -119,6 +121,7 @@ func newClient(httpClient *http.Client, edgercPath, edgercSection string) *Clien
 	// Create all the public services.
 	c.Auth = &AuthService{client: c}
 	c.NetworkLists = &NetworkListService{client: c}
+	c.PropertyAPI = &PropertyAPIService{client: c}
 
 	return c
 }
