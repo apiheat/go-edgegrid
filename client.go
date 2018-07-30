@@ -3,6 +3,7 @@ package edgegrid
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -128,7 +129,7 @@ func newClient(httpClient *http.Client, edgercPath, edgercSection string) *Clien
 	clientDebugLevel, clientDebugEnabled := os.LookupEnv(string(EnvVarDebugLevelSection))
 
 	// Set appropiate level or fall back into default of "1"
-	if clientDebugEnabled != true {
+	if clientDebugEnabled != false {
 		c.debugLevel = clientDebugLevel
 	} else {
 		c.debugLevel = "1"
@@ -152,6 +153,7 @@ func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*Cli
 	targetURL, _ := prepareURL(cl.baseURL, path)
 
 	log.Println("target URL is " + targetURL.String())
+	log.Println(fmt.Sprintf("This is now %s ", cl.debugLevel))
 
 	req, err := http.NewRequest(method, targetURL.String(), nil)
 	if err != nil {
