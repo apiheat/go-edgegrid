@@ -20,8 +20,9 @@ type AkamaiEnvironmentVar string
 //
 // client
 const (
-	EnvVarEdgercPath    AkamaiEnvironmentVar = "AKAMAI_EDGERC_CONFIG"
-	EnvVarEdgercSection AkamaiEnvironmentVar = "AKAMAI_EDGERC_SECTION"
+	EnvVarEdgercPath        AkamaiEnvironmentVar = "AKAMAI_EDGERC_CONFIG"
+	EnvVarEdgercSection     AkamaiEnvironmentVar = "AKAMAI_EDGERC_SECTION"
+	EnvVarDebugLevelSection AkamaiEnvironmentVar = "AKAMAI_EDGERC_DEBUGLEVEL"
 )
 
 // AkamaiEnvironment represents Akamai's target environment type.
@@ -51,6 +52,9 @@ type Client struct {
 
 	// This base URL comes from edgerc config.
 	baseURL *url.URL
+
+	// Determines debug level of information returned
+	debugLevel string
 
 	// edgerc credentials
 	credentials *EdgercCredentials
@@ -120,10 +124,21 @@ func newClient(httpClient *http.Client, edgercPath, edgercSection string) *Clien
 	// Set base URL for making all API requests
 	c.SetBaseURL(c.credentials.host, false)
 
+	// Query for ENV variable to determing debug level
+	clientDebugLevel, clientDebugEnabled := os.LookupEnv(string(EnvVarDebugLevelSection))
+
+	// Set appropiate level or fall back into default of "1"
+	if clientDebugEnabled != true {
+		c.debugLevel = clientDebugLevel
+	} else {
+		c.debugLevel = "1"
+	}
+
 	// Create all the public services.
 	c.Auth = &AuthService{client: c}
 	c.NetworkLists = &NetworkListService{client: c}
 	c.PropertyAPI = &PropertyAPIService{client: c}
+	c.ReportingAPI = &ReportingAPIService{client: c}
 
 	return c
 }
@@ -225,4 +240,8 @@ func prepareURL(url *url.URL, path string) (*url.URL, error) {
 	u := url.ResolveReference(rel)
 
 	return u, nil
+}
+
+func logDebugOutput() {
+
 }
