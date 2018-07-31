@@ -87,6 +87,7 @@ var (
 	apiPaths = map[string]string{
 		"network_list": "/network-list/v1/network_lists",
 		"papi_v1":      "/papi/v1",
+		"reporting_v1": "/reporting-api/v1/reports",
 	}
 )
 
