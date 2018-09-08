@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -58,6 +59,7 @@ type Client struct {
 	Auth         *AuthService
 	NetworkLists *NetworkListService
 	PropertyAPI  *PropertyAPIService
+	ReportingAPI *ReportingAPIService
 }
 
 // ClientOptions represents options we can pass during client creation
@@ -134,6 +136,8 @@ func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*Cli
 
 	targetURL, _ := prepareURL(cl.baseURL, path)
 
+	log.Println("target URL is " + targetURL.String())
+
 	req, err := http.NewRequest(method, targetURL.String(), nil)
 	if err != nil {
 		return nil, nil
@@ -148,6 +152,8 @@ func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*Cli
 
 		req.Body = ioutil.NopCloser(bodyReader)
 		req.ContentLength = int64(bodyReader.Len())
+
+		log.Println("body is " + string(bodyBytes))
 
 		req.Header.Set("Content-Type", "application/json")
 
