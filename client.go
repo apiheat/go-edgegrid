@@ -3,6 +3,7 @@ package edgegrid
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -20,8 +21,9 @@ type AkamaiEnvironmentVar string
 //
 // client
 const (
-	EnvVarEdgercPath    AkamaiEnvironmentVar = "AKAMAI_EDGERC_CONFIG"
-	EnvVarEdgercSection AkamaiEnvironmentVar = "AKAMAI_EDGERC_SECTION"
+	EnvVarEdgercPath        AkamaiEnvironmentVar = "AKAMAI_EDGERC_CONFIG"
+	EnvVarEdgercSection     AkamaiEnvironmentVar = "AKAMAI_EDGERC_SECTION"
+	EnvVarDebugLevelSection AkamaiEnvironmentVar = "AKAMAI_EDGERC_DEBUGLEVEL"
 )
 
 // AkamaiEnvironment represents Akamai's target environment type.
@@ -51,6 +53,9 @@ type Client struct {
 
 	// This base URL comes from edgerc config.
 	baseURL *url.URL
+
+	// Determines debug level of information returned
+	debugLevel string
 
 	// edgerc credentials
 	credentials *EdgercCredentials
@@ -82,6 +87,7 @@ var (
 	apiPaths = map[string]string{
 		"network_list": "/network-list/v1/network_lists",
 		"papi_v1":      "/papi/v1",
+		"reporting_v1": "/reporting-api/v1/reports",
 	}
 )
 
@@ -120,10 +126,21 @@ func newClient(httpClient *http.Client, edgercPath, edgercSection string) *Clien
 	// Set base URL for making all API requests
 	c.SetBaseURL(c.credentials.host, false)
 
+	// Query for ENV variable to determing debug level
+	clientDebugLevel, clientDebugEnabled := os.LookupEnv(string(EnvVarDebugLevelSection))
+
+	// Set appropiate level or fall back into default of "1"
+	if clientDebugEnabled != false {
+		c.debugLevel = clientDebugLevel
+	} else {
+		c.debugLevel = "1"
+	}
+
 	// Create all the public services.
 	c.Auth = &AuthService{client: c}
 	c.NetworkLists = &NetworkListService{client: c}
 	c.PropertyAPI = &PropertyAPIService{client: c}
+	c.ReportingAPI = &ReportingAPIService{client: c}
 
 	return c
 }
@@ -137,6 +154,7 @@ func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*Cli
 	targetURL, _ := prepareURL(cl.baseURL, path)
 
 	log.Println("target URL is " + targetURL.String())
+	log.Println(fmt.Sprintf("This is now %s ", cl.debugLevel))
 
 	req, err := http.NewRequest(method, targetURL.String(), nil)
 	if err != nil {
@@ -225,4 +243,8 @@ func prepareURL(url *url.URL, path string) (*url.URL, error) {
 	u := url.ResolveReference(rel)
 
 	return u, nil
+}
+
+func logDebugOutput() {
+
 }
