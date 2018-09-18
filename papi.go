@@ -93,6 +93,23 @@ type PropertyAPICPEdgehosts struct {
 	} `json:"edgeHostnames"`
 }
 
+type PropertyAPIProps struct {
+	Properties struct {
+		Items []struct {
+			AccountID         string `json:"accountId"`
+			ContractID        string `json:"contractId"`
+			GroupID           string `json:"groupId"`
+			PropertyID        string `json:"propertyId"`
+			PropertyName      string `json:"propertyName"`
+			LatestVersion     int    `json:"latestVersion"`
+			StagingVersion    int    `json:"stagingVersion"`
+			ProductionVersion int    `json:"productionVersion"`
+			AssetID           string `json:"assetId"`
+			Note              string `json:"note"`
+		} `json:"items"`
+	} `json:"properties"`
+}
+
 // ListPropertyAPIContracts This operation provides a read-only list of contract names and identifiers
 //
 // Akamai API docs: https://developer.akamai.com/api/luna/papi/resources.html#getcontracts
@@ -188,13 +205,34 @@ func (pas *PropertyAPIService) NewPropertyAPICPcode(newCPcode *PropertyAPICPCode
 // ListPropertyAPICPEdgehosts This lists all edge hostnames available under a contract..
 //
 // Akamai API docs: https://developer.akamai.com/api/luna/papi/resources.html#getedgehostnames
-func (pas *PropertyAPIService) ListPropertyAPICPEdgehosts(contractId string) (*PropertyAPICPEdgehosts, *ClientResponse, error) {
+func (pas *PropertyAPIService) ListPropertyAPICPEdgehosts(contractId, groupID string) (*PropertyAPICPEdgehosts, *ClientResponse, error) {
 
 	apiURI := fmt.Sprintf("%s/edgehostnames?contractId=%s&groupId=%s&options=mapDetails",
 		apiPaths["papi_v1"],
-		contractId)
+		contractId,
+		groupID)
 
 	var k *PropertyAPICPEdgehosts
+	resp, err := pas.client.NewRequest("GET", apiURI, nil, &k)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return k, resp, err
+
+}
+
+// ListProperties This lists all properties available under a contract/group
+//
+// Akamai API docs: https://developer.akamai.com/api/core_features/property_manager/v1.html#getproperties
+func (pas *PropertyAPIService) ListPropertyAPIProperties(contractId, groupID string) (*PropertyAPIProps, *ClientResponse, error) {
+
+	apiURI := fmt.Sprintf("%s/properties?contractId=%s&groupId=%s",
+		apiPaths["papi_v1"],
+		contractId,
+		groupID)
+
+	var k *PropertyAPIProps
 	resp, err := pas.client.NewRequest("GET", apiURI, nil, &k)
 	if err != nil {
 		return nil, resp, err
