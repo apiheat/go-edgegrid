@@ -3,13 +3,13 @@ package edgegrid
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // AkamaiEnvironmentVar represents Akamai's env variables used
@@ -129,10 +129,15 @@ func newClient(httpClient *http.Client, edgercPath, edgercSection string) *Clien
 	clientDebugLevel, clientDebugEnabled := os.LookupEnv(string(EnvVarDebugLevelSection))
 
 	// Set appropiate level or fall back into default of "1"
-	if clientDebugEnabled != false {
+	if clientDebugEnabled == true {
 		c.debugLevel = clientDebugLevel
+
+		// Only log the warning severity or above.
+		log.SetLevel(log.DebugLevel)
 	} else {
 		c.debugLevel = "0"
+		// Only log the warning severity or above.
+		log.SetLevel(log.WarnLevel)
 	}
 
 	// Create all the public services.
@@ -152,8 +157,10 @@ func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*Cli
 
 	targetURL, _ := prepareURL(cl.baseURL, path)
 
-	log.Println("target URL is " + targetURL.String())
-	log.Println(fmt.Sprintf("This is now %s ", cl.debugLevel))
+	log.WithFields(log.Fields{
+		"base": cl.baseURL,
+		"path": path,
+	}).Info("Creating request against URI")
 
 	req, err := http.NewRequest(method, targetURL.String(), nil)
 	if err != nil {
