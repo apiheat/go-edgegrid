@@ -40,8 +40,7 @@ const (
 )
 
 const (
-	libraryVersion = "0.0.1"
-	userAgent      = "go-edgegrid/" + libraryVersion
+	userAgent = "go-edgegrid"
 )
 
 // Client represents Akamai's API client for communicating with service
