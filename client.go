@@ -132,7 +132,7 @@ func newClient(httpClient *http.Client, edgercPath, edgercSection string) *Clien
 	if clientDebugEnabled != false {
 		c.debugLevel = clientDebugLevel
 	} else {
-		c.debugLevel = "1"
+		c.debugLevel = "0"
 	}
 
 	// Create all the public services.
