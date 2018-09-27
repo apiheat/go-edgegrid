@@ -122,6 +122,8 @@ func NewClient(httpClient *http.Client, conf *ClientOptions) *Client {
 		log.SetLevel(log.FatalLevel)
 	case "panic":
 		log.SetLevel(log.PanicLevel)
+	default:
+		log.SetLevel(log.WarnLevel)
 	}
 
 	return newClient(httpClient, path, section)
