@@ -3,6 +3,7 @@ package edgegrid
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -93,7 +94,7 @@ var (
 // provided, http.DefaultClient will be used.
 //
 // client
-func NewClient(httpClient *http.Client, conf *ClientOptions) *Client {
+func NewClient(httpClient *http.Client, conf *ClientOptions) (*Client, error) {
 	var (
 		path, section, debuglvl string
 	)
@@ -132,28 +133,48 @@ func NewClient(httpClient *http.Client, conf *ClientOptions) *Client {
 		"debuglvl": debuglvl,
 	}).Info("Create new edge client")
 
-	return newClient(httpClient, path, section)
+	return nil, newClient(httpClient, path, section)
 }
 
 // newClient *private* function to initiaite client
 //
 // client
 func newClient(httpClient *http.Client, edgercPath, edgercSection string) *Client {
+	var errInitEdgerc error
+
 	if httpClient == nil {
 		httpClient = http.DefaultClient
 	}
+
 	log.Debug("[newClient]::Create new client object")
 	c := &Client{client: httpClient}
-	c.credentials, _ = InitEdgerc(edgercPath, edgercSection)
+
+	log.Debug("[newClient]::Create credentials")
+	c.credentials, errInitEdgerc = InitEdgerc(edgercPath, edgercSection)
+
+	if errInitEdgerc != nil {
+		fmt.Printf("Error loading file? %s", errInitEdgerc)
+		return nil
+	}
 
 	// Set base URL for making all API requests
+	log.Debug("[newClient]::SetBaseURL")
 	c.SetBaseURL(c.credentials.host, false)
 
 	// Create all the public services.
+	log.Debug("[newClient]::Create service Auth")
 	c.Auth = &AuthService{client: c}
+
+	log.Debug("[newClient]::Create service NetworkLists")
 	c.NetworkLists = &NetworkListService{client: c}
+
+	log.Debug("[newClient]::Create service PropertyAPI")
 	c.PropertyAPI = &PropertyAPIService{client: c}
+
+	log.Debug("[newClient]::Create service ReportingAPI")
 	c.ReportingAPI = &ReportingAPIService{client: c}
+
+	log.Debug("[newClient]::Create service Debug")
 	c.Debug = &DebugService{client: c}
 
 	return c
@@ -168,40 +189,49 @@ func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*Cli
 	targetURL, _ := prepareURL(cl.baseURL, path)
 
 	log.WithFields(log.Fields{
-		"base": cl.baseURL,
-		"path": path,
-	}).Info("Request URI")
+		"method": method,
+		"base":   cl.baseURL,
+		"path":   path,
+	}).Info("Create new request")
 
+	log.Debug("[NewRequest]::Create http request")
 	req, err := http.NewRequest(method, targetURL.String(), nil)
 	if err != nil {
 		return nil, nil
 	}
 
 	if method == "POST" || method == "PUT" {
+		log.Info("Prepare request body object")
+		log.Debug("[NewRequest]::Method is POST/PUT")
+		log.Debug("[NewRequest]::Marshal request object")
 		bodyBytes, err := json.Marshal(vreq)
 		if err != nil {
 			return nil, err
 		}
 		bodyReader := bytes.NewReader(bodyBytes)
 
+		log.Debug("[NewRequest]::Body object added to request")
 		req.Body = ioutil.NopCloser(bodyReader)
 		req.ContentLength = int64(bodyReader.Len())
 
-		log.Println("body is " + string(bodyBytes))
-
+		log.Debug("[NewRequest]::Body object is:" + string(bodyBytes))
+		log.Debug("[NewRequest]::Set header Content-Type to 'application/json' ")
 		req.Header.Set("Content-Type", "application/json")
 
 	}
 
 	authorizationHeader := AuthString(cl.credentials, req, []string{})
+	log.Debug("[NewRequest]::Set header Authorization")
 	req.Header.Add("Authorization", authorizationHeader)
 
+	log.Info("Execute http request")
 	resp, err := cl.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
+	log.Debug("[NewRequest]::Process response")
 	clientResp := &ClientResponse{}
 
 	err = CheckResponse(resp)
@@ -223,6 +253,8 @@ func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*Cli
 		}
 	}
 
+	log.Debug("[NewRequest]::Return response")
+
 	return clientResp, err
 }
 
@@ -230,6 +262,11 @@ func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*Cli
 //
 // client
 func (cl *Client) SetBaseURL(urlStr string, passThrough bool) error {
+
+	log.WithFields(log.Fields{
+		"urlStr":      urlStr,
+		"passThrough": passThrough,
+	}).Info("Set BaseURL for client")
 
 	var err error
 
@@ -242,6 +279,10 @@ func (cl *Client) SetBaseURL(urlStr string, passThrough bool) error {
 			cl.baseURL, err = url.Parse("https://" + urlStr)
 		}
 	}
+
+	log.WithFields(log.Fields{
+		"baseURL": cl.baseURL.String(),
+	}).Debug("[SetBaseURL]::Base URL set")
 
 	return err
 }
