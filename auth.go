@@ -15,6 +15,7 @@ import (
 	"github.com/go-ini/ini"
 	homedir "github.com/mitchellh/go-homedir"
 	uuid "github.com/satori/go.uuid"
+	log "github.com/sirupsen/logrus"
 )
 
 // Akamai {OPEN} EdgeGrid Authentication Service
@@ -44,14 +45,28 @@ func InitEdgerc(edgercConfig, edgercSection string) (*EdgercCredentials, error) 
 	dir, _ := homedir.Dir()
 	dir += string(os.PathSeparator) + ".edgerc"
 
+	log.WithFields(log.Fields{
+		"dir": dir,
+	}).Debug("Auth file path")
+
 	// Load the file based on our provided config
 	edgerc, err := ini.Load(dir)
 	if err != nil {
+
+		log.WithFields(log.Fields{
+			"err": err,
+		}).Debug("Error loading file")
+
 		return nil, fmt.Errorf("Error loading file? %s", err)
 	}
 
 	sectionNames := edgerc.SectionStrings()
 	if !(stringInSlice(edgercSection, sectionNames)) {
+
+		log.WithFields(log.Fields{
+			"err": err,
+		}).Debug("Error loading section")
+
 		return nil, fmt.Errorf("Could not load section  %s", edgercSection)
 	}
 

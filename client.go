@@ -53,14 +53,12 @@ type Client struct {
 	// This base URL comes from edgerc config.
 	baseURL *url.URL
 
-	// Determines debug level of information returned
-	debugLevel string
-
 	// edgerc credentials
 	credentials *EdgercCredentials
 
 	// Services used for talking to different parts of the Akamai API.
 	Auth         *AuthService
+	Debug        *DebugService
 	NetworkLists *NetworkListService
 	PropertyAPI  *PropertyAPIService
 	ReportingAPI *ReportingAPIService
@@ -72,6 +70,7 @@ type Client struct {
 type ClientOptions struct {
 	ConfigPath    string
 	ConfigSection string
+	DebugLevel    string
 }
 
 // ClientResponse represents response from our API call
@@ -96,16 +95,35 @@ var (
 // client
 func NewClient(httpClient *http.Client, conf *ClientOptions) *Client {
 	var (
-		path, section string
+		path, section, debuglvl string
 	)
 
 	// If we do not pass config we will try to to use env variables
 	if conf != nil {
 		path = conf.ConfigPath
 		section = conf.ConfigSection
+		debuglvl = conf.DebugLevel
 	} else {
 		path = os.Getenv(string(EnvVarEdgercPath))
 		section = os.Getenv(string(EnvVarEdgercSection))
+		debuglvl, _ = os.LookupEnv(string(EnvVarDebugLevelSection))
+	}
+
+	switch debuglvl {
+	case "debug":
+		log.SetLevel(log.DebugLevel)
+	case "info":
+		log.SetLevel(log.InfoLevel)
+	case "warn":
+		log.SetLevel(log.WarnLevel)
+	case "error":
+		log.SetLevel(log.ErrorLevel)
+	case "fatal":
+		log.SetLevel(log.FatalLevel)
+	case "panic":
+		log.SetLevel(log.PanicLevel)
+	default:
+		log.SetLevel(log.WarnLevel)
 	}
 
 	return newClient(httpClient, path, section)
@@ -125,26 +143,12 @@ func newClient(httpClient *http.Client, edgercPath, edgercSection string) *Clien
 	// Set base URL for making all API requests
 	c.SetBaseURL(c.credentials.host, false)
 
-	// Query for ENV variable to determing debug level
-	clientDebugLevel, clientDebugEnabled := os.LookupEnv(string(EnvVarDebugLevelSection))
-
-	// Set appropiate level or fall back into default of "1"
-	if clientDebugEnabled == true {
-		c.debugLevel = clientDebugLevel
-
-		// Only log the warning severity or above.
-		log.SetLevel(log.DebugLevel)
-	} else {
-		c.debugLevel = "0"
-		// Only log the warning severity or above.
-		log.SetLevel(log.WarnLevel)
-	}
-
 	// Create all the public services.
 	c.Auth = &AuthService{client: c}
 	c.NetworkLists = &NetworkListService{client: c}
 	c.PropertyAPI = &PropertyAPIService{client: c}
 	c.ReportingAPI = &ReportingAPIService{client: c}
+	c.Debug = &DebugService{client: c}
 
 	return c
 }
@@ -160,7 +164,7 @@ func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*Cli
 	log.WithFields(log.Fields{
 		"base": cl.baseURL,
 		"path": path,
-	}).Info("Creating request against URI")
+	}).Info("Request URI")
 
 	req, err := http.NewRequest(method, targetURL.String(), nil)
 	if err != nil {
@@ -249,8 +253,4 @@ func prepareURL(url *url.URL, path string) (*url.URL, error) {
 	u := url.ResolveReference(rel)
 
 	return u, nil
-}
-
-func logDebugOutput() {
-
 }
