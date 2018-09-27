@@ -53,9 +53,6 @@ type Client struct {
 	// This base URL comes from edgerc config.
 	baseURL *url.URL
 
-	// Determines debug level of information returned
-	debugLevel string
-
 	// edgerc credentials
 	credentials *EdgercCredentials
 
@@ -73,6 +70,7 @@ type Client struct {
 type ClientOptions struct {
 	ConfigPath    string
 	ConfigSection string
+	DebugLevel    string
 }
 
 // ClientResponse represents response from our API call
@@ -97,16 +95,33 @@ var (
 // client
 func NewClient(httpClient *http.Client, conf *ClientOptions) *Client {
 	var (
-		path, section string
+		path, section, debuglvl string
 	)
 
 	// If we do not pass config we will try to to use env variables
 	if conf != nil {
 		path = conf.ConfigPath
 		section = conf.ConfigSection
+		debuglvl = conf.DebugLevel
 	} else {
 		path = os.Getenv(string(EnvVarEdgercPath))
 		section = os.Getenv(string(EnvVarEdgercSection))
+		debuglvl, _ = os.LookupEnv(string(EnvVarDebugLevelSection))
+	}
+
+	switch debuglvl {
+	case "debug":
+		log.SetLevel(log.DebugLevel)
+	case "info":
+		log.SetLevel(log.InfoLevel)
+	case "warn":
+		log.SetLevel(log.WarnLevel)
+	case "error":
+		log.SetLevel(log.ErrorLevel)
+	case "fatal":
+		log.SetLevel(log.FatalLevel)
+	case "panic":
+		log.SetLevel(log.PanicLevel)
 	}
 
 	return newClient(httpClient, path, section)
@@ -120,23 +135,7 @@ func newClient(httpClient *http.Client, edgercPath, edgercSection string) *Clien
 		httpClient = http.DefaultClient
 	}
 
-	// Query for ENV variable to determing debug level
-	clientDebugLevel, clientDebugEnabled := os.LookupEnv(string(EnvVarDebugLevelSection))
-
 	c := &Client{client: httpClient}
-
-	// Set appropiate level or fall back into default of "1"
-	if clientDebugEnabled == true {
-		c.debugLevel = clientDebugLevel
-
-		// Only log the warning severity or above.
-		log.SetLevel(log.DebugLevel)
-	} else {
-		c.debugLevel = "0"
-		// Only log the warning severity or above.
-		log.SetLevel(log.WarnLevel)
-	}
-
 	c.credentials, _ = InitEdgerc(edgercPath, edgercSection)
 
 	// Set base URL for making all API requests

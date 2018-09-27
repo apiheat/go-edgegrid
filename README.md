@@ -1,27 +1,24 @@
 # go-edgegrid
 
-An Akamai API client enabling Go programs to interact with Akamai in a simple and uniform way
-
-## NOTE
-
-n.v.t
+Golang based client for interaction with Akamai API services.
 
 ## Coverage
 
 This API client package covers most used parts the existing akamai API calls and is updated regularly. Currently the following services are supported:
 
 - [x] Network Lists
+- [x] Property APIs
 - [ ] Firewall Rule notifications
 - [ ] Siteshield
-- [ ] Netstorage
 - [ ] Certificate management
 
 To add new/update existing features create a new PR
 
 ## Usage
+To start using the client you just need to reference package within your code.
 
 ```go
-import "github.com/RafPe/go-edgegrid"
+import "github.com/apiheat/go-edgegrid"
 ```
 
 Construct a new Akamai client, then use the various services on the client to
