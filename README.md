@@ -30,81 +30,20 @@ apiClientOpts.ConfigPath =  "/path/to/.edgerc/"
 apiClientOpts.ConfigSection = "default"
 
 // create new Akamai API client
-akamaiApi := edgegrid.NewClient(nil, apiClientOpts)
+akamaiApi, err := edgegrid.NewClient(nil, apiClientOpts)
 ```
 
-Passing `nil` into client options will cause it to try and initiate using `ENV VARS`
+Once created you will have access to exposed services on `akamaiApi` client object.
 
-Some API methods have optional parameters that can be passed.
-
-```go
-
-
-// create new API client - using ENV VARS
-// * AKAMAI_EDGERC_CONFIG
-// * AKAMAI_EDGERC_SECTION
-akamaiApi := edgegrid.NewClient(nil,nil)
-
-// Set options for working with network lists
-opt := edgegrid.ListNetworkListsOptions{
-	TypeOflist:        "IP",
-	Extended:          true,
-	IncludeDeprecated: false,
-	IncludeElements:   false,
-}
-
-// List all network lists
-netLists, resp, err := apiClient.NetworkLists.ListNetworkLists(opt)
-
-if err != nil {
-	return err
-}
-```
-
-### Examples
-
-The [examples](https://github.com/RafPe/go-edgegrid/tree/master/examples) directory
-contains a couple for clear examples.
-
-```go
-package main
-
-import (
-	"log"
-
-	"github.com/RafPe/go-edgegrid"
-)
-
-func main() {
-
-	// create new Akamai API client
-	akamaiApi := edgegrid.NewClient(nil, "/path/to/.edgerc/", "section-name")
-
-	// create options for new list creation
-	newListItems := []string{"1.2.3.4/32", "5.6.7.8/32"}
-	newListOpts := edgegrid.CreateNetworkListsOptions{
-		Name:        "dummy_delete_1",
-		Type:        "IP",
-		Description: "",
-		List:        newListItems,
-	}
-	
-	newList, err := api.NetworkLists.CreateNetworkList(newListOpts)
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-
-```
 ## ToDo
 
 - The biggest thing this package still needs is tests :disappointed:
 
 ## Issues
 
-- If you have an issue: report it on the [issue tracker](https://github.com/RafPe/go-edgegrid/issues)
+- If you have an issue: report it on the [issue tracker](https://github.com/apiheat/go-edgegrid/issues)
 
-## Author
+## Authors
 
 * RafPe [https://github.com/rafpe]
 * Petr Artamonov [https://github.com/partamonov/]
