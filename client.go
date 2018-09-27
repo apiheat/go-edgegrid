@@ -126,6 +126,12 @@ func NewClient(httpClient *http.Client, conf *ClientOptions) *Client {
 		log.SetLevel(log.WarnLevel)
 	}
 
+	log.WithFields(log.Fields{
+		"path":     path,
+		"section":  section,
+		"debuglvl": debuglvl,
+	}).Info("Create new edge client")
+
 	return newClient(httpClient, path, section)
 }
 
@@ -136,7 +142,7 @@ func newClient(httpClient *http.Client, edgercPath, edgercSection string) *Clien
 	if httpClient == nil {
 		httpClient = http.DefaultClient
 	}
-
+	log.Debug("[newClient]::Create new client object")
 	c := &Client{client: httpClient}
 	c.credentials, _ = InitEdgerc(edgercPath, edgercSection)
 
