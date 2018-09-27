@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -99,16 +98,16 @@ func NewClient(httpClient *http.Client, conf *ClientOptions) (*Client, error) {
 		path, section, debuglvl string
 	)
 
-	// If we do not pass config we will try to to use env variables
-	if conf != nil {
-		path = conf.ConfigPath
-		section = conf.ConfigSection
-		debuglvl = conf.DebugLevel
-	} else {
-		path = os.Getenv(string(EnvVarEdgercPath))
-		section = os.Getenv(string(EnvVarEdgercSection))
-		debuglvl, _ = os.LookupEnv(string(EnvVarDebugLevelSection))
-	}
+	// Set up path/section and debug level and override if set on ENV variable level
+	path = conf.ConfigPath
+	section = conf.ConfigSection
+	debuglvl = conf.DebugLevel
+
+	log.WithFields(log.Fields{
+		"path":     path,
+		"section":  section,
+		"debuglvl": debuglvl,
+	}).Info("Create new edge client")
 
 	switch debuglvl {
 	case "debug":
@@ -127,19 +126,21 @@ func NewClient(httpClient *http.Client, conf *ClientOptions) (*Client, error) {
 		log.SetLevel(log.WarnLevel)
 	}
 
-	log.WithFields(log.Fields{
-		"path":     path,
-		"section":  section,
-		"debuglvl": debuglvl,
-	}).Info("Create new edge client")
+	APIClient, errAPIClient := newClient(httpClient, path, section)
 
-	return nil, newClient(httpClient, path, section)
+	if errAPIClient != nil {
+		log.Debugln("whatever")
+		fmt.Println("[newClient]::Create new client object failed: " + errAPIClient.Error())
+		return nil, errAPIClient
+	}
+
+	return APIClient, nil
 }
 
 // newClient *private* function to initiaite client
 //
 // client
-func newClient(httpClient *http.Client, edgercPath, edgercSection string) *Client {
+func newClient(httpClient *http.Client, edgercPath, edgercSection string) (*Client, error) {
 	var errInitEdgerc error
 
 	if httpClient == nil {
@@ -153,8 +154,7 @@ func newClient(httpClient *http.Client, edgercPath, edgercSection string) *Clien
 	c.credentials, errInitEdgerc = InitEdgerc(edgercPath, edgercSection)
 
 	if errInitEdgerc != nil {
-		fmt.Printf("Error loading file? %s", errInitEdgerc)
-		return nil
+		return nil, errInitEdgerc
 	}
 
 	// Set base URL for making all API requests
@@ -177,7 +177,7 @@ func newClient(httpClient *http.Client, edgercPath, edgercSection string) *Clien
 	log.Debug("[newClient]::Create service Debug")
 	c.Debug = &DebugService{client: c}
 
-	return c
+	return c, nil
 }
 
 // newRequest creates an HTTP request that can be sent to Akamai APIs. A relative URL can be provided in path, which will be resolved to the
