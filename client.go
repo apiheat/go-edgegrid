@@ -61,6 +61,7 @@ type Client struct {
 
 	// Services used for talking to different parts of the Akamai API.
 	Auth         *AuthService
+	Debug        *DebugService
 	NetworkLists *NetworkListService
 	PropertyAPI  *PropertyAPIService
 	ReportingAPI *ReportingAPIService
@@ -119,14 +120,10 @@ func newClient(httpClient *http.Client, edgercPath, edgercSection string) *Clien
 		httpClient = http.DefaultClient
 	}
 
-	c := &Client{client: httpClient}
-	c.credentials, _ = InitEdgerc(edgercPath, edgercSection)
-
-	// Set base URL for making all API requests
-	c.SetBaseURL(c.credentials.host, false)
-
 	// Query for ENV variable to determing debug level
 	clientDebugLevel, clientDebugEnabled := os.LookupEnv(string(EnvVarDebugLevelSection))
+
+	c := &Client{client: httpClient}
 
 	// Set appropiate level or fall back into default of "1"
 	if clientDebugEnabled == true {
@@ -140,11 +137,17 @@ func newClient(httpClient *http.Client, edgercPath, edgercSection string) *Clien
 		log.SetLevel(log.WarnLevel)
 	}
 
+	c.credentials, _ = InitEdgerc(edgercPath, edgercSection)
+
+	// Set base URL for making all API requests
+	c.SetBaseURL(c.credentials.host, false)
+
 	// Create all the public services.
 	c.Auth = &AuthService{client: c}
 	c.NetworkLists = &NetworkListService{client: c}
 	c.PropertyAPI = &PropertyAPIService{client: c}
 	c.ReportingAPI = &ReportingAPIService{client: c}
+	c.Debug = &DebugService{client: c}
 
 	return c
 }
@@ -160,7 +163,7 @@ func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*Cli
 	log.WithFields(log.Fields{
 		"base": cl.baseURL,
 		"path": path,
-	}).Info("Creating request against URI")
+	}).Info("Request URI")
 
 	req, err := http.NewRequest(method, targetURL.String(), nil)
 	if err != nil {
@@ -249,8 +252,4 @@ func prepareURL(url *url.URL, path string) (*url.URL, error) {
 	u := url.ResolveReference(rel)
 
 	return u, nil
-}
-
-func logDebugOutput() {
-
 }
