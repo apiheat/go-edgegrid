@@ -88,10 +88,8 @@ func InitEdgerc(edgercConfig, edgercSection string) (*EdgercCredentials, error) 
 // https://developer.akamai.com/introduction/Client_Auth.html
 func AuthString(eprm *EdgercCredentials, request *http.Request, headersToSign []string) string {
 
-	u, err := uuid.NewV4()
-	if err != nil {
-		return ""
-	}
+	u := uuid.NewV4()
+
 	nonce := u.String()
 
 	timestamp := time.Now().UTC().Format("20060102T15:04:05+0000")
