@@ -3,7 +3,6 @@ package edgegrid
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -103,12 +102,6 @@ func NewClient(httpClient *http.Client, conf *ClientOptions) (*Client, error) {
 	section = conf.ConfigSection
 	debuglvl = conf.DebugLevel
 
-	log.WithFields(log.Fields{
-		"path":     path,
-		"section":  section,
-		"debuglvl": debuglvl,
-	}).Info("Create new edge client")
-
 	switch debuglvl {
 	case "debug":
 		log.SetLevel(log.DebugLevel)
@@ -123,14 +116,19 @@ func NewClient(httpClient *http.Client, conf *ClientOptions) (*Client, error) {
 	case "panic":
 		log.SetLevel(log.PanicLevel)
 	default:
-		log.SetLevel(log.WarnLevel)
+		log.SetLevel(log.ErrorLevel)
 	}
+
+	log.WithFields(log.Fields{
+		"path":     path,
+		"section":  section,
+		"debuglvl": debuglvl,
+	}).Info("Create new edge client")
 
 	APIClient, errAPIClient := newClient(httpClient, path, section)
 
 	if errAPIClient != nil {
-		log.Debugln("whatever")
-		fmt.Println("[newClient]::Create new client object failed: " + errAPIClient.Error())
+		log.Debug("[newClient]::Create new client object failed: " + errAPIClient.Error())
 		return nil, errAPIClient
 	}
 
@@ -234,7 +232,7 @@ func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*Cli
 	log.Debug("[NewRequest]::Process response")
 	clientResp := &ClientResponse{}
 
-	log.Warn("Check response code")
+	log.Debug("[NewRequest]::Check response")
 	err = CheckResponse(resp)
 	if err != nil {
 		clientResp.Response = resp
