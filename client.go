@@ -3,10 +3,10 @@ package edgegrid
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"os"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -93,21 +93,21 @@ var (
 // provided, http.DefaultClient will be used.
 //
 // client
-func NewClient(httpClient *http.Client, conf *ClientOptions) *Client {
+func NewClient(httpClient *http.Client, conf *ClientOptions) (*Client, error) {
 	var (
 		path, section, debuglvl string
 	)
 
-	// If we do not pass config we will try to to use env variables
-	if conf != nil {
-		path = conf.ConfigPath
-		section = conf.ConfigSection
-		debuglvl = conf.DebugLevel
-	} else {
-		path = os.Getenv(string(EnvVarEdgercPath))
-		section = os.Getenv(string(EnvVarEdgercSection))
-		debuglvl, _ = os.LookupEnv(string(EnvVarDebugLevelSection))
-	}
+	// Set up path/section and debug level and override if set on ENV variable level
+	path = conf.ConfigPath
+	section = conf.ConfigSection
+	debuglvl = conf.DebugLevel
+
+	log.WithFields(log.Fields{
+		"path":     path,
+		"section":  section,
+		"debuglvl": debuglvl,
+	}).Info("Create new edge client")
 
 	switch debuglvl {
 	case "debug":
@@ -126,31 +126,58 @@ func NewClient(httpClient *http.Client, conf *ClientOptions) *Client {
 		log.SetLevel(log.WarnLevel)
 	}
 
-	return newClient(httpClient, path, section)
+	APIClient, errAPIClient := newClient(httpClient, path, section)
+
+	if errAPIClient != nil {
+		log.Debugln("whatever")
+		fmt.Println("[newClient]::Create new client object failed: " + errAPIClient.Error())
+		return nil, errAPIClient
+	}
+
+	return APIClient, nil
 }
 
 // newClient *private* function to initiaite client
 //
 // client
-func newClient(httpClient *http.Client, edgercPath, edgercSection string) *Client {
+func newClient(httpClient *http.Client, edgercPath, edgercSection string) (*Client, error) {
+	var errInitEdgerc error
+
 	if httpClient == nil {
 		httpClient = http.DefaultClient
 	}
 
+	log.Debug("[newClient]::Create new client object")
 	c := &Client{client: httpClient}
-	c.credentials, _ = InitEdgerc(edgercPath, edgercSection)
+
+	log.Debug("[newClient]::Create credentials")
+	c.credentials, errInitEdgerc = InitEdgerc(edgercPath, edgercSection)
+
+	if errInitEdgerc != nil {
+		return nil, errInitEdgerc
+	}
 
 	// Set base URL for making all API requests
+	log.Debug("[newClient]::SetBaseURL")
 	c.SetBaseURL(c.credentials.host, false)
 
 	// Create all the public services.
+	log.Debug("[newClient]::Create service Auth")
 	c.Auth = &AuthService{client: c}
+
+	log.Debug("[newClient]::Create service NetworkLists")
 	c.NetworkLists = &NetworkListService{client: c}
+
+	log.Debug("[newClient]::Create service PropertyAPI")
 	c.PropertyAPI = &PropertyAPIService{client: c}
+
+	log.Debug("[newClient]::Create service ReportingAPI")
 	c.ReportingAPI = &ReportingAPIService{client: c}
+
+	log.Debug("[newClient]::Create service Debug")
 	c.Debug = &DebugService{client: c}
 
-	return c
+	return c, nil
 }
 
 // newRequest creates an HTTP request that can be sent to Akamai APIs. A relative URL can be provided in path, which will be resolved to the
@@ -162,40 +189,49 @@ func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*Cli
 	targetURL, _ := prepareURL(cl.baseURL, path)
 
 	log.WithFields(log.Fields{
-		"base": cl.baseURL,
-		"path": path,
-	}).Info("Request URI")
+		"method": method,
+		"base":   cl.baseURL,
+		"path":   path,
+	}).Info("Create new request")
 
+	log.Debug("[NewRequest]::Create http request")
 	req, err := http.NewRequest(method, targetURL.String(), nil)
 	if err != nil {
 		return nil, nil
 	}
 
 	if method == "POST" || method == "PUT" {
+		log.Info("Prepare request body object")
+		log.Debug("[NewRequest]::Method is POST/PUT")
+		log.Debug("[NewRequest]::Marshal request object")
 		bodyBytes, err := json.Marshal(vreq)
 		if err != nil {
 			return nil, err
 		}
 		bodyReader := bytes.NewReader(bodyBytes)
 
+		log.Debug("[NewRequest]::Body object added to request")
 		req.Body = ioutil.NopCloser(bodyReader)
 		req.ContentLength = int64(bodyReader.Len())
 
-		log.Println("body is " + string(bodyBytes))
-
+		log.Debug("[NewRequest]::Body object is:" + string(bodyBytes))
+		log.Debug("[NewRequest]::Set header Content-Type to 'application/json' ")
 		req.Header.Set("Content-Type", "application/json")
 
 	}
 
 	authorizationHeader := AuthString(cl.credentials, req, []string{})
+	log.Debug("[NewRequest]::Set header Authorization")
 	req.Header.Add("Authorization", authorizationHeader)
 
+	log.Info("Execute http request")
 	resp, err := cl.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
+	log.Debug("[NewRequest]::Process response")
 	clientResp := &ClientResponse{}
 
 	err = CheckResponse(resp)
@@ -217,6 +253,8 @@ func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*Cli
 		}
 	}
 
+	log.Debug("[NewRequest]::Return response")
+
 	return clientResp, err
 }
 
@@ -224,6 +262,11 @@ func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*Cli
 //
 // client
 func (cl *Client) SetBaseURL(urlStr string, passThrough bool) error {
+
+	log.WithFields(log.Fields{
+		"urlStr":      urlStr,
+		"passThrough": passThrough,
+	}).Info("Set BaseURL for client")
 
 	var err error
 
@@ -236,6 +279,10 @@ func (cl *Client) SetBaseURL(urlStr string, passThrough bool) error {
 			cl.baseURL, err = url.Parse("https://" + urlStr)
 		}
 	}
+
+	log.WithFields(log.Fields{
+		"baseURL": cl.baseURL.String(),
+	}).Debug("[SetBaseURL]::Base URL set")
 
 	return err
 }

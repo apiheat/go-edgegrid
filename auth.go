@@ -8,12 +8,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 
 	"github.com/go-ini/ini"
-	homedir "github.com/mitchellh/go-homedir"
 	uuid "github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
 )
@@ -40,52 +38,44 @@ func (m reader) Close() error { return nil }
 // Init initializes using a configuration file in standard INI format
 func InitEdgerc(edgercConfig, edgercSection string) (*EdgercCredentials, error) {
 
-	// Sets default value for credentials configuration file
-	// to be pointing to ~/.edgerc
-	dir, _ := homedir.Dir()
-	dir += string(os.PathSeparator) + ".edgerc"
-
 	log.WithFields(log.Fields{
-		"dir": dir,
-	}).Debug("Auth file path")
+		"edgercConfig":  edgercConfig,
+		"edgercSection": edgercSection,
+	}).Info("Initialize credentials")
 
 	// Load the file based on our provided config
-	edgerc, err := ini.Load(dir)
+	log.Debug("[InitEdgerc]::Loading credentials file")
+	edgerc, err := ini.Load(edgercConfig)
 	if err != nil {
-
-		log.WithFields(log.Fields{
-			"err": err,
-		}).Debug("Error loading file")
-
 		return nil, fmt.Errorf("Error loading file? %s", err)
 	}
 
+	log.Debug("[InitEdgerc]::Loading section from credentials file")
 	sectionNames := edgerc.SectionStrings()
 	if !(stringInSlice(edgercSection, sectionNames)) {
-
-		log.WithFields(log.Fields{
-			"err": err,
-		}).Debug("Error loading section")
-
 		return nil, fmt.Errorf("Could not load section  %s", edgercSection)
 	}
 
+	log.Debug("[InitEdgerc]::Lookup for credentials ( host/secrets etc)")
 	edgercHost := edgerc.Section(edgercSection).Key("host").String()
 	edgercclientToken := edgerc.Section(edgercSection).Key("client_token").String()
 	edgercclientSecret := edgerc.Section(edgercSection).Key("client_secret").String()
 	edgercaccessToken := edgerc.Section(edgercSection).Key("access_token").String()
 
+	log.Debug("[InitEdgerc]::Create credentials object")
 	loadedCredentials := &EdgercCredentials{
 		host:         edgercHost,
 		clientToken:  edgercclientToken,
 		clientSecret: edgercclientSecret,
 		accessToken:  edgercaccessToken,
 	}
+	log.Debug("[InitEdgerc]::Map credentials to appropiate object")
 	err = edgerc.Section(edgercSection).MapTo(loadedCredentials)
 	if err != nil {
 		return nil, fmt.Errorf("Error loading file? %s", err)
 	}
 
+	log.Debug("[InitEdgerc]::Return credentials object")
 	return loadedCredentials, nil
 
 }
@@ -213,6 +203,7 @@ func makeSigningKey(timestamp, clientSecret string) string {
 	return base64HmacSha256(timestamp, clientSecret)
 }
 
+//#TODO: Move to common CLI
 func urlPathWithQuery(req *http.Request) string {
 	var query string
 
