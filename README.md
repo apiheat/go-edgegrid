@@ -28,10 +28,14 @@ access different parts of the akamai API.
 apiClientOpts := &edgegrid.ClientOptions{}
 apiClientOpts.ConfigPath =  "/path/to/.edgerc/"
 apiClientOpts.ConfigSection = "default"
+apiClientOpts.DebugLevel = "warn"
 
 // create new Akamai API client
 akamaiApi, err := edgegrid.NewClient(nil, apiClientOpts)
 ```
+
+The debug property `apiClientOpts.DebugLevel` is *optional* and can be lower case string of `debug warn info error fatal panic`
+
 
 Once created you will have access to exposed services on `akamaiApi` client object.
 
