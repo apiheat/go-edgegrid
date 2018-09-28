@@ -6,6 +6,9 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strconv"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // An ErrorResponse reports one or more errors caused by an API request.
@@ -38,17 +41,32 @@ func (e *ErrorResponse) Error() string {
 //
 // error
 func CheckResponse(r *http.Response) error {
+
+	log.Debug("[CheckResponse]::Check response code")
+	log.Debug("[CheckResponse]::Response code is:" + strconv.Itoa(r.StatusCode))
 	switch r.StatusCode {
 	case 200, 201, 202, 204, 304:
 		return nil
 	}
 
+	log.Debug("[CheckResponse]::Create error response object")
 	errorResponse := &ErrorResponse{Response: r}
+
+	log.Debug("[CheckResponse]::Read body")
 	data, err := ioutil.ReadAll(r.Body)
+
+	log.Debug("[CheckResponse]::Error body is: " + string(data))
+
 	if err == nil && data != nil {
-		if err := json.Unmarshal(data, &errorResponse); err != nil {
+		log.Debug("[CheckResponse]::Process response body")
+		errRespData := json.Unmarshal(data, &errorResponse)
+
+		if errRespData == nil {
+			log.Debug("[CheckResponse]::Succesfully processed body")
 			errorResponse.Status = r.StatusCode
 			errorResponse.Title = r.Status
+		} else {
+			log.Debug("[CheckResponse]::Failover to provide raw data object.response")
 		}
 
 		errorResponse.Response = r
