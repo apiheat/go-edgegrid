@@ -234,6 +234,7 @@ func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*Cli
 	log.Debug("[NewRequest]::Process response")
 	clientResp := &ClientResponse{}
 
+	log.Warn("Check response code")
 	err = CheckResponse(resp)
 	if err != nil {
 		clientResp.Response = resp
@@ -247,6 +248,7 @@ func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*Cli
 	clientResp.Response = resp
 	clientResp.Body = string(byt)
 
+	log.Debug("[NewRequest]::Map response to provided type")
 	if vresp != nil {
 		if err = json.Unmarshal([]byte(byt), &vresp); err != nil {
 			return clientResp, err
