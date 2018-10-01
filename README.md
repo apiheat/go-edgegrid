@@ -9,6 +9,7 @@ This API client package covers most used parts the existing akamai API calls and
 - [x] Adaptive Acceleration
 - [x] Network Lists
 - [x] Property APIs
+- [o] Identity Management
 - [ ] Firewall Rule notifications
 - [ ] Siteshield
 - [ ] Certificate management
