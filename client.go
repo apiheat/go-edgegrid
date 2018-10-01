@@ -25,6 +25,14 @@ const (
 	EnvVarDebugLevelSection AkamaiEnvironmentVar = "AKAMAI_EDGERC_DEBUGLEVEL"
 )
 
+// Akamai Services Paths
+const (
+	A2PathV1          = "/adaptive-acceleration/v1/properties"
+	NetworkListPathV1 = "/network-list/v1/network_lists"
+	PAPIPathV1        = "/papi/v1"
+	ReportingPathV1   = "/reporting-api/v1/reports"
+)
+
 // AkamaiEnvironment represents Akamai's target environment type.
 //
 // client
@@ -60,8 +68,8 @@ type Client struct {
 	Debug        *DebugService
 	NetworkLists *NetworkListService
 	PropertyAPI  *PropertyAPIService
-	ReportingAPI *ReportingAPIService
-	A2API        *AdaptiveAccelerationAPIService
+	Reporting    *ReportingService
+	A2           *AdaptiveAccelerationService
 }
 
 // ClientOptions represents options we can pass during client creation
@@ -85,8 +93,6 @@ var (
 	apiPaths = map[string]string{
 		"network_list": "/network-list/v1/network_lists",
 		"papi_v1":      "/papi/v1",
-		"reporting_v1": "/reporting-api/v1/reports",
-		"a2_v1":        "/adaptive-acceleration/v1/properties",
 	}
 )
 
@@ -172,10 +178,10 @@ func newClient(httpClient *http.Client, edgercPath, edgercSection string) (*Clie
 	c.PropertyAPI = &PropertyAPIService{client: c}
 
 	log.Debug("[newClient]::Create service ReportingAPI")
-	c.ReportingAPI = &ReportingAPIService{client: c}
+	c.Reporting = &ReportingService{client: c}
 
 	log.Debug("[newClient]::Create service A2API")
-	c.A2API = &AdaptiveAccelerationAPIService{client: c}
+	c.A2 = &AdaptiveAccelerationService{client: c}
 
 	log.Debug("[newClient]::Create service Debug")
 	c.Debug = &DebugService{client: c}

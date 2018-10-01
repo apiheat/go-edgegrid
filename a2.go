@@ -2,13 +2,13 @@ package edgegrid
 
 import "fmt"
 
-type AdaptiveAccelerationAPIService struct {
+type AdaptiveAccelerationService struct {
 	client *Client
 }
 
-func (nls *AdaptiveAccelerationAPIService) ReportProperty(ID string) (*ClientResponse, error) {
+func (nls *AdaptiveAccelerationService) ReportProperty(id string) (*ClientResponse, error) {
 
-	apiURI := fmt.Sprintf("%s/%s", apiPaths["a2_v1"], ID)
+	apiURI := fmt.Sprintf("%s/%s", A2PathV1, id)
 
 	resp, err := nls.client.NewRequest("GET", apiURI, nil, nil)
 
@@ -16,9 +16,9 @@ func (nls *AdaptiveAccelerationAPIService) ReportProperty(ID string) (*ClientRes
 
 }
 
-func (nls *AdaptiveAccelerationAPIService) ResetProperty(ID string) (*ClientResponse, error) {
+func (nls *AdaptiveAccelerationService) ResetProperty(id string) (*ClientResponse, error) {
 
-	apiURI := fmt.Sprintf("%s/%s", apiPaths["a2_v1"], ID)
+	apiURI := fmt.Sprintf("%s/%s", A2PathV1, id)
 
 	resp, err := nls.client.NewRequest("POST", apiURI, nil, nil)
 

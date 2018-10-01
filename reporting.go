@@ -4,7 +4,7 @@ import (
 	"fmt"
 )
 
-type ReportingAPIService struct {
+type ReportingService struct {
 	client *Client
 }
 
@@ -26,9 +26,9 @@ type AkamaiReportOptions struct {
 	DateRange    string
 }
 
-func (nls *ReportingAPIService) GenerateReport(body interface{}, opts AkamaiReportOptions) (*ClientResponse, error) {
+func (nls *ReportingService) GenerateReport(body interface{}, opts AkamaiReportOptions) (*ClientResponse, error) {
 
-	apiURI := fmt.Sprintf("%s/%s/versions/1/report-data?%s&interval=%s", apiPaths["reporting_v1"], opts.TypeOfReport, opts.DateRange, opts.Interval)
+	apiURI := fmt.Sprintf("%s/%s/versions/1/report-data?%s&interval=%s", ReportingPathV1, opts.TypeOfReport, opts.DateRange, opts.Interval)
 
 	resp, err := nls.client.NewRequest("POST", apiURI, body, nil)
 
