@@ -6,6 +6,7 @@ Golang based client for interaction with Akamai API services.
 
 This API client package covers most used parts the existing akamai API calls and is updated regularly. Currently the following services are supported:
 
+- [x] Adaptive Acceleration
 - [x] Network Lists
 - [x] Property APIs
 - [ ] Firewall Rule notifications

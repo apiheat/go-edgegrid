@@ -2,10 +2,9 @@ package edgegrid
 
 import (
 	"fmt"
-	"strings"
 )
 
-type ReportingAPIService struct {
+type ReportingService struct {
 	client *Client
 }
 
@@ -27,16 +26,9 @@ type AkamaiReportOptions struct {
 	DateRange    string
 }
 
-func strToStrArr(str string) (strArr []string) {
-	for _, s := range strings.Split(str, ",") {
-		strArr = append(strArr, s)
-	}
-	return strArr
-}
+func (nls *ReportingService) GenerateReport(body interface{}, opts AkamaiReportOptions) (*ClientResponse, error) {
 
-func (nls *ReportingAPIService) GenerateReport(body interface{}, opts AkamaiReportOptions) (*ClientResponse, error) {
-
-	apiURI := fmt.Sprintf("%s/%s/versions/1/report-data?%s&interval=%s", apiPaths["reporting_v1"], opts.TypeOfReport, opts.DateRange, opts.Interval)
+	apiURI := fmt.Sprintf("%s/%s/versions/1/report-data?%s&interval=%s", ReportingPathV1, opts.TypeOfReport, opts.DateRange, opts.Interval)
 
 	resp, err := nls.client.NewRequest("POST", apiURI, body, nil)
 
