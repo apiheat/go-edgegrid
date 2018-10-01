@@ -61,6 +61,7 @@ type Client struct {
 	NetworkLists *NetworkListService
 	PropertyAPI  *PropertyAPIService
 	ReportingAPI *ReportingAPIService
+	A2API        *AdaptiveAccelerationAPIService
 }
 
 // ClientOptions represents options we can pass during client creation
@@ -85,6 +86,7 @@ var (
 		"network_list": "/network-list/v1/network_lists",
 		"papi_v1":      "/papi/v1",
 		"reporting_v1": "/reporting-api/v1/reports",
+		"a2_v1":        "/adaptive-acceleration/v1/properties",
 	}
 )
 
@@ -171,6 +173,9 @@ func newClient(httpClient *http.Client, edgercPath, edgercSection string) (*Clie
 
 	log.Debug("[newClient]::Create service ReportingAPI")
 	c.ReportingAPI = &ReportingAPIService{client: c}
+
+	log.Debug("[newClient]::Create service A2API")
+	c.A2API = &AdaptiveAccelerationAPIService{client: c}
 
 	log.Debug("[newClient]::Create service Debug")
 	c.Debug = &DebugService{client: c}

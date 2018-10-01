@@ -2,7 +2,6 @@ package edgegrid
 
 import (
 	"fmt"
-	"strings"
 )
 
 type ReportingAPIService struct {
@@ -25,13 +24,6 @@ type AkamaiReportOptions struct {
 	TypeOfReport string
 	Interval     string
 	DateRange    string
-}
-
-func strToStrArr(str string) (strArr []string) {
-	for _, s := range strings.Split(str, ",") {
-		strArr = append(strArr, s)
-	}
-	return strArr
 }
 
 func (nls *ReportingAPIService) GenerateReport(body interface{}, opts AkamaiReportOptions) (*ClientResponse, error) {
