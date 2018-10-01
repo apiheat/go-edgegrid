@@ -27,10 +27,11 @@ const (
 
 // Akamai Services Paths
 const (
-	A2PathV1          = "/adaptive-acceleration/v1/properties"
-	NetworkListPathV1 = "/network-list/v1/network_lists"
-	PAPIPathV1        = "/papi/v1"
-	ReportingPathV1   = "/reporting-api/v1/reports"
+	A2PathV1                 = "/adaptive-acceleration/v1/properties"
+	NetworkListPathV1        = "/network-list/v1/network_lists"
+	PAPIPathV1               = "/papi/v1"
+	ReportingPathV1          = "/reporting-api/v1/reports"
+	IdentityManagementPathV1 = "/identity-management/v2"
 )
 
 // AkamaiEnvironment represents Akamai's target environment type.
@@ -64,12 +65,13 @@ type Client struct {
 	credentials *EdgercCredentials
 
 	// Services used for talking to different parts of the Akamai API.
-	Auth         *AuthService
-	Debug        *DebugService
-	NetworkLists *NetworkListService
-	PropertyAPI  *PropertyAPIService
-	Reporting    *ReportingService
-	A2           *AdaptiveAccelerationService
+	Auth               *AuthService
+	Debug              *DebugService
+	NetworkLists       *NetworkListService
+	PropertyAPI        *PropertyAPIService
+	Reporting          *ReportingService
+	A2                 *AdaptiveAccelerationService
+	IdentityManagement *IdentityManagementService
 }
 
 // ClientOptions represents options we can pass during client creation
@@ -174,14 +176,17 @@ func newClient(httpClient *http.Client, edgercPath, edgercSection string) (*Clie
 	log.Debug("[newClient]::Create service NetworkLists")
 	c.NetworkLists = &NetworkListService{client: c}
 
-	log.Debug("[newClient]::Create service PropertyAPI")
+	log.Debug("[newClient]::Create service Property")
 	c.PropertyAPI = &PropertyAPIService{client: c}
 
-	log.Debug("[newClient]::Create service ReportingAPI")
+	log.Debug("[newClient]::Create service Reporting")
 	c.Reporting = &ReportingService{client: c}
 
-	log.Debug("[newClient]::Create service A2API")
+	log.Debug("[newClient]::Create service A2")
 	c.A2 = &AdaptiveAccelerationService{client: c}
+
+	log.Debug("[newClient]::Create service IdentityManagement")
+	c.IdentityManagement = &IdentityManagementService{client: c}
 
 	log.Debug("[newClient]::Create service Debug")
 	c.Debug = &DebugService{client: c}
