@@ -88,7 +88,7 @@ func InitEdgerc(edgercConfig, edgercSection string) (*EdgercCredentials, error) 
 // https://developer.akamai.com/introduction/Client_Auth.html
 func AuthString(eprm *EdgercCredentials, request *http.Request, headersToSign []string) string {
 
-	u, _ := uuid.NewV4()
+	u := uuid.NewV4()
 
 	nonce := u.String()
 
