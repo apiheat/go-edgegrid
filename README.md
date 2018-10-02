@@ -11,7 +11,7 @@ This API client package covers most used parts the existing akamai API calls and
 - [x] Property APIs
 - [o] Identity Management
 - [ ] Firewall Rule notifications
-- [ ] Siteshield
+- [x] Siteshield
 - [ ] Certificate management
 
 To add new/update existing features create a new PR
