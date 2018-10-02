@@ -32,6 +32,7 @@ const (
 	PAPIPathV1               = "/papi/v1"
 	ReportingPathV1          = "/reporting-api/v1/reports"
 	IdentityManagementPathV1 = "/identity-management/v2"
+	SiteshieldPathV1         = "/siteshield/v1/maps"
 )
 
 // AkamaiEnvironment represents Akamai's target environment type.
@@ -72,6 +73,7 @@ type Client struct {
 	Reporting          *ReportingService
 	A2                 *AdaptiveAccelerationService
 	IdentityManagement *IdentityManagementService
+	SiteShield         *SiteShieldService
 }
 
 // ClientOptions represents options we can pass during client creation
@@ -187,6 +189,9 @@ func newClient(httpClient *http.Client, edgercPath, edgercSection string) (*Clie
 
 	log.Debug("[newClient]::Create service IdentityManagement")
 	c.IdentityManagement = &IdentityManagementService{client: c}
+
+	log.Debug("[newClient]::Create service SiteShield")
+	c.SiteShield = &SiteShieldService{client: c}
 
 	log.Debug("[newClient]::Create service Debug")
 	c.Debug = &DebugService{client: c}
