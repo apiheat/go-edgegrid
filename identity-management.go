@@ -21,7 +21,7 @@ type AkamaiUser struct {
 
 func (nls *IdentityManagementService) ListUsers() (*[]AkamaiUser, *ClientResponse, error) {
 
-	apiURI := fmt.Sprintf("%s/user-admin/ui-identities", IdentityManagementPathV1)
+	apiURI := fmt.Sprintf("%s/user-admin/ui-identities", IdentityManagementPathV2)
 
 	var k *[]AkamaiUser
 	resp, err := nls.client.NewRequest("GET", apiURI, nil, &k)

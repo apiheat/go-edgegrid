@@ -31,8 +31,9 @@ const (
 	NetworkListPathV1        = "/network-list/v1/network_lists"
 	PAPIPathV1               = "/papi/v1"
 	ReportingPathV1          = "/reporting-api/v1/reports"
-	IdentityManagementPathV1 = "/identity-management/v2"
+	IdentityManagementPathV2 = "/identity-management/v2"
 	SiteshieldPathV1         = "/siteshield/v1/maps"
+	FRNPathV1                = "/firewall-rules-manager/v1"
 )
 
 // AkamaiEnvironment represents Akamai's target environment type.
@@ -74,6 +75,7 @@ type Client struct {
 	A2                 *AdaptiveAccelerationService
 	IdentityManagement *IdentityManagementService
 	SiteShield         *SiteShieldService
+	FRN                *FirewallRulesNotificationsService
 }
 
 // ClientOptions represents options we can pass during client creation
@@ -185,6 +187,9 @@ func newClient(httpClient *http.Client, edgercPath, edgercSection string) (*Clie
 
 	log.Debug("[newClient]::Create service SiteShield")
 	c.SiteShield = &SiteShieldService{client: c}
+
+	log.Debug("[newClient]::Create service FRN")
+	c.FRN = &FirewallRulesNotificationsService{client: c}
 
 	log.Debug("[newClient]::Create service Debug")
 	c.Debug = &DebugService{client: c}
