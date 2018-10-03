@@ -112,7 +112,7 @@ type ActivateNetworkListStatus struct {
 func (nls *NetworkListService) ListNetworkLists(opts ListNetworkListsOptions) (*[]AkamaiNetworkList, *ClientResponse, error) {
 
 	apiURI := fmt.Sprintf("%s?listType=%s&extended=%t&includeDeprecated=%t&includeElements=%t",
-		apiPaths["network_list"],
+		NetworkListPathV1,
 		opts.TypeOflist,
 		opts.Extended,
 		opts.IncludeDeprecated,
@@ -134,7 +134,7 @@ func (nls *NetworkListService) ListNetworkLists(opts ListNetworkListsOptions) (*
 func (nls *NetworkListService) GetNetworkList(ListID string, opts ListNetworkListsOptions) (*AkamaiNetworkList, *ClientResponse, error) {
 
 	apiURI := fmt.Sprintf("%s/%s?listType=%s&extended=%t&includeDeprecated=%t&includeElements=%t",
-		apiPaths["network_list"],
+		NetworkListPathV1,
 		ListID,
 		opts.TypeOflist,
 		opts.Extended,
@@ -157,7 +157,7 @@ func (nls *NetworkListService) GetNetworkList(ListID string, opts ListNetworkLis
 // Akamai API docs: https://developer.akamai.com/api/luna/network-list/resources.html#createanetworklist
 func (nls *NetworkListService) CreateNetworkList(opts CreateNetworkListOptions) (*NetworkListResponse, *ClientResponse, error) {
 
-	apiURI := apiPaths["network_list"]
+	apiURI := NetworkListPathV1
 
 	var k *NetworkListResponse
 	resp, err := nls.client.NewRequest("POST", apiURI, opts, &k)
@@ -174,7 +174,7 @@ func (nls *NetworkListService) CreateNetworkList(opts CreateNetworkListOptions) 
 func (nls *NetworkListService) ModifyNetworkList(ListID string, opts AkamaiNetworkList) (*NetworkListResponse, *ClientResponse, error) {
 
 	apiURI := fmt.Sprintf("%s/%s",
-		apiPaths["network_list"],
+		NetworkListPathV1,
 		ListID)
 
 	var k *NetworkListResponse
@@ -192,7 +192,7 @@ func (nls *NetworkListService) ModifyNetworkList(ListID string, opts AkamaiNetwo
 func (nls *NetworkListService) AddNetworkListItems(ListID string, opts CreateNetworkListOptions) (*NetworkListResponse, *ClientResponse, error) {
 
 	apiURI := fmt.Sprintf("%s/%s",
-		apiPaths["network_list"],
+		NetworkListPathV1,
 		ListID)
 
 	var k *NetworkListResponse
@@ -211,7 +211,7 @@ func (nls *NetworkListService) AddNetworkListItems(ListID string, opts CreateNet
 func (nls *NetworkListService) AddNetworkListElement(ListID, ListElement string) (*NetworkListResponse, *ClientResponse, error) {
 
 	apiURI := fmt.Sprintf("%s/%s/element?element=%s",
-		apiPaths["network_list"],
+		NetworkListPathV1,
 		ListID,
 		ListElement,
 	)
@@ -239,7 +239,7 @@ func (nls *NetworkListService) AddNetworkListElement(ListID, ListElement string)
 func (nls *NetworkListService) RemoveNetworkListItem(ListID, ListItem string) (*NetworkListResponse, *ClientResponse, error) {
 
 	apiURI := fmt.Sprintf("%s/%s/element?element=%s",
-		apiPaths["network_list"],
+		NetworkListPathV1,
 		ListID,
 		ListItem)
 
@@ -259,7 +259,7 @@ func (nls *NetworkListService) RemoveNetworkListItem(ListID, ListItem string) (*
 func (nls *NetworkListService) SearchNetworkListItem(ListItem string, opts ListNetworkListsOptions) (*[]AkamaiNetworkList, *ClientResponse, error) {
 
 	apiURI := fmt.Sprintf("%s/search?expression=%s&listType=%s&extended=%t&includeDeprecated=%t",
-		apiPaths["network_list"],
+		NetworkListPathV1,
 		ListItem,
 		opts.TypeOflist,
 		opts.Extended,
@@ -282,7 +282,7 @@ func (nls *NetworkListService) SearchNetworkListItem(ListItem string, opts ListN
 func (nls *NetworkListService) ActivateNetworkList(ListID string, targetEnvironment AkamaiEnvironment, opts ActivateNetworkListOptions) (*NetworkListResponse, *ClientResponse, error) {
 
 	apiURI := fmt.Sprintf("%s/%s/activate?env=%s",
-		apiPaths["network_list"],
+		NetworkListPathV1,
 		ListID,
 		targetEnvironment)
 
@@ -301,7 +301,7 @@ func (nls *NetworkListService) ActivateNetworkList(ListID string, targetEnvironm
 func (nls *NetworkListService) GetNetworkListActivationStatus(ListID string, targetEnvironment AkamaiEnvironment) (*ActivateNetworkListStatus, *ClientResponse, error) {
 
 	apiURI := fmt.Sprintf("%s/%s/status?env=%s",
-		apiPaths["network_list"],
+		NetworkListPathV1,
 		ListID,
 		targetEnvironment)
 

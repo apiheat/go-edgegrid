@@ -69,7 +69,7 @@ type Client struct {
 	Auth               *AuthService
 	Debug              *DebugService
 	NetworkLists       *NetworkListService
-	PropertyAPI        *PropertyAPIService
+	Property           *PropertyAPIService
 	Reporting          *ReportingService
 	A2                 *AdaptiveAccelerationService
 	IdentityManagement *IdentityManagementService
@@ -92,13 +92,6 @@ type ClientResponse struct {
 	Body     string
 	Response *http.Response
 }
-
-var (
-	apiPaths = map[string]string{
-		"network_list": "/network-list/v1/network_lists",
-		"papi_v1":      "/papi/v1",
-	}
-)
 
 // NewClient returns a new edgegrid.Client for API. If a nil httpClient is
 // provided, http.DefaultClient will be used.
@@ -179,7 +172,7 @@ func newClient(httpClient *http.Client, edgercPath, edgercSection string) (*Clie
 	c.NetworkLists = &NetworkListService{client: c}
 
 	log.Debug("[newClient]::Create service Property")
-	c.PropertyAPI = &PropertyAPIService{client: c}
+	c.Property = &PropertyAPIService{client: c}
 
 	log.Debug("[newClient]::Create service Reporting")
 	c.Reporting = &ReportingService{client: c}

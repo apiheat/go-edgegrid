@@ -115,7 +115,7 @@ type PropertyAPIProps struct {
 // Akamai API docs: https://developer.akamai.com/api/luna/papi/resources.html#getcontracts
 func (pas *PropertyAPIService) ListPropertyAPIContracts() (*PropertyAPIContracts, *ClientResponse, error) {
 
-	apiURI := fmt.Sprintf("%s/contracts", apiPaths["papi_v1"])
+	apiURI := fmt.Sprintf("%s/contracts", PAPIPathV1)
 
 	var k *PropertyAPIContracts
 	resp, err := pas.client.NewRequest("GET", apiURI, nil, &k)
@@ -132,7 +132,7 @@ func (pas *PropertyAPIService) ListPropertyAPIContracts() (*PropertyAPIContracts
 // Akamai API docs: https://developer.akamai.com/api/luna/papi/resources.html#getgroups
 func (pas *PropertyAPIService) ListPropertyAPIGroups() (*PropertyAPIGroups, *ClientResponse, error) {
 
-	apiURI := fmt.Sprintf("%s/groups", apiPaths["papi_v1"])
+	apiURI := fmt.Sprintf("%s/groups", PAPIPathV1)
 
 	var k *PropertyAPIGroups
 	resp, err := pas.client.NewRequest("GET", apiURI, nil, &k)
@@ -150,7 +150,7 @@ func (pas *PropertyAPIService) ListPropertyAPIGroups() (*PropertyAPIGroups, *Cli
 func (pas *PropertyAPIService) ListPropertyAPICPCodes(contractID, groupID string) (*PropertyAPICPCodes, *ClientResponse, error) {
 
 	apiURI := fmt.Sprintf("%s/cpcodes?contractId=%s&groupId=%s",
-		apiPaths["papi_v1"],
+		PAPIPathV1,
 		contractID,
 		groupID)
 
@@ -170,7 +170,7 @@ func (pas *PropertyAPIService) ListPropertyAPICPCodes(contractID, groupID string
 func (pas *PropertyAPIService) ListPropertyAPIProducts(contractId string) (*PropertyAPIProducts, *ClientResponse, error) {
 
 	apiURI := fmt.Sprintf("%s/products?contractId=%s",
-		apiPaths["papi_v1"],
+		PAPIPathV1,
 		contractId)
 
 	var k *PropertyAPIProducts
@@ -189,7 +189,7 @@ func (pas *PropertyAPIService) ListPropertyAPIProducts(contractId string) (*Prop
 func (pas *PropertyAPIService) NewPropertyAPICPcode(newCPcode *PropertyAPICPCodeNew, contractID, groupID string) (*ClientResponse, error) {
 
 	apiURI := fmt.Sprintf("%s/cpcodes?contractId=%s&groupId=%s",
-		apiPaths["papi_v1"],
+		PAPIPathV1,
 		contractID,
 		groupID)
 
@@ -208,7 +208,7 @@ func (pas *PropertyAPIService) NewPropertyAPICPcode(newCPcode *PropertyAPICPCode
 func (pas *PropertyAPIService) ListPropertyAPICPEdgehosts(contractId, groupID string) (*PropertyAPICPEdgehosts, *ClientResponse, error) {
 
 	apiURI := fmt.Sprintf("%s/edgehostnames?contractId=%s&groupId=%s&options=mapDetails",
-		apiPaths["papi_v1"],
+		PAPIPathV1,
 		contractId,
 		groupID)
 
@@ -228,7 +228,7 @@ func (pas *PropertyAPIService) ListPropertyAPICPEdgehosts(contractId, groupID st
 func (pas *PropertyAPIService) ListPropertyAPIProperties(contractId, groupID string) (*PropertyAPIProps, *ClientResponse, error) {
 
 	apiURI := fmt.Sprintf("%s/properties?contractId=%s&groupId=%s",
-		apiPaths["papi_v1"],
+		PAPIPathV1,
 		contractId,
 		groupID)
 
