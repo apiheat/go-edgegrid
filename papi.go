@@ -8,71 +8,71 @@ import (
 // PropertyService represents exposed services to manage properties
 //
 // Akamai API docs: https://developer.akamai.com/api/luna/papi
-type PropertyAPIService struct {
+type PropertyService struct {
 	client *Client
 }
 
-type PropertyAPIGroup struct {
+type PropertyGroup struct {
 	GroupName   string   `json:"groupName"`
 	GroupID     string   `json:"groupId"`
 	ContractIds []string `json:"contractIds"`
 }
 
-type PropertyAPIGroups struct {
+type PropertyGroups struct {
 	AccountID   string `json:"accountId"`
 	AccountName string `json:"accountName"`
 	Groups      struct {
-		Items []PropertyAPIGroup `json:"items"`
+		Items []PropertyGroup `json:"items"`
 	} `json:"groups"`
 }
 
-type PropertyAPIContract struct {
+type PropertyContract struct {
 	ContractID       string `json:"contractId"`
 	ContractTypeName string `json:"contractTypeName"`
 }
 
-type PropertyAPIContracts struct {
+type PropertyContracts struct {
 	AccountID string `json:"accountId"`
 	Contracts struct {
-		Items []PropertyAPIContract `json:"items"`
+		Items []PropertyContract `json:"items"`
 	} `json:"contracts"`
 }
 
-type PropertyAPIProduct struct {
+type PropertyProduct struct {
 	ProductName string `json:"productName"`
 	ProductID   string `json:"productId"`
 }
 
-type PropertyAPIProducts struct {
+type PropertyProducts struct {
 	AccountID  string `json:"accountId"`
 	ContractID string `json:"contractId"`
 	Products   struct {
-		Items []PropertyAPIProduct `json:"items"`
+		Items []PropertyProduct `json:"items"`
 	} `json:"products"`
 }
 
-type PropertyAPICPCodeNew struct {
+type PropertyCPCodeNew struct {
 	ProductID  string `json:"productId"`
 	CpcodeName string `json:"cpcodeName"`
 }
 
-type PropertyAPICPCode struct {
+type PropertyCPCode struct {
 	CpcodeID    string    `json:"cpcodeId"`
 	CpcodeName  string    `json:"cpcodeName"`
 	ProductIds  []string  `json:"productIds"`
 	CreatedDate time.Time `json:"createdDate"`
 }
 
-type PropertyAPICPCodes struct {
+type PropertyCPCodes struct {
 	AccountID  string `json:"accountId"`
 	ContractID string `json:"contractId"`
 	GroupID    string `json:"groupId"`
 	Cpcodes    struct {
-		Items []PropertyAPICPCode `json:"items"`
+		Items []PropertyCPCode `json:"items"`
 	} `json:"cpcodes"`
 }
 
-type PropertyAPICPEdgehost struct {
+type PropertyCPEdgehost struct {
 	EdgeHostnameID         string `json:"edgeHostnameId"`
 	EdgeHostnameDomain     string `json:"edgeHostnameDomain"`
 	ProductID              string `json:"productId"`
@@ -84,16 +84,16 @@ type PropertyAPICPEdgehost struct {
 	MapDetailsMapDomain    string `json:"mapDetails:mapDomain"`
 }
 
-type PropertyAPICPEdgehosts struct {
+type PropertyCPEdgehosts struct {
 	AccountID     string `json:"accountId"`
 	ContractID    string `json:"contractId"`
 	GroupID       string `json:"groupId"`
 	EdgeHostnames struct {
-		Items []PropertyAPICPEdgehost `json:"items"`
+		Items []PropertyCPEdgehost `json:"items"`
 	} `json:"edgeHostnames"`
 }
 
-type PropertyAPIProps struct {
+type PropertyProps struct {
 	Properties struct {
 		Items []struct {
 			AccountID         string `json:"accountId"`
@@ -110,14 +110,14 @@ type PropertyAPIProps struct {
 	} `json:"properties"`
 }
 
-// ListPropertyAPIContracts This operation provides a read-only list of contract names and identifiers
+// ListPropertyContracts This operation provides a read-only list of contract names and identifiers
 //
 // Akamai API docs: https://developer.akamai.com/api/luna/papi/resources.html#getcontracts
-func (pas *PropertyAPIService) ListPropertyAPIContracts() (*PropertyAPIContracts, *ClientResponse, error) {
+func (pas *PropertyService) ListPropertyContracts() (*PropertyContracts, *ClientResponse, error) {
 
 	apiURI := fmt.Sprintf("%s/contracts", PAPIPathV1)
 
-	var k *PropertyAPIContracts
+	var k *PropertyContracts
 	resp, err := pas.client.NewRequest("GET", apiURI, nil, &k)
 	if err != nil {
 		return nil, resp, err
@@ -127,14 +127,14 @@ func (pas *PropertyAPIService) ListPropertyAPIContracts() (*PropertyAPIContracts
 
 }
 
-// ListPropertyAPIGroups This operation provides a read-only list of groups, which may contain properties.
+// ListPropertyGroups This operation provides a read-only list of groups, which may contain properties.
 //
 // Akamai API docs: https://developer.akamai.com/api/luna/papi/resources.html#getgroups
-func (pas *PropertyAPIService) ListPropertyAPIGroups() (*PropertyAPIGroups, *ClientResponse, error) {
+func (pas *PropertyService) ListPropertyGroups() (*PropertyGroups, *ClientResponse, error) {
 
 	apiURI := fmt.Sprintf("%s/groups", PAPIPathV1)
 
-	var k *PropertyAPIGroups
+	var k *PropertyGroups
 	resp, err := pas.client.NewRequest("GET", apiURI, nil, &k)
 	if err != nil {
 		return nil, resp, err
@@ -144,17 +144,17 @@ func (pas *PropertyAPIService) ListPropertyAPIGroups() (*PropertyAPIGroups, *Cli
 
 }
 
-// ListPropertyAPICPCodes This operation lists CP codes available within your contract/group pairing.
+// ListPropertyCPCodes This operation lists CP codes available within your contract/group pairing.
 //
 // Akamai API docs: https://developer.akamai.com/api/luna/papi/resources.html#getcpcodes
-func (pas *PropertyAPIService) ListPropertyAPICPCodes(contractID, groupID string) (*PropertyAPICPCodes, *ClientResponse, error) {
+func (pas *PropertyService) ListPropertyCPCodes(contractID, groupID string) (*PropertyCPCodes, *ClientResponse, error) {
 
 	apiURI := fmt.Sprintf("%s/cpcodes?contractId=%s&groupId=%s",
 		PAPIPathV1,
 		contractID,
 		groupID)
 
-	var k *PropertyAPICPCodes
+	var k *PropertyCPCodes
 	resp, err := pas.client.NewRequest("GET", apiURI, nil, &k)
 	if err != nil {
 		return nil, resp, err
@@ -164,16 +164,16 @@ func (pas *PropertyAPIService) ListPropertyAPICPCodes(contractID, groupID string
 
 }
 
-// ListPropertyAPIProducts ListPropertyAPIProducts.
+// ListPropertyProducts ListPropertyProducts.
 //
 // Akamai API docs: https://developer.akamai.com/api/luna/papi/resources.html#getcpcodes
-func (pas *PropertyAPIService) ListPropertyAPIProducts(contractId string) (*PropertyAPIProducts, *ClientResponse, error) {
+func (pas *PropertyService) ListPropertyProducts(contractId string) (*PropertyProducts, *ClientResponse, error) {
 
 	apiURI := fmt.Sprintf("%s/products?contractId=%s",
 		PAPIPathV1,
 		contractId)
 
-	var k *PropertyAPIProducts
+	var k *PropertyProducts
 	resp, err := pas.client.NewRequest("GET", apiURI, nil, &k)
 	if err != nil {
 		return nil, resp, err
@@ -183,10 +183,10 @@ func (pas *PropertyAPIService) ListPropertyAPIProducts(contractId string) (*Prop
 
 }
 
-// NewPropertyAPICPcode Creates new CP Code
+// NewPropertyCPcode Creates new CP Code
 //
 // Akamai API docs: https://developer.akamai.com/api/luna/papi/resources.html#postcpcodes
-func (pas *PropertyAPIService) NewPropertyAPICPcode(newCPcode *PropertyAPICPCodeNew, contractID, groupID string) (*ClientResponse, error) {
+func (pas *PropertyService) NewPropertyCPcode(newCPcode *PropertyCPCodeNew, contractID, groupID string) (*ClientResponse, error) {
 
 	apiURI := fmt.Sprintf("%s/cpcodes?contractId=%s&groupId=%s",
 		PAPIPathV1,
@@ -202,17 +202,17 @@ func (pas *PropertyAPIService) NewPropertyAPICPcode(newCPcode *PropertyAPICPCode
 
 }
 
-// ListPropertyAPICPEdgehosts This lists all edge hostnames available under a contract..
+// ListPropertyCPEdgehosts This lists all edge hostnames available under a contract..
 //
 // Akamai API docs: https://developer.akamai.com/api/luna/papi/resources.html#getedgehostnames
-func (pas *PropertyAPIService) ListPropertyAPICPEdgehosts(contractId, groupID string) (*PropertyAPICPEdgehosts, *ClientResponse, error) {
+func (pas *PropertyService) ListPropertyCPEdgehosts(contractId, groupID string) (*PropertyCPEdgehosts, *ClientResponse, error) {
 
 	apiURI := fmt.Sprintf("%s/edgehostnames?contractId=%s&groupId=%s&options=mapDetails",
 		PAPIPathV1,
 		contractId,
 		groupID)
 
-	var k *PropertyAPICPEdgehosts
+	var k *PropertyCPEdgehosts
 	resp, err := pas.client.NewRequest("GET", apiURI, nil, &k)
 	if err != nil {
 		return nil, resp, err
@@ -225,14 +225,14 @@ func (pas *PropertyAPIService) ListPropertyAPICPEdgehosts(contractId, groupID st
 // ListProperties This lists all properties available under a contract/group
 //
 // Akamai API docs: https://developer.akamai.com/api/core_features/property_manager/v1.html#getproperties
-func (pas *PropertyAPIService) ListPropertyAPIProperties(contractId, groupID string) (*PropertyAPIProps, *ClientResponse, error) {
+func (pas *PropertyService) ListPropertyProperties(contractId, groupID string) (*PropertyProps, *ClientResponse, error) {
 
 	apiURI := fmt.Sprintf("%s/properties?contractId=%s&groupId=%s",
 		PAPIPathV1,
 		contractId,
 		groupID)
 
-	var k *PropertyAPIProps
+	var k *PropertyProps
 	resp, err := pas.client.NewRequest("GET", apiURI, nil, &k)
 	if err != nil {
 		return nil, resp, err

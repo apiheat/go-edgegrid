@@ -70,7 +70,7 @@ type Client struct {
 	Auth               *AuthService
 	Debug              *DebugService
 	NetworkLists       *NetworkListService
-	Property           *PropertyAPIService
+	Property           *PropertyService
 	Reporting          *ReportingService
 	A2                 *AdaptiveAccelerationService
 	IdentityManagement *IdentityManagementService
@@ -174,7 +174,7 @@ func newClient(httpClient *http.Client, edgercPath, edgercSection string) (*Clie
 	c.NetworkLists = &NetworkListService{client: c}
 
 	log.Debug("[newClient]::Create service Property")
-	c.Property = &PropertyAPIService{client: c}
+	c.Property = &PropertyService{client: c}
 
 	log.Debug("[newClient]::Create service Reporting")
 	c.Reporting = &ReportingService{client: c}
