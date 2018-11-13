@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -47,20 +48,49 @@ func InitEdgerc(edgercConfig, edgercSection string) (*EdgercCredentials, error) 
 	log.Debug("[InitEdgerc]::Loading credentials file")
 	edgerc, err := ini.Load(edgercConfig)
 	if err != nil {
-		return nil, fmt.Errorf("Error loading file? %s", err)
+		return nil, fmt.Errorf("Error loading file? '%s'", err)
 	}
 
 	log.Debug("[InitEdgerc]::Loading section from credentials file")
 	sectionNames := edgerc.SectionStrings()
 	if !(stringInSlice(edgercSection, sectionNames)) {
-		return nil, fmt.Errorf("Could not load section  %s", edgercSection)
+		return nil, fmt.Errorf("Could not load section '%s'", edgercSection)
 	}
 
 	log.Debug("[InitEdgerc]::Lookup for credentials ( host/secrets etc)")
 	edgercHost := edgerc.Section(edgercSection).Key("host").String()
+
+	log.Debug("[InitEdgerc]::Validating credentials - 'host'")
+	if edgercHost == "" {
+		return nil, fmt.Errorf("'host' is empty in section '%s'", edgercSection)
+	}
+
+	u, err := url.Parse(edgercHost)
+	if err != nil {
+		return nil, fmt.Errorf("'host' is not valid URL in section '%s'", edgercSection)
+	}
+
+	if u.Scheme != "" {
+		return nil, fmt.Errorf("'host' in section '%s' contains URL scheme: '%s', please remove '%s//'", edgercSection, u.Scheme, u.Scheme)
+	}
+
 	edgercclientToken := edgerc.Section(edgercSection).Key("client_token").String()
+	log.Debug("[InitEdgerc]::Validating credentials - 'client_token'")
+	if edgercclientToken == "" {
+		return nil, fmt.Errorf("'client_token' is empty in section '%s'", edgercSection)
+	}
+
 	edgercclientSecret := edgerc.Section(edgercSection).Key("client_secret").String()
+	log.Debug("[InitEdgerc]::Validating credentials - 'client_secret'")
+	if edgercclientSecret == "" {
+		return nil, fmt.Errorf("'client_secret' is empty in section '%s'", edgercSection)
+	}
+
 	edgercaccessToken := edgerc.Section(edgercSection).Key("access_token").String()
+	log.Debug("[InitEdgerc]::Validating credentials - 'access_token'")
+	if edgercaccessToken == "" {
+		return nil, fmt.Errorf("'access_token' is empty in section '%s'", edgercSection)
+	}
 
 	log.Debug("[InitEdgerc]::Create credentials object")
 	loadedCredentials := &EdgercCredentials{
