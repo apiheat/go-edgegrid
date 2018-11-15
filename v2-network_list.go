@@ -133,6 +133,9 @@ func (nls *NetworkListServicev2) ListNetworkLists(opts ListNetworkListsOptionsv2
 		return nil, clientResp, clientErr
 	}
 
+	/*
+		This is MVP for next iteration to be placed in function
+	*/
 	data, err := ioutil.ReadAll(clientResp.Response.Body)
 	switch clientResp.Response.StatusCode {
 	case 200, 201:
