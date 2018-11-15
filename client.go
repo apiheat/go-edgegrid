@@ -3,9 +3,12 @@ package edgegrid
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"reflect"
+	"strconv"
 	"strings"
 
 	log "github.com/sirupsen/logrus"
@@ -29,7 +32,7 @@ const (
 const (
 	A2PathV1                 = "/adaptive-acceleration/v1/properties"
 	NetworkListPathV1        = "/network-list/v1/network_lists"
-	NetworkListPathV2        = "/network-list/v2/network-lists"
+	NetworkListPathV2        = "/network-list/v2/network_lists"
 	PAPIPathV1               = "/papi/v1"
 	ReportingPathV1          = "/reporting-api/v1/reports"
 	IdentityManagementPathV2 = "/identity-management/v2"
@@ -257,21 +260,18 @@ func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*Cli
 	log.Debug("[NewRequest]::Process response")
 	clientResp := &ClientResponse{}
 
-	log.Debug("[NewRequest]::Check response")
-	err = CheckResponse(resp)
-	if err != nil {
-		clientResp.Response = resp
-		clientResp.Body = ""
-
-		return clientResp, err
-	}
-
+	log.Debug("[NewRequest]::Read response body")
 	byt, _ := ioutil.ReadAll(resp.Body)
 
+	log.Debug("[NewRequest]::Set client object response and body")
 	clientResp.Response = resp
 	clientResp.Body = string(byt)
 
-	log.Debug("[NewRequest]::Map response to provided type")
+	log.Debug("[NewRequest]::Response code is:" + strconv.Itoa(resp.StatusCode))
+	log.Debug("[NewRequest]::Body is " + clientResp.Body)
+
+	respType := reflect.TypeOf(vresp)
+	log.Debug(fmt.Sprintf("[NewRequest]::Map response to provided type ( %s ) ", respType))
 	if vresp != nil {
 		if err = json.Unmarshal([]byte(byt), &vresp); err != nil {
 			return clientResp, err
@@ -281,114 +281,6 @@ func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*Cli
 	log.Debug("[NewRequest]::Return response")
 
 	return clientResp, err
-}
-
-// NewRequestWithCustomError creates an HTTP request that can be sent to Akamai APIs.
-// * A relative URL can be provided in path, which will be resolved to the
-// * Host specified in Config.
-// * If body is specified, it will be sent as the request body.
-// * if customError object is specified and request returns error it will be mapped
-//
-// client
-func (cl *Client) NewRequestWithCustomError(method, path string, vreq, vresp, custError interface{}) (*ClientResponse, error) {
-
-	targetURL, _ := prepareURL(cl.baseURL, path)
-
-	log.WithFields(log.Fields{
-		"method": method,
-		"base":   cl.baseURL,
-		"path":   path,
-	}).Info("Create new request")
-
-	log.Debug("[NewRequest]::Create http request")
-	req, err := http.NewRequest(method, targetURL.String(), nil)
-	if err != nil {
-		return nil, nil
-	}
-
-	if method == "POST" || method == "PUT" {
-		log.Info("Prepare request body object")
-		log.Debug("[NewRequest]::Method is POST/PUT")
-		log.Debug("[NewRequest]::Marshal request object")
-		bodyBytes, err := json.Marshal(vreq)
-		if err != nil {
-			return nil, err
-		}
-		bodyReader := bytes.NewReader(bodyBytes)
-
-		log.Debug("[NewRequest]::Body object added to request")
-		req.Body = ioutil.NopCloser(bodyReader)
-		req.ContentLength = int64(bodyReader.Len())
-
-		log.Debug("[NewRequest]::Body object is:" + string(bodyBytes))
-		log.Debug("[NewRequest]::Set header Content-Type to 'application/json' ")
-		req.Header.Set("Content-Type", "application/json")
-
-	}
-
-	authorizationHeader := AuthString(cl.credentials, req, []string{})
-	log.Debug("[NewRequest]::Set header Authorization")
-	req.Header.Add("Authorization", authorizationHeader)
-
-	log.Info("Execute http request")
-	resp, err := cl.client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	log.Debug("[NewRequest]::Process response")
-	clientResp := &ClientResponse{}
-
-	/*
-		> Process http request response:
-			- make sure we did not get error HTTP response code
-				- if we did marshall to custom error object
-				- flag in client response that we have error
-				- unmarshall to custom error type
-			- read the body of the response
-			- Set response obj properties
-	*/
-	log.Debug("[NewRequest]::Check response for errors")
-	responseHasError := CheckRespForErrorv2(resp)
-
-	log.Debug("[NewRequest]::Read response body")
-	byt, _ := ioutil.ReadAll(resp.Body)
-
-	log.Debug("[NewRequest]::Set client object response and body")
-	clientResp.Response = resp
-	clientResp.Body = string(byt)
-
-	if responseHasError == true {
-		// Set error flag for higher level methods
-		clientResp.HasError = true
-
-		// Map to custom error response if exists
-		if custError != nil {
-			log.Debug("[NewRequest]::Map error response to provided type")
-			if err = json.Unmarshal([]byte(byt), &custError); err != nil {
-				return clientResp, err
-			}
-
-			if err != nil {
-				log.Debug("[NewRequest]::Error unmarshalling error")
-				log.Debug("[NewRequest]::Detail:" + err.Error())
-				return clientResp, err
-			}
-		}
-	}
-
-	log.Debug("[NewRequest]::Map response to provided type")
-	// Map to custom response type if provided
-	if vresp != nil {
-		if err = json.Unmarshal([]byte(byt), &vresp); err != nil {
-			return clientResp, err
-		}
-	}
-
-	log.Debug("[NewRequest]::Return response")
-
-	return clientResp, nil
 }
 
 // SetBaseURL sets the base URL for API requests to a custom endpoint.
