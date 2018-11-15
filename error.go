@@ -40,6 +40,7 @@ func (e *ErrorResponse) Error() string {
 // CheckResponse checks the API response for errors, and returns them if present.
 //
 // error
+// #TODO: Should be deprecated
 func CheckResponse(r *http.Response) error {
 
 	log.Debug("[CheckResponse]::Check response code")
@@ -73,4 +74,28 @@ func CheckResponse(r *http.Response) error {
 	}
 
 	return errorResponse
+}
+
+// CheckRespForErrorv2 checks the API response for errors, and returns bool value
+//
+// error
+func CheckRespForErrorv2(r *http.Response) bool {
+
+	log.Debug("[CheckResponse]::Check response code")
+	log.Debug("[CheckResponse]::Response code is:" + strconv.Itoa(r.StatusCode))
+	switch r.StatusCode {
+	case 200, 201, 202, 204, 304:
+		log.Debug(fmt.Sprintf("[CheckResponse]::Response code is %v - matches 200, 201, 202, 204, 304", r.StatusCode))
+		return false
+	}
+
+	log.Debug("[CheckResponse]::Read body")
+	data, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		log.Debug(fmt.Sprintf("[CheckResponse]::Error reading body - %s", err))
+	}
+	log.Debug("[CheckResponse]::Error body ... ")
+	log.Debug(fmt.Sprintf("[CheckResponse]:: %s", string(data)))
+
+	return true
 }
