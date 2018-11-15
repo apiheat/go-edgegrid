@@ -16,37 +16,46 @@ type NetworkListServicev2 struct {
 //
 // Akamai API docs: https://developer.akamai.com/api/luna/network-list
 type AkamaiNetworkListsv2 struct {
-	NetworkLists []AkamaiNetworkListv2      `json:"networkLists"`
-	Links        []AkamaiNetworkListLinksv2 `json:"links"`
-	Create       AkamaiNetworkListLinks     `json:"create"`
+	NetworkLists []AkamaiNetworkListv2 `json:"networkLists"`
+	Links        struct {
+		Create AkamaiNetworkListLinkv2 `json:"create"`
+	} `json:"links"`
 }
 
 // AkamaiNetworkListv2 represents the network list structure
 //
 // Akamai API docs: https://developer.akamai.com/api/luna/network-list
 type AkamaiNetworkListv2 struct {
-	NetworkListType                     string                   `json:"networkListType"`
-	AccessControlGroup                  string                   `json:"accessControlGroup"`
-	Name                                string                   `json:"name"`
-	ElementCount                        int                      `json:"elementCount"`
-	SyncPoint                           int                      `json:"syncPoint"`
-	Type                                string                   `json:"type"`
-	UniqueID                            string                   `json:"uniqueId"`
-	CreateDate                          time.Time                `json:"createDate"`
-	CreatedBy                           string                   `json:"createdBy"`
-	ExpeditedProductionActivationStatus string                   `json:"expeditedProductionActivationStatus"`
-	ExpeditedStagingActivationStatus    string                   `json:"expeditedStagingActivationStatus"`
-	ProductionActivationStatus          string                   `json:"productionActivationStatus"`
-	StagingActivationStatus             string                   `json:"stagingActivationStatus"`
-	UpdateDate                          time.Time                `json:"updateDate"`
-	UpdatedBy                           string                   `json:"updatedBy"`
-	Links                               []AkamaiNetworkListLinks `json:"links"`
+	NetworkListType    string `json:"networkListType"`
+	AccessControlGroup string `json:"accessControlGroup"`
+	Name               string `json:"name"`
+	ElementCount       int    `json:"elementCount"`
+	Links              struct {
+		ActivateInProduction AkamaiNetworkListLinkv2 `json:"activateInProduction"`
+		ActivateInStaging    AkamaiNetworkListLinkv2 `json:"activateInStaging"`
+		AppendItems          AkamaiNetworkListLinkv2 `json:"appendItems"`
+		Retrieve             AkamaiNetworkListLinkv2 `json:"retrieve"`
+		StatusInProduction   AkamaiNetworkListLinkv2 `json:"statusInProduction"`
+		StatusInStaging      AkamaiNetworkListLinkv2 `json:"statusInStaging"`
+		Update               AkamaiNetworkListLinkv2 `json:"update"`
+	} `json:"links"`
+	SyncPoint                           int       `json:"syncPoint"`
+	Type                                string    `json:"type"`
+	UniqueID                            string    `json:"uniqueId"`
+	CreateDate                          time.Time `json:"createDate"`
+	CreatedBy                           string    `json:"createdBy"`
+	ExpeditedProductionActivationStatus string    `json:"expeditedProductionActivationStatus"`
+	ExpeditedStagingActivationStatus    string    `json:"expeditedStagingActivationStatus"`
+	ProductionActivationStatus          string    `json:"productionActivationStatus"`
+	StagingActivationStatus             string    `json:"stagingActivationStatus"`
+	UpdateDate                          time.Time `json:"updateDate"`
+	UpdatedBy                           string    `json:"updatedBy"`
 }
 
 // AkamaiNetworkListLinks represents the network list `links` structure
 //
 // Akamai API docs: https://developer.akamai.com/api/luna/network-list
-type AkamaiNetworkListLinksv2 struct {
+type AkamaiNetworkListLinkv2 struct {
 	Href   string `json:"href"`
 	Method string `json:"method"`
 }
