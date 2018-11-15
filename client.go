@@ -29,7 +29,7 @@ const (
 const (
 	A2PathV1                 = "/adaptive-acceleration/v1/properties"
 	NetworkListPathV1        = "/network-list/v1/network_lists"
-	NetworkListPathV2        = "/network-list/v2/network_lists"
+	NetworkListPathV2        = "/network-list/v2/network-lists"
 	PAPIPathV1               = "/papi/v1"
 	ReportingPathV1          = "/reporting-api/v1/reports"
 	IdentityManagementPathV2 = "/identity-management/v2"
