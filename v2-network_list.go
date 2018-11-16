@@ -1,8 +1,13 @@
 package edgegrid
 
 import (
+	"bytes"
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 // NetworkListServicev2 represents exposed services to manage network lists
@@ -87,51 +92,22 @@ type AkamaiNetworkListErrorv2 struct {
 	} `json:"fieldErrors"`
 }
 
-// // CreateNetworkListOptions represents the available options for network list creation
-// //
-// // Akamai API docs: https://developer.akamai.com/api/luna/network-list
-// type CreateNetworkListOptions struct {
-// 	Name        string   `json:"name,omitempty"`
-// 	Type        string   `json:"type,omitempty"`
-// 	AcgID       string   `json:"acgId,omitempty"`
-// 	ContractID  string   `json:"contractId,omitempty"`
-// 	GroupID     int64    `json:"groupId,omitempty"`
-// 	Description string   `json:"description,omitempty"`
-// 	List        []string `json:"list"`
-// }
+// An AkamaiNetworkListErrorv2 Error() function implementation
+//
+// error
+func (e *AkamaiNetworkListErrorv2) Error() string {
+	b, err := json.Marshal(e)
+	if err != nil {
+		fmt.Println(err)
+	}
 
-// // NetworkListResponse represents the response from network list creation
-// //
-// // Akamai API docs: https://developer.akamai.com/api/luna/network-list
-// type NetworkListResponse struct {
-// 	Status           int                      `json:"status,omitempty"`
-// 	UniqueID         string                   `json:"unique-id,omitempty"`
-// 	Message          string                   `json:"message,omitempty"`
-// 	Links            []AkamaiNetworkListLinks `json:"links"`
-// 	SyncPoint        int                      `json:"sync-point,omitempty"`
-// 	ActivationStatus string                   `json:"activation-status,omitempty"`
-// }
-
-// // ActivateNetworkListOptions represents options for network list activation
-// //
-// // Akamai API docs: https://developer.akamai.com/api/luna/network-list
-// type ActivateNetworkListOptions struct {
-// 	SiebelTicketID         string   `json:"siebel-ticket-id"`
-// 	NotificationRecipients []string `json:"notification-recipients"`
-// 	Comments               string   `json:"comments"`
-// }
-
-// // ActivateNetworkListStatus represents status of network list activation
-// //
-// // Akamai API docs: https://developer.akamai.com/api/luna/network-list
-// type ActivateNetworkListStatus struct {
-// 	Status             int           `json:"status"`
-// 	UniqueID           string        `json:"unique-id"`
-// 	Links              []interface{} `json:"links"`
-// 	SyncPoint          int           `json:"sync-point"`
-// 	ActivationStatus   string        `json:"activation-status"`
-// 	ActivationComments string        `json:"activation-comments"`
-// }
+	var prettyJSON bytes.Buffer
+	errprettyJSON := json.Indent(&prettyJSON, []byte(string(b)), "", "    ")
+	if errprettyJSON != nil {
+		fmt.Println(errprettyJSON)
+	}
+	return string(prettyJSON.Bytes())
+}
 
 // ListNetworkLists List all configured Network Lists for the authenticated user.
 //
@@ -146,198 +122,32 @@ func (nls *NetworkListServicev2) ListNetworkLists(opts ListNetworkListsOptionsv2
 		opts.IncludeElements)
 
 	var netListsv2 *AkamaiNetworkListsv2
-	var netListv2Err *AkamaiNetworkListErrorv2
-	clientResp, clientErr := nls.client.NewRequestWithCustomError("GET", apiURI, nil, &netListsv2, &netListv2Err)
+
+	log.Debug("[NetworkListServicev2]::Execute request")
+	clientResp, clientErr := nls.client.NewRequest("GET", apiURI, nil, &netListsv2)
+
 	if clientErr != nil {
+		log.Debug("[NetworkListServicev2]::Client request error")
+		log.Debug(fmt.Sprintf("[NetworkListServicev2]:: %s", clientErr))
+
 		return nil, clientResp, clientErr
 	}
 
-	return &netListsv2.NetworkLists, clientResp, clientErr
+	/*
+		This is MVP for next iteration to be placed in function
+	*/
+	data, _ := ioutil.ReadAll(clientResp.Response.Body)
+	switch clientResp.Response.StatusCode {
+	case 200, 201:
+		return &netListsv2.NetworkLists, clientResp, nil
+	case 400, 403, 404, 409, 500:
+		var netListsv2err *AkamaiNetworkListErrorv2
+		json.Unmarshal(data, &netListsv2err)
+		return nil, clientResp, netListsv2err
+	}
+
+	var errorResponse *ErrorResponse
+	_ = json.Unmarshal(data, &errorResponse)
+	return nil, clientResp, errorResponse
 
 }
-
-// // GetNetworkList Gets single Akamai network list
-// //
-// // Akamai API docs: https://developer.akamai.com/api/luna/network-list/resources.html#getanetworklist
-// func (nls *NetworkListServicev2) GetNetworkList(ListID string, opts ListNetworkListsOptions) (*AkamaiNetworkList, *ClientResponse, error) {
-
-// 	apiURI := fmt.Sprintf("%s/%s?listType=%s&extended=%t&includeDeprecated=%t&includeElements=%t",
-// 		NetworkListPathV1,
-// 		ListID,
-// 		opts.TypeOflist,
-// 		opts.Extended,
-// 		opts.IncludeDeprecated,
-// 		opts.IncludeElements)
-
-// 	var k *AkamaiNetworkList
-// 	resp, err := nls.client.NewRequest("GET", apiURI, nil, &k)
-
-// 	if err != nil {
-// 		return nil, resp, err
-// 	}
-
-// 	return k, resp, err
-
-// }
-
-// // CreateNetworkList Create a new Network List
-// //
-// // Akamai API docs: https://developer.akamai.com/api/luna/network-list/resources.html#createanetworklist
-// func (nls *NetworkListServicev2) CreateNetworkList(opts CreateNetworkListOptions) (*NetworkListResponse, *ClientResponse, error) {
-
-// 	apiURI := NetworkListPathV1
-
-// 	var k *NetworkListResponse
-// 	resp, err := nls.client.NewRequest("POST", apiURI, opts, &k)
-// 	if err != nil {
-// 		return nil, resp, err
-// 	}
-
-// 	return k, resp, err
-// }
-
-// // ModifyNetworkList Modify an existing Network List
-// //
-// // Akamai API docs: https://developer.akamai.com/api/luna/network-list/resources.html#modifyanetworklist
-// func (nls *NetworkListServicev2) ModifyNetworkList(ListID string, opts AkamaiNetworkList) (*NetworkListResponse, *ClientResponse, error) {
-
-// 	apiURI := fmt.Sprintf("%s/%s",
-// 		NetworkListPathV1,
-// 		ListID)
-
-// 	var k *NetworkListResponse
-// 	resp, err := nls.client.NewRequest("PUT", apiURI, opts, &k)
-// 	if err != nil {
-// 		return nil, resp, err
-// 	}
-
-// 	return k, resp, err
-// }
-
-// // AddNetworkListItems Appends a set of IP addresses or geo locations to a list.
-// //
-// // Akamai API docs: https://developer.akamai.com/api/luna/network-list/resources.html#addtoanetworklist
-// func (nls *NetworkListServicev2) AddNetworkListItems(ListID string, opts CreateNetworkListOptions) (*NetworkListResponse, *ClientResponse, error) {
-
-// 	apiURI := fmt.Sprintf("%s/%s",
-// 		NetworkListPathV1,
-// 		ListID)
-
-// 	var k *NetworkListResponse
-// 	resp, err := nls.client.NewRequest("POST", apiURI, opts, &k)
-// 	if err != nil {
-// 		return nil, resp, err
-// 	}
-
-// 	return k, resp, err
-
-// }
-
-// // AddNetworkListElement Adds the specified element to the list.
-// //
-// // Akamai API docs: https://developer.akamai.com/api/luna/network-list/resources.html#addanelement
-// func (nls *NetworkListServicev2) AddNetworkListElement(ListID, ListElement string) (*NetworkListResponse, *ClientResponse, error) {
-
-// 	apiURI := fmt.Sprintf("%s/%s/element?element=%s",
-// 		NetworkListPathV1,
-// 		ListID,
-// 		ListElement,
-// 	)
-
-// 	var k *NetworkListResponse
-// 	resp, err := nls.client.NewRequest("PUT", apiURI, nil, &k)
-// 	if err != nil {
-// 		return nil, resp, err
-// 	}
-
-// 	// networkListResponse := new(NetworkListResponse)
-// 	// byt, _ := ioutil.ReadAll(resp.Response.Body)
-
-// 	// if err = json.Unmarshal([]byte(byt), &networkListResponse); err != nil {
-// 	// 	return nil, resp, err
-// 	// }
-
-// 	return k, resp, err
-
-// }
-
-// // RemoveNetworkListItem Deletes the specified element from the list.
-// //
-// // Akamai API docs: https://developer.akamai.com/api/luna/network-list/resources.html#removeanelement
-// func (nls *NetworkListServicev2) RemoveNetworkListItem(ListID, ListItem string) (*NetworkListResponse, *ClientResponse, error) {
-
-// 	apiURI := fmt.Sprintf("%s/%s/element?element=%s",
-// 		NetworkListPathV1,
-// 		ListID,
-// 		ListItem)
-
-// 	var k *NetworkListResponse
-// 	resp, err := nls.client.NewRequest("DELETE", apiURI, nil, &k)
-// 	if err != nil {
-// 		return nil, resp, err
-// 	}
-
-// 	return k, resp, err
-
-// }
-
-// // SearchNetworkListItem Retrieves a list of all Network Lists having elements containing the search terms. Each Network List’s status is also provided.
-// //
-// // Akamai API docs: https://developer.akamai.com/api/luna/network-list/resources.html#searchnetworklists
-// func (nls *NetworkListServicev2) SearchNetworkListItem(ListItem string, opts ListNetworkListsOptions) (*[]AkamaiNetworkList, *ClientResponse, error) {
-
-// 	apiURI := fmt.Sprintf("%s/search?expression=%s&listType=%s&extended=%t&includeDeprecated=%t",
-// 		NetworkListPathV1,
-// 		ListItem,
-// 		opts.TypeOflist,
-// 		opts.Extended,
-// 		opts.IncludeDeprecated)
-
-// 	var k *AkamaiNetworkLists
-// 	resp, err := nls.client.NewRequest("GET", apiURI, nil, &k)
-
-// 	if err != nil {
-// 		return nil, resp, err
-// 	}
-
-// 	return &k.NetworkLists, resp, err
-
-// }
-
-// // ActivateNetworkList Activates selected network list in specific env with options specified
-// //
-// // Akamai API docs: https://developer.akamai.com/api/luna/network-list/resources.html#activateanetworklist
-// func (nls *NetworkListServicev2) ActivateNetworkList(ListID string, targetEnvironment AkamaiEnvironment, opts ActivateNetworkListOptions) (*NetworkListResponse, *ClientResponse, error) {
-
-// 	apiURI := fmt.Sprintf("%s/%s/activate?env=%s",
-// 		NetworkListPathV1,
-// 		ListID,
-// 		targetEnvironment)
-
-// 	var k *NetworkListResponse
-// 	resp, err := nls.client.NewRequest("POST", apiURI, opts, &k)
-// 	if err != nil {
-// 		return nil, resp, err
-// 	}
-
-// 	return k, resp, err
-// }
-
-// // GetNetworkListActivationStatus Gets activation status of selected network list in specific env
-// //
-// // Akamai API docs: https://developer.akamai.com/api/luna/network-list/resources.html#getactivationstatus
-// func (nls *NetworkListServicev2) GetNetworkListActivationStatus(ListID string, targetEnvironment AkamaiEnvironment) (*ActivateNetworkListStatus, *ClientResponse, error) {
-
-// 	apiURI := fmt.Sprintf("%s/%s/status?env=%s",
-// 		NetworkListPathV1,
-// 		ListID,
-// 		targetEnvironment)
-
-// 	var k *ActivateNetworkListStatus
-// 	resp, err := nls.client.NewRequest("GET", apiURI, nil, &k)
-// 	if err != nil {
-// 		return nil, resp, err
-// 	}
-
-// 	return k, resp, err
-// }
