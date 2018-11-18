@@ -136,7 +136,7 @@ func (nls *NetworkListServicev2) ListNetworkLists(opts ListNetworkListsOptionsv2
 	/*
 		This is MVP for next iteration to be placed in function
 	*/
-	data, err := ioutil.ReadAll(clientResp.Response.Body)
+	data, _ := ioutil.ReadAll(clientResp.Response.Body)
 	switch clientResp.Response.StatusCode {
 	case 200, 201:
 		return &netListsv2.NetworkLists, clientResp, nil
@@ -147,7 +147,7 @@ func (nls *NetworkListServicev2) ListNetworkLists(opts ListNetworkListsOptionsv2
 	}
 
 	var errorResponse *ErrorResponse
-	akamaiGenericError := json.Unmarshal(data, &errorResponse)
+	_ = json.Unmarshal(data, &errorResponse)
 	return nil, clientResp, errorResponse
 
 }
