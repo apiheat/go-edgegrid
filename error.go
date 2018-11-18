@@ -26,9 +26,16 @@ type ErrorResponse struct {
 //
 // error
 func (e *ErrorResponse) Error() string {
-	b, err := json.Marshal(e)
+	return ShowJSONMessage(e)
+}
+
+// ShowJSONMessage returns string JSON message
+//
+// error
+func ShowJSONMessage(errType interface{}) string {
+	b, err := json.Marshal(errType)
 	if err != nil {
-		fmt.Println(err)
+		return ""
 	}
 
 	var prettyJSON bytes.Buffer
