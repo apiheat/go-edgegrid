@@ -11,6 +11,10 @@ type DiagToolsService struct {
 	client *Client
 }
 
+type AkamaiDTCDNStatusResp struct {
+	IsCdnIP bool `json:"isCdnIp"`
+}
+
 type AkamaiDTErrorTranslationResp struct {
 	RequestID  string `json:"requestId"`
 	Link       string `json:"link"`
@@ -107,6 +111,20 @@ func (nls *DiagToolsService) TranslateAnError(requestID string) (*AkamaiDTTransl
 
 	var k *AkamaiDTTranslatedErrorResp
 	resp, err := nls.client.NewRequest("GET", apiURI, nil, &k)
+
+	return k, resp, err
+}
+
+// CDNStatus gets translated error message
+// TODO: migrate to async if required
+func (nls *DiagToolsService) CDNStatus(ip string) (*AkamaiDTCDNStatusResp, *ClientResponse, error) {
+	apiURI := fmt.Sprintf("%s/ip-addresses/%s/is-cdn-ip", DTPathV2, ip)
+
+	var k *AkamaiDTCDNStatusResp
+	resp, err := nls.client.NewRequest("GET", apiURI, nil, &k)
+
+	log.Debug(fmt.Sprintf("[%s]::Rate limit for Error Translation requests: %s per 60 seconds", reflect.TypeOf(nls), resp.Response.Header["X-Ratelimit-Limit"]))
+	log.Debug(fmt.Sprintf("[%s]::Remaining allowed number of requests: %s", reflect.TypeOf(nls), resp.Response.Header["X-Ratelimit-Remaining"]))
 
 	return k, resp, err
 }
