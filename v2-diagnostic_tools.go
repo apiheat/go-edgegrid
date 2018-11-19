@@ -85,9 +85,30 @@ type AkamaiDTGeolocation struct {
 	} `json:"geoLocation"`
 }
 
+type AkamaiDTCurlResp struct {
+	CurlResults struct {
+		HTTPStatusCode  int `json:"httpStatusCode"`
+		ResponseHeaders struct {
+			Server        string `json:"Server"`
+			Connection    string `json:"Connection"`
+			Expires       string `json:"Expires"`
+			MimeVersion   string `json:"Mime-Version"`
+			ContentLength string `json:"Content-Length"`
+			Date          string `json:"Date"`
+			ContentType   string `json:"Content-Type"`
+		} `json:"responseHeaders"`
+		ResponseBody string `json:"responseBody"`
+	} `json:"curlResults"`
+}
+
 type AkamaiDTUserLinkReq struct {
 	EndUserName string `json:"endUserName"`
 	URL         string `json:"url"`
+}
+
+type AkamaiDTCurlReq struct {
+	URL       string `json:"url"`
+	UserAgent string `json:"userAgent"`
 }
 
 type AkamaiDTGenerateDiagLinkResp struct {
@@ -317,6 +338,22 @@ func (nls *DiagToolsService) IPMtr(ip, destinationDomain string, resolveDNS bool
 
 	var k *AkamaiDTMtrResp
 	resp, err := nls.client.NewRequest("GET", apiURI, nil, &k)
+
+	return k, resp, err
+}
+
+// IPCurl provides curl functionality
+func (nls *DiagToolsService) IPCurl(ip, testURL, userAgent string) (*AkamaiDTCurlResp, *ClientResponse, error) {
+	apiURI := fmt.Sprintf("%s/ip-addresses/%s/curl-results", DTPathV2, ip)
+
+	var k *AkamaiDTCurlResp
+
+	body := AkamaiDTCurlReq{
+		UserAgent: userAgent,
+		URL:       testURL,
+	}
+
+	resp, err := nls.client.NewRequest("POST", apiURI, body, &k)
 
 	return k, resp, err
 }
