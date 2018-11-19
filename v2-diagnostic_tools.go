@@ -12,6 +12,13 @@ type DiagToolsService struct {
 	client *Client
 }
 
+type AkamaiGhostLocationsResp struct {
+	Locations []struct {
+		ID    string `json:"id"`
+		Value string `json:"value"`
+	} `json:"locations"`
+}
+
 type AkamaiDTDigResp struct {
 	DigInfo struct {
 		Hostname      string `json:"hostname"`
@@ -325,15 +332,15 @@ func (nls *DiagToolsService) Dig(obj, requestFrom, hostname, query string) (*Aka
 }
 
 // IPMtr provides mtr functionality
-func (nls *DiagToolsService) IPMtr(ip, destinationDomain string, resolveDNS bool) (*AkamaiDTMtrResp, *ClientResponse, error) {
+func (nls *DiagToolsService) Mtr(obj, requestFrom, destinationDomain string, resolveDNS bool) (*AkamaiDTMtrResp, *ClientResponse, error) {
 	if destinationDomain == "" {
 		return nil, nil, fmt.Errorf("'destinationDomain' is required parameter: '%s'", destinationDomain)
 	}
 
-	apiURI := fmt.Sprintf("%s/ip-addresses/%s/mtr-data?destinationDomain=%s", DTPathV2, ip, destinationDomain)
+	apiURI := fmt.Sprintf("%s/%s/%s/mtr-data?destinationDomain=%s", DTPathV2, requestFrom, obj, destinationDomain)
 
 	if resolveDNS {
-		apiURI = fmt.Sprintf("%s/ip-addresses/%s/mtr-data?destinationDomain=%s&resolveDns=true", DTPathV2, ip, destinationDomain)
+		apiURI = fmt.Sprintf("%s/%s/%s/mtr-data?destinationDomain=%s&resolveDns=true", DTPathV2, requestFrom, obj, destinationDomain)
 	}
 
 	var k *AkamaiDTMtrResp
@@ -354,6 +361,16 @@ func (nls *DiagToolsService) Curl(obj, requestFrom, testURL, userAgent string) (
 	}
 
 	resp, err := nls.client.NewRequest("POST", apiURI, body, &k)
+
+	return k, resp, err
+}
+
+// ListGhostLocations provides Ghost locations
+func (nls *DiagToolsService) ListGhostLocations() (*AkamaiGhostLocationsResp, *ClientResponse, error) {
+	apiURI := fmt.Sprintf("%s/ghost-locations/available", DTPathV2)
+
+	var k *AkamaiGhostLocationsResp
+	resp, err := nls.client.NewRequest("GET", apiURI, nil, &k)
 
 	return k, resp, err
 }
