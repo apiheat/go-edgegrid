@@ -17,11 +17,11 @@ type AkamaiDTUserLinkReq struct {
 	URL         string `json:"url"`
 }
 
-type AkamaiDTGenerateDiagnosticLinkResp struct {
+type AkamaiDTGenerateDiagLinkResp struct {
 	DiagnosticURL string `json:"diagnosticUrl"`
 }
 
-type AkamaiDTListDiagnosticLinkRequestsResp struct {
+type AkamaiDTListDiagLinkRequestsResp struct {
 	EndUserIPRequests []struct {
 		EndUserName string    `json:"name"`
 		RequestID   uint32    `json:"requestId"`
@@ -30,7 +30,7 @@ type AkamaiDTListDiagnosticLinkRequestsResp struct {
 	} `json:"endUserIpRequests"`
 }
 
-type AkamaiDTDiagnosticLinkRequestResp struct {
+type AkamaiDTDiagLinkRequestResp struct {
 	EndUserIPDetails struct {
 		Name      string      `json:"name"`
 		Email     interface{} `json:"email"`
@@ -165,10 +165,10 @@ func (nls *DiagToolsService) CDNStatus(ip string) (*AkamaiDTCDNStatusResp, *Clie
 }
 
 // GenerateDiagnosticLink generates user link and request
-func (nls *DiagToolsService) GenerateDiagnosticLink(username, testURL string) (*AkamaiDTGenerateDiagnosticLinkResp, *ClientResponse, error) {
+func (nls *DiagToolsService) GenerateDiagnosticLink(username, testURL string) (*AkamaiDTGenerateDiagLinkResp, *ClientResponse, error) {
 	apiURI := fmt.Sprintf("%s/end-users/diagnostic-url", DTPathV2)
 
-	var k *AkamaiDTGenerateDiagnosticLinkResp
+	var k *AkamaiDTGenerateDiagLinkResp
 
 	body := AkamaiDTUserLinkReq{
 		EndUserName: username,
@@ -181,20 +181,20 @@ func (nls *DiagToolsService) GenerateDiagnosticLink(username, testURL string) (*
 }
 
 // ListDiagnosticLinkRequests lists all requests
-func (nls *DiagToolsService) ListDiagnosticLinkRequests() (*AkamaiDTListDiagnosticLinkRequestsResp, *ClientResponse, error) {
+func (nls *DiagToolsService) ListDiagnosticLinkRequests() (*AkamaiDTListDiagLinkRequestsResp, *ClientResponse, error) {
 	apiURI := fmt.Sprintf("%s/end-users/ip-requests", DTPathV2)
 
-	var k *AkamaiDTListDiagnosticLinkRequestsResp
+	var k *AkamaiDTListDiagLinkRequestsResp
 	resp, err := nls.client.NewRequest("GET", apiURI, nil, &k)
 
 	return k, resp, err
 }
 
 // GetDiagnosticLinkRequest gets request details
-func (nls *DiagToolsService) GetDiagnosticLinkRequest(id string) (*AkamaiDTDiagnosticLinkRequestResp, *ClientResponse, error) {
+func (nls *DiagToolsService) GetDiagnosticLinkRequest(id string) (*AkamaiDTDiagLinkRequestResp, *ClientResponse, error) {
 	apiURI := fmt.Sprintf("%s/end-users/ip-requests/%s/ip-details", DTPathV2, id)
 
-	var k *AkamaiDTDiagnosticLinkRequestResp
+	var k *AkamaiDTDiagLinkRequestResp
 	resp, err := nls.client.NewRequest("GET", apiURI, nil, &k)
 
 	return k, resp, err
