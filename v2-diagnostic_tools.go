@@ -3,12 +3,47 @@ package edgegrid
 import (
 	"fmt"
 	"reflect"
+	"time"
 
 	log "github.com/sirupsen/logrus"
 )
 
 type DiagToolsService struct {
 	client *Client
+}
+
+type AkamaiDTUserLinkReq struct {
+	EndUserName string `json:"endUserName"`
+	URL         string `json:"url"`
+}
+
+type AkamaiDTGenerateDiagnosticLinkResp struct {
+	DiagnosticURL string `json:"diagnosticUrl"`
+}
+
+type AkamaiDTListDiagnosticLinkRequestsResp struct {
+	EndUserIPRequests []struct {
+		EndUserName string    `json:"name"`
+		RequestID   uint32    `json:"requestId"`
+		URL         string    `json:"url"`
+		Timestamp   time.Time `json:"timestamp"`
+	} `json:"endUserIpRequests"`
+}
+
+type AkamaiDTDiagnosticLinkRequestResp struct {
+	EndUserIPDetails struct {
+		Name      string      `json:"name"`
+		Email     interface{} `json:"email"`
+		Timestamp time.Time   `json:"timestamp"`
+		URL       string      `json:"url"`
+		Ips       []struct {
+			Description string `json:"description"`
+			Location    string `json:"location"`
+			IP          string `json:"ip"`
+			IPType      string `json:"ipType"`
+		} `json:"ips"`
+		Browser string `json:"browser"`
+	} `json:"endUserIpDetails"`
 }
 
 type AkamaiDTCDNStatusResp struct {
@@ -115,7 +150,7 @@ func (nls *DiagToolsService) TranslateAnError(requestID string) (*AkamaiDTTransl
 	return k, resp, err
 }
 
-// CDNStatus gets translated error message
+// CDNStatus checks if given IP belongs to Akamai CDN
 // TODO: migrate to async if required
 func (nls *DiagToolsService) CDNStatus(ip string) (*AkamaiDTCDNStatusResp, *ClientResponse, error) {
 	apiURI := fmt.Sprintf("%s/ip-addresses/%s/is-cdn-ip", DTPathV2, ip)
@@ -125,6 +160,42 @@ func (nls *DiagToolsService) CDNStatus(ip string) (*AkamaiDTCDNStatusResp, *Clie
 
 	log.Debug(fmt.Sprintf("[%s]::Rate limit for Error Translation requests: %s per 60 seconds", reflect.TypeOf(nls), resp.Response.Header["X-Ratelimit-Limit"]))
 	log.Debug(fmt.Sprintf("[%s]::Remaining allowed number of requests: %s", reflect.TypeOf(nls), resp.Response.Header["X-Ratelimit-Remaining"]))
+
+	return k, resp, err
+}
+
+// GenerateDiagnosticLink generates user link and request
+func (nls *DiagToolsService) GenerateDiagnosticLink(username, testURL string) (*AkamaiDTGenerateDiagnosticLinkResp, *ClientResponse, error) {
+	apiURI := fmt.Sprintf("%s/end-users/diagnostic-url", DTPathV2)
+
+	var k *AkamaiDTGenerateDiagnosticLinkResp
+
+	body := AkamaiDTUserLinkReq{
+		EndUserName: username,
+		URL:         testURL,
+	}
+
+	resp, err := nls.client.NewRequest("POST", apiURI, body, &k)
+
+	return k, resp, err
+}
+
+// ListDiagnosticLinkRequests lists all requests
+func (nls *DiagToolsService) ListDiagnosticLinkRequests() (*AkamaiDTListDiagnosticLinkRequestsResp, *ClientResponse, error) {
+	apiURI := fmt.Sprintf("%s/end-users/ip-requests", DTPathV2)
+
+	var k *AkamaiDTListDiagnosticLinkRequestsResp
+	resp, err := nls.client.NewRequest("GET", apiURI, nil, &k)
+
+	return k, resp, err
+}
+
+// GetDiagnosticLinkRequest gets request details
+func (nls *DiagToolsService) GetDiagnosticLinkRequest(id string) (*AkamaiDTDiagnosticLinkRequestResp, *ClientResponse, error) {
+	apiURI := fmt.Sprintf("%s/end-users/ip-requests/%s/ip-details", DTPathV2, id)
+
+	var k *AkamaiDTDiagnosticLinkRequestResp
+	resp, err := nls.client.NewRequest("GET", apiURI, nil, &k)
 
 	return k, resp, err
 }
