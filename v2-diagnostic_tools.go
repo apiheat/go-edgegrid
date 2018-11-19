@@ -12,6 +12,79 @@ type DiagToolsService struct {
 	client *Client
 }
 
+type AkamaiDTDigResp struct {
+	DigInfo struct {
+		Hostname      string `json:"hostname"`
+		QueryType     string `json:"queryType"`
+		AnswerSection []struct {
+			Domain           string      `json:"domain"`
+			TTL              int         `json:"ttl"`
+			RecordClass      string      `json:"recordClass"`
+			RecordType       string      `json:"recordType"`
+			PreferenceValues interface{} `json:"preferenceValues"`
+			Value            string      `json:"value"`
+		} `json:"answerSection"`
+		AuthoritySection []struct {
+			Domain           string      `json:"domain"`
+			TTL              int         `json:"ttl"`
+			RecordClass      string      `json:"recordClass"`
+			RecordType       string      `json:"recordType"`
+			PreferenceValues interface{} `json:"preferenceValues"`
+			Value            string      `json:"value"`
+		} `json:"authoritySection"`
+		Result string `json:"result"`
+	} `json:"digInfo"`
+}
+
+type AkamaiDTMtrResp struct {
+	Mtr struct {
+		Source      string    `json:"source"`
+		Destination string    `json:"destination"`
+		StartTime   time.Time `json:"startTime"`
+		Host        string    `json:"host"`
+		PacketLoss  float64   `json:"packetLoss"`
+		AvgLatency  float64   `json:"avgLatency"`
+		Analysis    string    `json:"analysis"`
+		Hops        []struct {
+			Number int     `json:"number"`
+			Host   string  `json:"host"`
+			Loss   float64 `json:"loss"`
+			Sent   int     `json:"sent"`
+			Last   float64 `json:"last"`
+			Avg    float64 `json:"avg"`
+			Best   float64 `json:"best"`
+			Worst  float64 `json:"worst"`
+			StDev  float64 `json:"stDev"`
+		} `json:"hops"`
+		Result string `json:"result"`
+	} `json:"mtr"`
+}
+
+type AkamaiDTGeolocation struct {
+	GeoLocation struct {
+		ClientIP    string  `json:"clientIp"`
+		CountryCode string  `json:"countryCode"`
+		RegionCode  string  `json:"regionCode"`
+		City        string  `json:"city"`
+		Dma         int     `json:"dma"`
+		Msa         int     `json:"msa"`
+		Pmsa        int     `json:"pmsa"`
+		AreaCode    string  `json:"areaCode"`
+		Latitude    float64 `json:"latitude"`
+		Longitude   float64 `json:"longitude"`
+		County      string  `json:"county"`
+		Continent   string  `json:"continent"`
+		Fips        string  `json:"fips"`
+		TimeZone    string  `json:"timeZone"`
+		Network     string  `json:"network"`
+		NetworkType string  `json:"networkType"`
+		ZipCode     string  `json:"zipCode"`
+		Throughput  string  `json:"throughput"`
+		AsNum       string  `json:"asNum"`
+		Proxy       string  `json:"proxy"`
+	} `json:"geoLocation"`
+}
+
 type AkamaiDTUserLinkReq struct {
 	EndUserName string `json:"endUserName"`
 	URL         string `json:"url"`
@@ -32,10 +105,10 @@ type AkamaiDTListDiagLinkRequestsResp struct {
 
 type AkamaiDTDiagLinkRequestResp struct {
 	EndUserIPDetails struct {
-		Name      string      `json:"name"`
-		Email     interface{} `json:"email"`
-		Timestamp time.Time   `json:"timestamp"`
-		URL       string      `json:"url"`
+		Name      string    `json:"name"`
+		Email     string    `json:"email"`
+		Timestamp time.Time `json:"timestamp"`
+		URL       string    `json:"url"`
 		Ips       []struct {
 			Description string `json:"description"`
 			Location    string `json:"location"`
@@ -158,7 +231,7 @@ func (nls *DiagToolsService) CDNStatus(ip string) (*AkamaiDTCDNStatusResp, *Clie
 	var k *AkamaiDTCDNStatusResp
 	resp, err := nls.client.NewRequest("GET", apiURI, nil, &k)
 
-	log.Debug(fmt.Sprintf("[%s]::Rate limit for Error Translation requests: %s per 60 seconds", reflect.TypeOf(nls), resp.Response.Header["X-Ratelimit-Limit"]))
+	log.Debug(fmt.Sprintf("[%s]::Rate limit for CDN status requests: %s per 60 seconds", reflect.TypeOf(nls), resp.Response.Header["X-Ratelimit-Limit"]))
 	log.Debug(fmt.Sprintf("[%s]::Remaining allowed number of requests: %s", reflect.TypeOf(nls), resp.Response.Header["X-Ratelimit-Remaining"]))
 
 	return k, resp, err
@@ -195,6 +268,54 @@ func (nls *DiagToolsService) GetDiagnosticLinkRequest(id string) (*AkamaiDTDiagL
 	apiURI := fmt.Sprintf("%s/end-users/ip-requests/%s/ip-details", DTPathV2, id)
 
 	var k *AkamaiDTDiagLinkRequestResp
+	resp, err := nls.client.NewRequest("GET", apiURI, nil, &k)
+
+	return k, resp, err
+}
+
+// IPGeolocation provides given IP geolocation details
+func (nls *DiagToolsService) IPGeolocation(ip string) (*AkamaiDTGeolocation, *ClientResponse, error) {
+	apiURI := fmt.Sprintf("%s/ip-addresses/%s/geo-location", DTPathV2, ip)
+
+	var k *AkamaiDTGeolocation
+	resp, err := nls.client.NewRequest("GET", apiURI, nil, &k)
+
+	log.Debug(fmt.Sprintf("[%s]::Rate limit for IP geolacation requests: %s per 60 seconds, but maximum 500 per day", reflect.TypeOf(nls), resp.Response.Header["X-Ratelimit-Limit"]))
+	log.Debug(fmt.Sprintf("[%s]::Remaining allowed number of requests: %s", reflect.TypeOf(nls), resp.Response.Header["X-Ratelimit-Remaining"]))
+
+	return k, resp, err
+}
+
+// IPDig provides dig functionality
+func (nls *DiagToolsService) IPDig(ip, hostname, query string) (*AkamaiDTDigResp, *ClientResponse, error) {
+	if hostname == "" {
+		return nil, nil, fmt.Errorf("'hostname' is required parameter: '%s'", hostname)
+	}
+
+	apiURI := fmt.Sprintf("%s/ip-addresses/%s/dig-info?hostName=%s&queryType=%s", DTPathV2, ip, hostname, query)
+
+	var k *AkamaiDTDigResp
+	resp, err := nls.client.NewRequest("GET", apiURI, nil, &k)
+
+	log.Debug(fmt.Sprintf("[%s]::Rate limit for request: %s per 60 seconds", reflect.TypeOf(nls), resp.Response.Header["X-Ratelimit-Limit"]))
+	log.Debug(fmt.Sprintf("[%s]::Remaining allowed number of requests: %s", reflect.TypeOf(nls), resp.Response.Header["X-Ratelimit-Remaining"]))
+
+	return k, resp, err
+}
+
+// IPMtr provides mtr functionality
+func (nls *DiagToolsService) IPMtr(ip, destinationDomain string, resolveDNS bool) (*AkamaiDTMtrResp, *ClientResponse, error) {
+	if destinationDomain == "" {
+		return nil, nil, fmt.Errorf("'destinationDomain' is required parameter: '%s'", destinationDomain)
+	}
+
+	apiURI := fmt.Sprintf("%s/ip-addresses/%s/mtr-data?destinationDomain=%s", DTPathV2, ip, destinationDomain)
+
+	if resolveDNS {
+		apiURI = fmt.Sprintf("%s/ip-addresses/%s/mtr-data?destinationDomain=%s&resolveDns=true", DTPathV2, ip, destinationDomain)
+	}
+
+	var k *AkamaiDTMtrResp
 	resp, err := nls.client.NewRequest("GET", apiURI, nil, &k)
 
 	return k, resp, err
