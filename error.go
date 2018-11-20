@@ -6,10 +6,10 @@ import (
 	"fmt"
 )
 
-// An ErrorResponse reports one or more errors caused by an API request.
+// An AkamaiGeneralError reports one or more errors caused by an API request.
 //
 // error
-type ErrorResponse struct {
+type AkamaiGeneralError struct {
 	Type        string `json:"type"`
 	Title       string `json:"title"`
 	Status      int    `json:"status"`
@@ -22,13 +22,35 @@ type ErrorResponse struct {
 	RequestTime string `json:"requestTime"`
 }
 
-// An ErrorResponse Error() function implementation
+// An AkamaiGeneralError Error() function implementation
 //
 // error
-func (e *ErrorResponse) Error() string {
-	b, err := json.Marshal(e)
+func (e *AkamaiGeneralError) Error() string {
+	return ShowJSONMessage(e)
+}
+
+// An EdgegridError is used to provide higher level clients with
+//					error which occured. Later on can be casted to specific type if needed
+// error
+type EdgegridError struct {
+	ResponseCode int    `json:"response_code"`
+	ResponseBody string `json:"response_body"`
+}
+
+// An EdgegridError Error() function implementation
+//
+// error
+func (e *EdgegridError) Error() string {
+	return ShowJSONMessage(e.ResponseBody)
+}
+
+// ShowJSONMessage returns string JSON message
+//
+// error
+func ShowJSONMessage(errType interface{}) string {
+	b, err := json.Marshal(errType)
 	if err != nil {
-		fmt.Println(err)
+		return ""
 	}
 
 	var prettyJSON bytes.Buffer

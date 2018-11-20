@@ -1,10 +1,8 @@
 package edgegrid
 
 import (
-	"bytes"
-	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"net/http"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -96,23 +94,13 @@ type AkamaiNetworkListErrorv2 struct {
 //
 // error
 func (e *AkamaiNetworkListErrorv2) Error() string {
-	b, err := json.Marshal(e)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	var prettyJSON bytes.Buffer
-	errprettyJSON := json.Indent(&prettyJSON, []byte(string(b)), "", "    ")
-	if errprettyJSON != nil {
-		fmt.Println(errprettyJSON)
-	}
-	return string(prettyJSON.Bytes())
+	return ShowJSONMessage(e)
 }
 
 // ListNetworkLists List all configured Network Lists for the authenticated user.
 //
 // Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html#getlists
-func (nls *NetworkListServicev2) ListNetworkLists(opts ListNetworkListsOptionsv2) (*[]AkamaiNetworkListv2, *ClientResponse, error) {
+func (nls *NetworkListServicev2) ListNetworkLists(opts ListNetworkListsOptionsv2) (*[]AkamaiNetworkListv2, *http.Response, error) {
 
 	apiURI := fmt.Sprintf("%s?listType=%s&extended=%t&search=%s&includeElements=%t",
 		NetworkListPathV2,
@@ -124,30 +112,16 @@ func (nls *NetworkListServicev2) ListNetworkLists(opts ListNetworkListsOptionsv2
 	var netListsv2 *AkamaiNetworkListsv2
 
 	log.Debug("[NetworkListServicev2]::Execute request")
-	clientResp, clientErr := nls.client.NewRequest("GET", apiURI, nil, &netListsv2)
+	APIClientResponse, APIclientError := nls.client.NewRequest(http.MethodGet, apiURI, nil, &netListsv2)
 
-	if clientErr != nil {
+	// This error indicates we had problems connecting to Akamai endpoint(s)
+	if APIclientError != nil {
 		log.Debug("[NetworkListServicev2]::Client request error")
 		log.Debug(fmt.Sprintf("[NetworkListServicev2]:: %s", clientErr))
 
-		return nil, clientResp, clientErr
+		return nil, APIClientResponse, APIclientError
 	}
 
-	/*
-		This is MVP for next iteration to be placed in function
-	*/
-	data, _ := ioutil.ReadAll(clientResp.Response.Body)
-	switch clientResp.Response.StatusCode {
-	case 200, 201:
-		return &netListsv2.NetworkLists, clientResp, nil
-	case 400, 403, 404, 409, 500:
-		var netListsv2err *AkamaiNetworkListErrorv2
-		json.Unmarshal(data, &netListsv2err)
-		return nil, clientResp, netListsv2err
-	}
-
-	var errorResponse *ErrorResponse
-	_ = json.Unmarshal(data, &errorResponse)
-	return nil, clientResp, errorResponse
+	return netListsv2, APIClientResponse, nil
 
 }
