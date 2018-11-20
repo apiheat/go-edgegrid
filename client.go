@@ -94,15 +94,6 @@ type ClientOptions struct {
 	DebugLevel    string
 }
 
-// ClientResponse represents response from our API call
-//
-// client
-type ClientResponse struct {
-	Body     string
-	HasError bool
-	Response *http.Response
-}
-
 // NewClient returns a new edgegrid.Client for API. If a nil httpClient is
 // provided, http.DefaultClient will be used.
 //
@@ -215,7 +206,7 @@ func newClient(httpClient *http.Client, edgercPath, edgercSection string) (*Clie
 // Host specified in Config. If body is specified, it will be sent as the request body.
 //
 // client
-func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*ClientResponse, error) {
+func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*http.Response, error) {
 
 	targetURL, _ := prepareURL(cl.baseURL, path)
 
@@ -228,13 +219,17 @@ func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*Cli
 	log.Debug("[NewRequest]::Create http request")
 	req, err := http.NewRequest(method, targetURL.String(), nil)
 	if err != nil {
-		return nil, nil
+		return nil, err
 	}
 
-	if method == "POST" || method == "PUT" {
+	if method == http.MethodPost || method == http.MethodPut {
 		log.Info("Prepare request body object")
 		log.Debug("[NewRequest]::Method is POST/PUT")
 		log.Debug("[NewRequest]::Marshal request object")
+
+		reqType := reflect.TypeOf(vreq)
+		log.Debug(fmt.Sprintf("[NewRequest]::Object request provided type ( %s ) ", reqType))
+
 		bodyBytes, err := json.Marshal(vreq)
 		if err != nil {
 			return nil, err
@@ -258,34 +253,39 @@ func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*Cli
 	log.Info("Execute http request")
 	resp, err := cl.client.Do(req)
 	if err != nil {
+		log.Debug("[NewRequest]::Error making request")
+		log.Debug(fmt.Sprintf("[NewRequest]:: %s", err.Error()))
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	log.Debug("[NewRequest]::Process response")
-	clientResp := &ClientResponse{}
+	log.Debug("[NewRequest]::Processing response")
 
 	log.Debug("[NewRequest]::Read response body")
-	byt, _ := ioutil.ReadAll(resp.Body)
-
-	log.Debug("[NewRequest]::Set client object response and body")
-	clientResp.Response = resp
-	clientResp.Body = string(byt)
+	byt, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Debug("[NewRequest]::Error reading response body")
+		log.Debug(fmt.Sprintf("[NewRequest]:: %s", err.Error()))
+		return nil, err
+	}
 
 	log.Debug("[NewRequest]::Response code is:" + strconv.Itoa(resp.StatusCode))
-	log.Debug("[NewRequest]::Body is " + clientResp.Body)
+	log.Debug("[NewRequest]::Body is " + string(byt))
 
-	respType := reflect.TypeOf(vresp)
-	log.Debug(fmt.Sprintf("[NewRequest]::Map response to provided type ( %s ) ", respType))
 	if vresp != nil {
+		respType := reflect.TypeOf(vresp)
+		log.Debug(fmt.Sprintf("[NewRequest]::Map response to provided type ( %s ) ", respType))
+
 		if err = json.Unmarshal([]byte(byt), &vresp); err != nil {
-			return clientResp, err
+			log.Debug("[NewRequest]::Error while unmarshaling response body")
+			log.Debug(fmt.Sprintf("[NewRequest]:: %s", err.Error()))
+			return nil, err
 		}
 	}
 
 	log.Debug("[NewRequest]::Return response")
 
-	return clientResp, err
+	return resp, nil
 }
 
 // SetBaseURL sets the base URL for API requests to a custom endpoint.

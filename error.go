@@ -41,7 +41,7 @@ type EdgegridError struct {
 //
 // error
 func (e *EdgegridError) Error() string {
-	return ShowJSONMessage(e)
+	return ShowJSONMessage(e.ResponseBody)
 }
 
 // ShowJSONMessage returns string JSON message
