@@ -100,7 +100,7 @@ func (e *AkamaiNetworkListErrorv2) Error() string {
 // ListNetworkLists List all configured Network Lists for the authenticated user.
 //
 // Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html#getlists
-func (nls *NetworkListServicev2) ListNetworkLists(opts ListNetworkListsOptionsv2) (*[]AkamaiNetworkListv2, *http.Response, error) {
+func (nls *NetworkListServicev2) ListNetworkLists(opts ListNetworkListsOptionsv2) (*[]AkamaiNetworkListv2, *ClientResponse, error) {
 
 	apiURI := fmt.Sprintf("%s?listType=%s&extended=%t&search=%s&includeElements=%t",
 		NetworkListPathV2,
@@ -109,7 +109,7 @@ func (nls *NetworkListServicev2) ListNetworkLists(opts ListNetworkListsOptionsv2
 		opts.Search,
 		opts.IncludeElements)
 
-	var netListsv2 *AkamaiNetworkListsv2
+	var netListsv2 *[]AkamaiNetworkListv2
 
 	log.Debug("[NetworkListServicev2]::Execute request")
 	APIClientResponse, APIclientError := nls.client.NewRequest(http.MethodGet, apiURI, nil, &netListsv2)
@@ -117,7 +117,7 @@ func (nls *NetworkListServicev2) ListNetworkLists(opts ListNetworkListsOptionsv2
 	// This error indicates we had problems connecting to Akamai endpoint(s)
 	if APIclientError != nil {
 		log.Debug("[NetworkListServicev2]::Client request error")
-		log.Debug(fmt.Sprintf("[NetworkListServicev2]:: %s", clientErr))
+		log.Debug(fmt.Sprintf("[NetworkListServicev2]:: %s", APIclientError))
 
 		return nil, APIClientResponse, APIclientError
 	}

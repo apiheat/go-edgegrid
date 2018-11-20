@@ -2,6 +2,7 @@ package edgegrid
 
 import (
 	"fmt"
+	"net/http"
 )
 
 type ReportingService struct {
@@ -30,7 +31,7 @@ func (nls *ReportingService) GenerateReport(body interface{}, opts AkamaiReportO
 
 	apiURI := fmt.Sprintf("%s/%s/versions/1/report-data?%s&interval=%s", ReportingPathV1, opts.TypeOfReport, opts.DateRange, opts.Interval)
 
-	resp, err := nls.client.NewRequest("POST", apiURI, body, nil)
+	resp, err := nls.client.NewRequest(http.MethodPost, apiURI, body, nil)
 
 	return resp, err
 
