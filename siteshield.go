@@ -1,6 +1,9 @@
 package edgegrid
 
-import "fmt"
+import (
+	"fmt"
+	"net/http"
+)
 
 type SiteShieldService struct {
 	client *Client
@@ -32,7 +35,7 @@ type AkamaiSiteShieldMap struct {
 
 func (nls *SiteShieldService) ListMaps() (*AkamaiSiteShieldMapsResp, *ClientResponse, error) {
 	var k *AkamaiSiteShieldMapsResp
-	resp, err := nls.client.NewRequest("GET", SiteshieldPathV1, nil, &k)
+	resp, err := nls.client.NewRequest(http.MethodGet, SiteshieldPathV1, nil, &k)
 
 	return k, resp, err
 }
@@ -41,7 +44,7 @@ func (nls *SiteShieldService) ListMap(id string) (*AkamaiSiteShieldMap, *ClientR
 	apiURI := fmt.Sprintf("%s/%s", SiteshieldPathV1, id)
 
 	var k *AkamaiSiteShieldMap
-	resp, err := nls.client.NewRequest("GET", apiURI, nil, &k)
+	resp, err := nls.client.NewRequest(http.MethodGet, apiURI, nil, &k)
 
 	return k, resp, err
 }
@@ -50,7 +53,7 @@ func (nls *SiteShieldService) AckMap(id string) (*AkamaiSiteShieldMap, *ClientRe
 	apiURI := fmt.Sprintf("%s/%s/acknowledge", SiteshieldPathV1, id)
 
 	var k *AkamaiSiteShieldMap
-	resp, err := nls.client.NewRequest("POST", apiURI, nil, &k)
+	resp, err := nls.client.NewRequest(http.MethodPost, apiURI, nil, &k)
 
 	return k, resp, err
 }

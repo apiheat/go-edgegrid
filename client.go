@@ -85,6 +85,14 @@ type Client struct {
 	DT                 *DiagToolsService
 }
 
+// ClientResponse represents response from our API call
+//
+// client
+type ClientResponse struct {
+	Body     string
+	Response *http.Response
+}
+
 // ClientOptions represents options we can pass during client creation
 //
 // client
@@ -206,7 +214,7 @@ func newClient(httpClient *http.Client, edgercPath, edgercSection string) (*Clie
 // Host specified in Config. If body is specified, it will be sent as the request body.
 //
 // client
-func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*http.Response, error) {
+func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*ClientResponse, error) {
 
 	targetURL, _ := prepareURL(cl.baseURL, path)
 
@@ -260,6 +268,7 @@ func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*htt
 	defer resp.Body.Close()
 
 	log.Debug("[NewRequest]::Processing response")
+	clientResp := &ClientResponse{}
 
 	log.Debug("[NewRequest]::Read response body")
 	byt, err := ioutil.ReadAll(resp.Body)
@@ -269,8 +278,12 @@ func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*htt
 		return nil, err
 	}
 
+	log.Debug("[NewRequest]::Set client object response and body")
+	clientResp.Response = resp
+	clientResp.Body = string(byt)
+
 	log.Debug("[NewRequest]::Response code is:" + strconv.Itoa(resp.StatusCode))
-	log.Debug("[NewRequest]::Body is " + string(byt))
+	log.Debug("[NewRequest]::Body is " + clientResp.Body)
 
 	if vresp != nil {
 		respType := reflect.TypeOf(vresp)
@@ -285,7 +298,7 @@ func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*htt
 
 	log.Debug("[NewRequest]::Return response")
 
-	return resp, nil
+	return clientResp, nil
 }
 
 // SetBaseURL sets the base URL for API requests to a custom endpoint.

@@ -2,6 +2,7 @@ package edgegrid
 
 import (
 	"fmt"
+	"net/http"
 	"time"
 )
 
@@ -118,7 +119,7 @@ func (pas *PropertyService) ListPropertyContracts() (*PropertyContracts, *Client
 	apiURI := fmt.Sprintf("%s/contracts", PAPIPathV1)
 
 	var k *PropertyContracts
-	resp, err := pas.client.NewRequest("GET", apiURI, nil, &k)
+	resp, err := pas.client.NewRequest(http.MethodGet, apiURI, nil, &k)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -135,7 +136,7 @@ func (pas *PropertyService) ListPropertyGroups() (*PropertyGroups, *ClientRespon
 	apiURI := fmt.Sprintf("%s/groups", PAPIPathV1)
 
 	var k *PropertyGroups
-	resp, err := pas.client.NewRequest("GET", apiURI, nil, &k)
+	resp, err := pas.client.NewRequest(http.MethodGet, apiURI, nil, &k)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -155,7 +156,7 @@ func (pas *PropertyService) ListPropertyCPCodes(contractID, groupID string) (*Pr
 		groupID)
 
 	var k *PropertyCPCodes
-	resp, err := pas.client.NewRequest("GET", apiURI, nil, &k)
+	resp, err := pas.client.NewRequest(http.MethodGet, apiURI, nil, &k)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -174,7 +175,7 @@ func (pas *PropertyService) ListPropertyProducts(contractId string) (*PropertyPr
 		contractId)
 
 	var k *PropertyProducts
-	resp, err := pas.client.NewRequest("GET", apiURI, nil, &k)
+	resp, err := pas.client.NewRequest(http.MethodGet, apiURI, nil, &k)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -193,7 +194,7 @@ func (pas *PropertyService) NewPropertyCPcode(newCPcode *PropertyCPCodeNew, cont
 		contractID,
 		groupID)
 
-	resp, err := pas.client.NewRequest("POST", apiURI, newCPcode, nil)
+	resp, err := pas.client.NewRequest(http.MethodPost, apiURI, newCPcode, nil)
 	if err != nil {
 		return resp, err
 	}
@@ -213,7 +214,7 @@ func (pas *PropertyService) ListPropertyCPEdgehosts(contractId, groupID string) 
 		groupID)
 
 	var k *PropertyCPEdgehosts
-	resp, err := pas.client.NewRequest("GET", apiURI, nil, &k)
+	resp, err := pas.client.NewRequest(http.MethodGet, apiURI, nil, &k)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -233,7 +234,7 @@ func (pas *PropertyService) ListPropertyProperties(contractId, groupID string) (
 		groupID)
 
 	var k *PropertyProps
-	resp, err := pas.client.NewRequest("GET", apiURI, nil, &k)
+	resp, err := pas.client.NewRequest(http.MethodGet, apiURI, nil, &k)
 	if err != nil {
 		return nil, resp, err
 	}

@@ -1,6 +1,9 @@
 package edgegrid
 
-import "fmt"
+import (
+	"fmt"
+	"net/http"
+)
 
 type IdentityManagementService struct {
 	client *Client
@@ -24,7 +27,7 @@ func (nls *IdentityManagementService) ListUsers() (*[]AkamaiUser, *ClientRespons
 	apiURI := fmt.Sprintf("%s/user-admin/ui-identities", IdentityManagementPathV2)
 
 	var k *[]AkamaiUser
-	resp, err := nls.client.NewRequest("GET", apiURI, nil, &k)
+	resp, err := nls.client.NewRequest(http.MethodGet, apiURI, nil, &k)
 
 	return k, resp, err
 }

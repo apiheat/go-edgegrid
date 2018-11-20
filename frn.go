@@ -1,6 +1,9 @@
 package edgegrid
 
-import "fmt"
+import (
+	"fmt"
+	"net/http"
+)
 
 type FirewallRulesNotificationsService struct {
 	client *Client
@@ -21,7 +24,7 @@ func (nls *FirewallRulesNotificationsService) ListServices() (*AkamaiFRNServices
 	apiURI := fmt.Sprintf("%s/services", FRNPathV1)
 
 	var k *AkamaiFRNServices
-	resp, err := nls.client.NewRequest("GET", apiURI, nil, &k)
+	resp, err := nls.client.NewRequest(http.MethodGet, apiURI, nil, &k)
 
 	return k, resp, err
 }
@@ -30,7 +33,7 @@ func (nls *FirewallRulesNotificationsService) ListService(id string) (*AkamaiFRN
 	apiURI := fmt.Sprintf("%s/services/%s", FRNPathV1, id)
 
 	var k *AkamaiFRNService
-	resp, err := nls.client.NewRequest("GET", apiURI, nil, &k)
+	resp, err := nls.client.NewRequest(http.MethodGet, apiURI, nil, &k)
 
 	return k, resp, err
 }
@@ -53,7 +56,7 @@ func (nls *FirewallRulesNotificationsService) ListSubscriptions() (*AkamaiFRNSub
 	apiURI := fmt.Sprintf("%s/subscriptions", FRNPathV1)
 
 	var k *AkamaiFRNSubscriptions
-	resp, err := nls.client.NewRequest("GET", apiURI, nil, &k)
+	resp, err := nls.client.NewRequest(http.MethodGet, apiURI, nil, &k)
 
 	return k, resp, err
 }
@@ -71,7 +74,7 @@ func (nls *FirewallRulesNotificationsService) UpdateSubscriptions(services []int
 	}
 
 	var k *AkamaiFRNSubscriptions
-	resp, err := nls.client.NewRequest("PUT", apiURI, obj, &k)
+	resp, err := nls.client.NewRequest(http.MethodPut, apiURI, obj, &k)
 
 	return k, resp, err
 }
@@ -100,7 +103,7 @@ func (nls *FirewallRulesNotificationsService) ListCIDRBlocks(filterStr string) (
 	}
 
 	var k *AkamaiFRNCidrs
-	resp, err := nls.client.NewRequest("GET", apiURI, nil, &k)
+	resp, err := nls.client.NewRequest(http.MethodGet, apiURI, nil, &k)
 
 	return k, resp, err
 }

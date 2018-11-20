@@ -2,6 +2,7 @@ package edgegrid
 
 import (
 	"fmt"
+	"net/http"
 	"reflect"
 	"time"
 
@@ -219,7 +220,7 @@ func (nls *DiagToolsService) LaunchErrorTranslationRequest(errorCode string) (*A
 	apiURI := fmt.Sprintf("%s/errors/%s/translate-error", DTPathV2, errorCode)
 
 	var k *AkamaiDTErrorTranslationResp
-	resp, err := nls.client.NewRequest("POST", apiURI, nil, &k)
+	resp, err := nls.client.NewRequest(http.MethodPost, apiURI, nil, &k)
 
 	log.Debug(fmt.Sprintf("[%s]::Rate limit for Error Translation requests: %s per 60 seconds", reflect.TypeOf(nls), resp.Response.Header["X-Ratelimit-Limit"]))
 	log.Debug(fmt.Sprintf("[%s]::Remaining allowed number of requests: %s", reflect.TypeOf(nls), resp.Response.Header["X-Ratelimit-Remaining"]))
@@ -233,9 +234,9 @@ func (nls *DiagToolsService) CheckAnErrorTranslationRequest(requestID string) (*
 	apiURI := fmt.Sprintf("%s/translate-error-requests/%s", DTPathV2, requestID)
 
 	var k *AkamaiDTErrorTranslationResp
-	resp, err := nls.client.NewRequest("GET", apiURI, nil, &k)
+	resp, err := nls.client.NewRequest(http.MethodGet, apiURI, nil, &k)
 
-	if resp.Response.StatusCode == 303 {
+	if resp.Response.StatusCode == http.StatusSeeOther {
 		return nil, resp, err
 	}
 	return k, resp, err
@@ -246,7 +247,7 @@ func (nls *DiagToolsService) TranslateAnError(requestID string) (*AkamaiDTTransl
 	apiURI := fmt.Sprintf("%s/translate-error-requests/%s/translated-error", DTPathV2, requestID)
 
 	var k *AkamaiDTTranslatedErrorResp
-	resp, err := nls.client.NewRequest("GET", apiURI, nil, &k)
+	resp, err := nls.client.NewRequest(http.MethodGet, apiURI, nil, &k)
 
 	return k, resp, err
 }
@@ -257,7 +258,7 @@ func (nls *DiagToolsService) CDNStatus(ip string) (*AkamaiDTCDNStatusResp, *Clie
 	apiURI := fmt.Sprintf("%s/ip-addresses/%s/is-cdn-ip", DTPathV2, ip)
 
 	var k *AkamaiDTCDNStatusResp
-	resp, err := nls.client.NewRequest("GET", apiURI, nil, &k)
+	resp, err := nls.client.NewRequest(http.MethodGet, apiURI, nil, &k)
 
 	log.Debug(fmt.Sprintf("[%s]::Rate limit for CDN status requests: %s per 60 seconds", reflect.TypeOf(nls), resp.Response.Header["X-Ratelimit-Limit"]))
 	log.Debug(fmt.Sprintf("[%s]::Remaining allowed number of requests: %s", reflect.TypeOf(nls), resp.Response.Header["X-Ratelimit-Remaining"]))
@@ -276,7 +277,7 @@ func (nls *DiagToolsService) GenerateDiagnosticLink(username, testURL string) (*
 		URL:         testURL,
 	}
 
-	resp, err := nls.client.NewRequest("POST", apiURI, body, &k)
+	resp, err := nls.client.NewRequest(http.MethodPost, apiURI, body, &k)
 
 	return k, resp, err
 }
@@ -286,7 +287,7 @@ func (nls *DiagToolsService) ListDiagnosticLinkRequests() (*AkamaiDTListDiagLink
 	apiURI := fmt.Sprintf("%s/end-users/ip-requests", DTPathV2)
 
 	var k *AkamaiDTListDiagLinkRequestsResp
-	resp, err := nls.client.NewRequest("GET", apiURI, nil, &k)
+	resp, err := nls.client.NewRequest(http.MethodGet, apiURI, nil, &k)
 
 	return k, resp, err
 }
@@ -296,7 +297,7 @@ func (nls *DiagToolsService) GetDiagnosticLinkRequest(id string) (*AkamaiDTDiagL
 	apiURI := fmt.Sprintf("%s/end-users/ip-requests/%s/ip-details", DTPathV2, id)
 
 	var k *AkamaiDTDiagLinkRequestResp
-	resp, err := nls.client.NewRequest("GET", apiURI, nil, &k)
+	resp, err := nls.client.NewRequest(http.MethodGet, apiURI, nil, &k)
 
 	return k, resp, err
 }
@@ -306,7 +307,7 @@ func (nls *DiagToolsService) IPGeolocation(ip string) (*AkamaiDTGeolocation, *Cl
 	apiURI := fmt.Sprintf("%s/ip-addresses/%s/geo-location", DTPathV2, ip)
 
 	var k *AkamaiDTGeolocation
-	resp, err := nls.client.NewRequest("GET", apiURI, nil, &k)
+	resp, err := nls.client.NewRequest(http.MethodGet, apiURI, nil, &k)
 
 	log.Debug(fmt.Sprintf("[%s]::Rate limit for IP geolacation requests: %s per 60 seconds, but maximum 500 per day", reflect.TypeOf(nls), resp.Response.Header["X-Ratelimit-Limit"]))
 	log.Debug(fmt.Sprintf("[%s]::Remaining allowed number of requests: %s", reflect.TypeOf(nls), resp.Response.Header["X-Ratelimit-Remaining"]))
@@ -323,7 +324,7 @@ func (nls *DiagToolsService) Dig(obj, requestFrom, hostname, query string) (*Aka
 	apiURI := fmt.Sprintf("%s/%s/%s/dig-info?hostName=%s&queryType=%s", DTPathV2, requestFrom, obj, hostname, query)
 
 	var k *AkamaiDTDigResp
-	resp, err := nls.client.NewRequest("GET", apiURI, nil, &k)
+	resp, err := nls.client.NewRequest(http.MethodGet, apiURI, nil, &k)
 
 	log.Debug(fmt.Sprintf("[%s]::Rate limit for request: %s per 60 seconds", reflect.TypeOf(nls), resp.Response.Header["X-Ratelimit-Limit"]))
 	log.Debug(fmt.Sprintf("[%s]::Remaining allowed number of requests: %s", reflect.TypeOf(nls), resp.Response.Header["X-Ratelimit-Remaining"]))
@@ -344,7 +345,7 @@ func (nls *DiagToolsService) Mtr(obj, requestFrom, destinationDomain string, res
 	}
 
 	var k *AkamaiDTMtrResp
-	resp, err := nls.client.NewRequest("GET", apiURI, nil, &k)
+	resp, err := nls.client.NewRequest(http.MethodGet, apiURI, nil, &k)
 
 	return k, resp, err
 }
@@ -360,7 +361,7 @@ func (nls *DiagToolsService) Curl(obj, requestFrom, testURL, userAgent string) (
 		URL:       testURL,
 	}
 
-	resp, err := nls.client.NewRequest("POST", apiURI, body, &k)
+	resp, err := nls.client.NewRequest(http.MethodPost, apiURI, body, &k)
 
 	return k, resp, err
 }
@@ -370,7 +371,7 @@ func (nls *DiagToolsService) ListGhostLocations() (*AkamaiGhostLocationsResp, *C
 	apiURI := fmt.Sprintf("%s/ghost-locations/available", DTPathV2)
 
 	var k *AkamaiGhostLocationsResp
-	resp, err := nls.client.NewRequest("GET", apiURI, nil, &k)
+	resp, err := nls.client.NewRequest(http.MethodGet, apiURI, nil, &k)
 
 	return k, resp, err
 }
