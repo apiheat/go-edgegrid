@@ -321,6 +321,10 @@ func (nls *DiagToolsService) Dig(obj, requestFrom, hostname, query string) (*Aka
 		return nil, nil, fmt.Errorf("'hostname' is required parameter: '%s'", hostname)
 	}
 
+	if validateRequestFrom(requestFrom) != nil {
+		return nil, nil, validateRequestFrom(requestFrom)
+	}
+
 	apiURI := fmt.Sprintf("%s/%s/%s/dig-info?hostName=%s&queryType=%s", DTPathV2, requestFrom, obj, hostname, query)
 
 	var k *AkamaiDTDigResp
@@ -332,10 +336,14 @@ func (nls *DiagToolsService) Dig(obj, requestFrom, hostname, query string) (*Aka
 	return k, resp, err
 }
 
-// IPMtr provides mtr functionality
+// Mtr provides mtr functionality
 func (nls *DiagToolsService) Mtr(obj, requestFrom, destinationDomain string, resolveDNS bool) (*AkamaiDTMtrResp, *ClientResponse, error) {
 	if destinationDomain == "" {
 		return nil, nil, fmt.Errorf("'destinationDomain' is required parameter: '%s'", destinationDomain)
+	}
+
+	if validateRequestFrom(requestFrom) != nil {
+		return nil, nil, validateRequestFrom(requestFrom)
 	}
 
 	apiURI := fmt.Sprintf("%s/%s/%s/mtr-data?destinationDomain=%s", DTPathV2, requestFrom, obj, destinationDomain)
@@ -353,6 +361,13 @@ func (nls *DiagToolsService) Mtr(obj, requestFrom, destinationDomain string, res
 // Curl provides curl functionality
 func (nls *DiagToolsService) Curl(obj, requestFrom, testURL, userAgent string) (*AkamaiDTCurlResp, *ClientResponse, error) {
 	apiURI := fmt.Sprintf("%s/%s/%s/curl-results", DTPathV2, requestFrom, obj)
+	if testURL == "" {
+		return nil, nil, fmt.Errorf("'testURL' is required parameter: '%s'", testURL)
+	}
+
+	if validateRequestFrom(requestFrom) != nil {
+		return nil, nil, validateRequestFrom(requestFrom)
+	}
 
 	var k *AkamaiDTCurlResp
 
@@ -374,4 +389,16 @@ func (nls *DiagToolsService) ListGhostLocations() (*AkamaiGhostLocationsResp, *C
 	resp, err := nls.client.NewRequest(http.MethodGet, apiURI, nil, &k)
 
 	return k, resp, err
+}
+
+func validateRequestFrom(requestFrom string) error {
+	if requestFrom == "ghost-locations" {
+		return nil
+	}
+
+	if requestFrom == "ip-addresses" {
+		return nil
+	}
+
+	return fmt.Errorf("'requestFrom' is required parameter and must be either 'ghost-locations' or 'ip-addresses', you sent: '%s'", requestFrom)
 }
