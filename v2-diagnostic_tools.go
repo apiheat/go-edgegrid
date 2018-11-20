@@ -20,6 +20,23 @@ type AkamaiGhostLocationsResp struct {
 	} `json:"locations"`
 }
 
+type AkamaiDTGTMPropertiesResp struct {
+	GtmProperties []struct {
+		Property string `json:"property"`
+		Domain   string `json:"domain"`
+		HostName string `json:"hostName"`
+	} `json:"gtmProperties"`
+}
+
+type AkamaiDTGTMPropertyIpsResp struct {
+	GtmPropertyIps struct {
+		Property  string   `json:"property"`
+		Domain    string   `json:"domain"`
+		TestIps   []string `json:"testIps"`
+		TargetIps []string `json:"targetIps"`
+	} `json:"gtmPropertyIps"`
+}
+
 type AkamaiDTDigResp struct {
 	DigInfo struct {
 		Hostname      string `json:"hostname"`
@@ -386,6 +403,34 @@ func (nls *DiagToolsService) ListGhostLocations() (*AkamaiGhostLocationsResp, *C
 	apiURI := fmt.Sprintf("%s/ghost-locations/available", DTPathV2)
 
 	var k *AkamaiGhostLocationsResp
+	resp, err := nls.client.NewRequest(http.MethodGet, apiURI, nil, &k)
+
+	return k, resp, err
+}
+
+// ListGTMProperties provides available GTM properties
+func (nls *DiagToolsService) ListGTMProperties() (*AkamaiDTGTMPropertiesResp, *ClientResponse, error) {
+	apiURI := fmt.Sprintf("%s/gtm/gtm-properties", DTPathV2)
+
+	var k *AkamaiDTGTMPropertiesResp
+	resp, err := nls.client.NewRequest(http.MethodGet, apiURI, nil, &k)
+
+	return k, resp, err
+}
+
+// ListGTMPropertyIPs provides available GTM properties
+func (nls *DiagToolsService) ListGTMPropertyIPs(property, domain string) (*AkamaiDTGTMPropertyIpsResp, *ClientResponse, error) {
+	if property == "" {
+		return nil, nil, fmt.Errorf("'property' is required parameter: '%s'", property)
+	}
+
+	if domain == "" {
+		return nil, nil, fmt.Errorf("'domain' is required parameter: '%s'", domain)
+	}
+
+	apiURI := fmt.Sprintf("%s/gtm/%s/%s/gtm-property-ips", DTPathV2, property, domain)
+
+	var k *AkamaiDTGTMPropertyIpsResp
 	resp, err := nls.client.NewRequest(http.MethodGet, apiURI, nil, &k)
 
 	return k, resp, err
