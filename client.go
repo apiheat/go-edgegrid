@@ -46,12 +46,19 @@ const (
 // client
 type AkamaiEnvironment string
 
-// AkamaiEnvironment const represents Akamai's target environment to be used in calls.
-//
-// client
 const (
 	Production AkamaiEnvironment = "production"
 	Staging    AkamaiEnvironment = "staging"
+)
+
+// AkamaiSubscription represents Akamai's notification actions for subscriptions.
+//
+// client
+type AkamaiSubscription string
+
+const (
+	Subscribe   AkamaiSubscription = "subscribe"
+	Unsubscribe AkamaiSubscription = "unsubscribe"
 )
 
 const (
