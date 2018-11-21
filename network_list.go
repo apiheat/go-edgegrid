@@ -1,11 +1,11 @@
-package edgegrid
+// package edgegrid
 
-// NetworkListService represents exposed services to manage network lists
-//
-// Akamai API docs: https://developer.akamai.com/api/luna/network-list
-type NetworkListService struct {
-	client *Client
-}
+// // NetworkListService represents exposed services to manage network lists
+// //
+// // Akamai API docs: https://developer.akamai.com/api/luna/network-list
+// type NetworkListService struct {
+// 	client *Client
+// }
 
 // // AkamaiNetworkLists represents array of network lists
 // //

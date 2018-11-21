@@ -32,7 +32,7 @@ const (
 const (
 	A2PathV1                 = "/adaptive-acceleration/v1/properties"
 	NetworkListPathV1        = "/network-list/v1/network_lists"
-	NetworkListPathV2        = "/network-list/v2/network_lists"
+	NetworkListPathV2        = "/network-list/v2/network-lists"
 	PAPIPathV1               = "/papi/v1"
 	ReportingPathV1          = "/reporting-api/v1/reports"
 	IdentityManagementPathV2 = "/identity-management/v2"
@@ -74,7 +74,6 @@ type Client struct {
 	// Services used for talking to different parts of the Akamai API.
 	Auth               *AuthService
 	Debug              *DebugService
-	NetworkLists       *NetworkListService
 	NetworkListsv2     *NetworkListServicev2
 	Property           *PropertyService
 	Reporting          *ReportingService
@@ -176,9 +175,6 @@ func newClient(httpClient *http.Client, edgercPath, edgercSection string) (*Clie
 	// Create all the public services.
 	log.Debug("[newClient]::Create service Auth")
 	c.Auth = &AuthService{client: c}
-
-	log.Debug("[newClient]::Create service NetworkLists")
-	c.NetworkLists = &NetworkListService{client: c}
 
 	log.Debug("[newClient]::Create service NetworkListsv2")
 	c.NetworkListsv2 = &NetworkListServicev2{client: c}
