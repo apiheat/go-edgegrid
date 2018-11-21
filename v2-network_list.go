@@ -42,6 +42,7 @@ type AkamaiNetworkListv2 struct {
 		StatusInStaging      AkamaiNetworkListLinkv2 `json:"statusInStaging,omitempty"`
 		Update               AkamaiNetworkListLinkv2 `json:"update,omitempty"`
 	} `json:"links"`
+	List                                []string  `json:"list"`
 	SyncPoint                           int       `json:"syncPoint,omitempty"`
 	Type                                string    `json:"type,omitempty"`
 	UniqueID                            string    `json:"uniqueId,omitempty"`
@@ -80,10 +81,10 @@ type AkamaiNetworkListErrorv2 struct {
 	} `json:"fieldErrors"`
 }
 
-// CreateNetworkListsOptionsv2 represents struct required to create new network list in Akamai
+// NetworkListsOptionsv2 represents struct required to create items for network list
 //
 // Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html
-type CreateNetworkListsOptionsv2 struct {
+type NetworkListsOptionsv2 struct {
 	Name        string   `json:"name,omitempty"`
 	Type        string   `json:"type,omitempty"`
 	Description string   `json:"description,omitempty"`
@@ -139,7 +140,7 @@ func (nls *NetworkListServicev2) ListNetworkLists(opts ListNetworkListsOptionsv2
 // CreateNetworkList Create a new network list
 //
 // Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html#postlists
-func (nls *NetworkListServicev2) CreateNetworkList(opts CreateNetworkListsOptionsv2) (*AkamaiNetworkListv2, *ClientResponse, error) {
+func (nls *NetworkListServicev2) CreateNetworkList(opts NetworkListsOptionsv2) (*AkamaiNetworkListv2, *ClientResponse, error) {
 
 	apiURI := NetworkListPathV2
 
@@ -171,4 +172,22 @@ func (nls *NetworkListServicev2) GetNetworkList(ListID string, opts ListNetworkL
 
 	return k, APIClientResponse, APIclientError
 
+}
+
+// AppendListNetworkList Appends list of items
+//
+// Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html#postlists
+func (nls *NetworkListServicev2) AppendListNetworkList(ListID string, opts NetworkListsOptionsv2) (*AkamaiNetworkListv2, *ClientResponse, error) {
+
+	apiURI := fmt.Sprintf("%s/%s/append",
+		NetworkListPathV2,
+		ListID)
+
+	var k *AkamaiNetworkListv2
+	APIClientResponse, APIclientError := nls.client.NewRequest(http.MethodPost, apiURI, opts, &k)
+	if APIclientError != nil {
+		return nil, APIClientResponse, APIclientError
+	}
+
+	return k, APIClientResponse, APIclientError
 }
