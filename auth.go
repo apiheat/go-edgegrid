@@ -9,6 +9,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
 	"strings"
 	"time"
 
@@ -48,7 +49,42 @@ func InitEdgerc(edgercConfig, edgercSection string) (*EdgercCredentials, error) 
 	log.Debug("[InitEdgerc]::Loading credentials file")
 	edgerc, err := ini.Load(edgercConfig)
 	if err != nil {
-		return nil, fmt.Errorf("Error loading file? '%s'", err)
+		log.Warn(fmt.Sprintf("Error loading file? '%s'", err))
+		log.Debug("[InitEdgerc]::Loading credentials from environment variables")
+
+		var (
+			requiredOptions = []string{"HOST", "CLIENT_TOKEN", "CLIENT_SECRET", "ACCESS_TOKEN"}
+			missing         []string
+		)
+
+		prefix := "AKAMAI_"
+
+		envCredentials := &EdgercCredentials{}
+
+		for _, opt := range requiredOptions {
+			val, ok := os.LookupEnv(prefix + opt)
+			if !ok {
+				missing = append(missing, prefix+opt)
+			} else {
+				switch {
+				case opt == "HOST":
+					envCredentials.host = val
+				case opt == "CLIENT_TOKEN":
+					envCredentials.clientToken = val
+				case opt == "CLIENT_SECRET":
+					envCredentials.clientSecret = val
+				case opt == "ACCESS_TOKEN":
+					envCredentials.accessToken = val
+				}
+			}
+		}
+
+		if len(missing) > 0 {
+			return nil, fmt.Errorf("Error loading file? '%s' or missing required environment variables: %s", err, missing)
+		}
+
+		log.Debug("[InitEdgerc]::Return ENV credentials object")
+		return envCredentials, nil
 	}
 
 	log.Debug("[InitEdgerc]::Loading section from credentials file")

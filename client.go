@@ -39,6 +39,7 @@ const (
 	SiteshieldPathV1         = "/siteshield/v1/maps"
 	FRNPathV1                = "/firewall-rules-manager/v1"
 	DTPathV2                 = "/diagnostic-tools/v2"
+	BillingPathV2            = "/billing-center-api/v2"
 )
 
 // AkamaiEnvironment represents Akamai's target environment type.
@@ -89,6 +90,7 @@ type Client struct {
 	SiteShield         *SiteShieldService
 	FRN                *FirewallRulesNotificationsService
 	DT                 *DiagToolsService
+	Billing            *BillingService
 }
 
 // ClientResponse represents response from our API call
@@ -206,6 +208,9 @@ func newClient(httpClient *http.Client, edgercPath, edgercSection string) (*Clie
 
 	log.Debug("[newClient]::Create service DiagnosticTools")
 	c.DT = &DiagToolsService{client: c}
+
+	log.Debug("[newClient]::Create service Billing")
+	c.Billing = &BillingService{client: c}
 
 	log.Debug("[newClient]::Create service Debug")
 	c.Debug = &DebugService{client: c}
