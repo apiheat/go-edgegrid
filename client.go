@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/google/go-querystring/query"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -35,6 +36,7 @@ const (
 	NetworkListPathV2        = "/network-list/v2/network-lists"
 	PAPIPathV1               = "/papi/v1"
 	ReportingPathV1          = "/reporting-api/v1/reports"
+	IdentityManagementPathV1 = "/identity-management/v1"
 	IdentityManagementPathV2 = "/identity-management/v2"
 	SiteshieldPathV1         = "/siteshield/v1/maps"
 	FRNPathV1                = "/firewall-rules-manager/v1"
@@ -80,6 +82,11 @@ type Client struct {
 	// edgerc credentials
 	credentials *EdgercCredentials
 
+	// Manage many accounts with one API client
+	// https://learn.akamai.com/en-us/learn_akamai/getting_started_with_akamai_developers/developer_tools/accountSwitch.html
+	accountSwitchKey     string
+	accountSwitchEnabled bool
+
 	// Services used for talking to different parts of the Akamai API.
 	Auth               *AuthService
 	Debug              *DebugService
@@ -107,9 +114,10 @@ type ClientResponse struct {
 //
 // client
 type ClientOptions struct {
-	ConfigPath    string
-	ConfigSection string
-	DebugLevel    string
+	ConfigPath       string
+	ConfigSection    string
+	DebugLevel       string
+	AccountSwitchKey string
 }
 
 // NewClient returns a new edgegrid.Client for API. If a nil httpClient is
@@ -150,6 +158,12 @@ func NewClient(httpClient *http.Client, conf *ClientOptions) (*Client, error) {
 	}).Info("Create new edge client")
 
 	APIClient, errAPIClient := newClient(httpClient, path, section)
+
+	// Assign values for accountSwitchKey
+	if conf.AccountSwitchKey != "" {
+		APIClient.accountSwitchEnabled = true
+		APIClient.accountSwitchKey = conf.AccountSwitchKey
+	}
 
 	if errAPIClient != nil {
 		log.Debug("[newClient]::Create new client object failed: " + errAPIClient.Error())
@@ -223,19 +237,26 @@ func newClient(httpClient *http.Client, edgercPath, edgercSection string) (*Clie
 	return c, nil
 }
 
+// ********************* DEPRECATED *********************
 // newRequest creates an HTTP request that can be sent to Akamai APIs. A relative URL can be provided in path, which will be resolved to the
 // Host specified in Config. If body is specified, it will be sent as the request body.
 //
 // client
 func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*ClientResponse, error) {
 
+	log.Debug("[NewRequest]::Prepare URL for http request")
 	targetURL, _ := prepareURL(cl.baseURL, path)
 
+	log.Debug("[NewRequest]::Account Switch Enabled - adding query string")
+	q := targetURL.Query()
+	log.Println(targetURL.Query())
+	q.Add("api_key", "key_from_environment_or_flag")
+	q.Add("another_thing", "foo & bar")
 	log.WithFields(log.Fields{
 		"method": method,
 		"base":   cl.baseURL,
 		"path":   path,
-	}).Info("Create new request")
+	}).Info("[NewRequest]::Create new request")
 
 	log.Debug("[NewRequest]::Create http request")
 	req, err := http.NewRequest(method, targetURL.String(), nil)
@@ -356,4 +377,151 @@ func prepareURL(url *url.URL, path string) (*url.URL, error) {
 	u := url.ResolveReference(rel)
 
 	return u, nil
+}
+
+// prepareQueryParameters Allows for easy preparation of query string
+//
+// client
+func (cl *Client) prepareQueryParameters(params interface{}) (queryString string, err error) {
+	v, err := query.Values(params)
+
+	if err != nil {
+		return "", err
+	}
+
+	return v.Encode(), nil
+}
+
+/* makeAPIRequest creates an HTTP request that can be sent to Akamai APIs. It will handle security headers and signinig of the request.
+
+Params:
+
+Returns:
+
+*/
+func (cl *Client) makeAPIRequest(method, path string, queryParams, structResponse, structRequest interface{}, headers map[string]string) (*ClientResponse, error) {
+
+	log.Debug("[NewRequest]::Prepare URL for http request")
+	targetURL, _ := prepareURL(cl.baseURL, path)
+
+	log.Debug("[NewRequest]::Create http request")
+	req, err := http.NewRequest(method, targetURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	/*
+		Modify request for POST/PUT
+	*/
+	if method == http.MethodPost || method == http.MethodPut {
+		log.Info("Prepare request body object")
+		log.Debug("[NewRequest]::Method is POST/PUT")
+		log.Debug("[NewRequest]::Marshal request object")
+
+		reqType := reflect.TypeOf(structRequest)
+		log.Debug(fmt.Sprintf("[NewRequest]::Object request provided type ( %s ) ", reqType))
+
+		bodyBytes, err := json.Marshal(structRequest)
+		if err != nil {
+			return nil, err
+		}
+		bodyReader := bytes.NewReader(bodyBytes)
+
+		log.Debug("[NewRequest]::Body object added to request")
+		req.Body = ioutil.NopCloser(bodyReader)
+		req.ContentLength = int64(bodyReader.Len())
+
+		log.Debug("[NewRequest]::Body object is:" + string(bodyBytes))
+		log.Debug("[NewRequest]::Set header Content-Type to 'application/json' ")
+		req.Header.Set("Content-Type", "application/json")
+
+	}
+
+	/*
+		Add headers
+	*/
+	if headers != nil {
+		log.Debug("[NewRequest]::Add extra headers")
+		for k, v := range headers {
+			log.Debug(fmt.Sprintf("[NewRequest]::Adding %s:%s", k, v))
+			req.Header.Add(k, v)
+		}
+	}
+
+	/*
+		Add query params
+	*/
+	if queryParams != nil {
+		log.Debug("[NewRequest]::Add query string parameters")
+		rawQueryString, queryStringError := cl.prepareQueryParameters(queryParams)
+
+		req.URL.RawQuery = rawQueryString
+
+		if queryStringError != nil {
+			log.Debug("[NewRequest]::Error adding query string parameters")
+			log.Debug(fmt.Sprintf("[NewRequest]:: %s", queryStringError.Error()))
+			return nil, queryStringError
+		}
+	}
+
+	// log.WithFields(log.Fields{
+	// 	"method": method,
+	// 	"base":   cl.baseURL,
+	// 	"path":   path,
+	// }).Info("[NewRequest]::Create new request")
+
+	/*
+		Add signature header
+	*/
+	authorizationHeader := AuthString(cl.credentials, req, []string{})
+	log.Debug("[NewRequest]::Set header Authorization")
+	req.Header.Add("Authorization", authorizationHeader)
+
+	/*
+		Execute request
+	*/
+	log.Info("Execute http request")
+	resp, err := cl.client.Do(req)
+	if err != nil {
+		log.Debug("[NewRequest]::Error making request")
+		log.Debug(fmt.Sprintf("[NewRequest]:: %s", err.Error()))
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	/*
+		Process response
+	*/
+	log.Debug("[NewRequest]::Processing response")
+	clientResp := &ClientResponse{}
+
+	log.Debug("[NewRequest]::Read response body")
+	byt, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Debug("[NewRequest]::Error reading response body")
+		log.Debug(fmt.Sprintf("[NewRequest]:: %s", err.Error()))
+		return nil, err
+	}
+
+	log.Debug("[NewRequest]::Set client object response and body")
+	clientResp.Response = resp
+	clientResp.Body = string(byt)
+
+	log.Debug("[NewRequest]::Response code is:" + strconv.Itoa(resp.StatusCode))
+	log.Debug("[NewRequest]::Body is " + clientResp.Body)
+
+	if structResponse != nil {
+		respType := reflect.TypeOf(structResponse)
+		log.Debug(fmt.Sprintf("[NewRequest]::Map response to provided type ( %s ) ", respType))
+
+		if err = json.Unmarshal([]byte(byt), &structResponse); err != nil {
+			log.Debug("[NewRequest]::Error while unmarshaling response body")
+			log.Debug(fmt.Sprintf("[NewRequest]:: %s", err.Error()))
+			return nil, err
+		}
+	}
+
+	log.Debug("[NewRequest]::Return response")
+
+	return clientResp, nil
 }

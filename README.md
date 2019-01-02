@@ -60,3 +60,28 @@ Licensed under the Apache License, Version 2.0 (the "License"); you may not use 
 
 ## Inspired by
 * https://github.com/Comcast/go-edgegrid
+
+
+
+
+
+## Manage many accounts with one API client
+https://learn.akamai.com/en-us/learn_akamai/getting_started_with_akamai_developers/developer_tools/accountSwitch.html
+
+
+## Component Support
+
+|           Icon          |                                      Description                                    |
+|-------------------------|-------------------------------------------------------------------------------------|
+| :white_check_mark:      | Supported                                             |
+| :x:                     | Currently unavailable.                                                    |
+| :no_entry_sign:         | Not supported                                                 |
+
+### Identity Management API v1
+The Identity Management API allows you to manage your credentials. Use this API to rotate credentials and retrieve credential information.
+
+|            Resource                |            Status                  |
+|------------------------------------|------------------------------------|
+|  getcredentials                                  | :white_check_mark: |
+|  getaccountswitchkeys                                  | :white_check_mark:      |
+

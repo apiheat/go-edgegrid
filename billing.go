@@ -3,8 +3,6 @@ package edgegrid
 import (
 	"fmt"
 	"net/http"
-
-	"github.com/google/go-querystring/query"
 )
 
 type BillingService struct {
@@ -34,18 +32,18 @@ type BillingMeasures struct {
 	Year           int    `url:"year,omitempty"`
 }
 
-func prepareQueryParameters(params BillingMeasures) (queryString string, err error) {
-	v, err := query.Values(params)
+// func prepareQueryParameters(params BillingMeasures) (queryString string, err error) {
+// 	v, err := query.Values(params)
 
-	if err != nil {
-		return "", err
-	}
+// 	if err != nil {
+// 		return "", err
+// 	}
 
-	return v.Encode(), nil
-}
+// 	return v.Encode(), nil
+// }
 
 func (nls *BillingService) ListContractUsage(contractID, productID string, params BillingMeasures) (*[]BillingRespElement, *ClientResponse, error) {
-	queryParams, err := prepareQueryParameters(params)
+	queryParams, err := nls.client.prepareQueryParameters(params)
 	if err != nil {
 		return nil, nil, err
 	}
