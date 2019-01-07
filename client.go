@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"reflect"
 	"strconv"
@@ -70,8 +71,6 @@ const (
 )
 
 // Client represents Akamai's API client for communicating with service
-//
-// client
 type Client struct {
 	// HTTP client used to communicate with the API.
 	client *http.Client
@@ -103,16 +102,12 @@ type Client struct {
 }
 
 // ClientResponse represents response from our API call
-//
-// client
 type ClientResponse struct {
 	Body     string
 	Response *http.Response
 }
 
 // ClientOptions represents options we can pass during client creation
-//
-// client
 type ClientOptions struct {
 	ConfigPath       string
 	ConfigSection    string
@@ -122,8 +117,6 @@ type ClientOptions struct {
 
 // NewClient returns a new edgegrid.Client for API. If a nil httpClient is
 // provided, http.DefaultClient will be used.
-//
-// client
 func NewClient(httpClient *http.Client, conf *ClientOptions) (*Client, error) {
 	var (
 		path, section, debuglvl string
@@ -151,17 +144,20 @@ func NewClient(httpClient *http.Client, conf *ClientOptions) (*Client, error) {
 		log.SetLevel(log.ErrorLevel)
 	}
 
+	// We need to wait for better implementation as the current one spits out to much info
+	//log.SetReportCaller(true)
+
 	log.WithFields(log.Fields{
-		"path":     path,
-		"section":  section,
-		"debuglvl": debuglvl,
+		"path":      path,
+		"section":   section,
+		"debuglvl":  debuglvl,
+		"switchKey": conf.AccountSwitchKey,
 	}).Info("Create new edge client")
 
 	APIClient, errAPIClient := newClient(httpClient, path, section)
 
 	// Assign values for accountSwitchKey
 	if conf.AccountSwitchKey != "" {
-		APIClient.accountSwitchEnabled = true
 		APIClient.accountSwitchKey = conf.AccountSwitchKey
 	}
 
@@ -174,8 +170,6 @@ func NewClient(httpClient *http.Client, conf *ClientOptions) (*Client, error) {
 }
 
 // newClient *private* function to initiaite client
-//
-// client
 func newClient(httpClient *http.Client, edgercPath, edgercSection string) (*Client, error) {
 	var errInitEdgerc error
 
@@ -237,11 +231,9 @@ func newClient(httpClient *http.Client, edgercPath, edgercSection string) (*Clie
 	return c, nil
 }
 
-// ********************* DEPRECATED *********************
+// * DEPRECATED *
 // newRequest creates an HTTP request that can be sent to Akamai APIs. A relative URL can be provided in path, which will be resolved to the
 // Host specified in Config. If body is specified, it will be sent as the request body.
-//
-// client
 func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*ClientResponse, error) {
 
 	log.Debug("[NewRequest]::Prepare URL for http request")
@@ -336,8 +328,6 @@ func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*Cli
 }
 
 // SetBaseURL sets the base URL for API requests to a custom endpoint.
-//
-// client
 func (cl *Client) SetBaseURL(urlStr string, passThrough bool) error {
 
 	log.WithFields(log.Fields{
@@ -364,9 +354,13 @@ func (cl *Client) SetBaseURL(urlStr string, passThrough bool) error {
 	return err
 }
 
+// EnableASK instructs client to use ASK
+func (cl *Client) EnableASK() {
+	log.Debug("[EnableASK]::Enabling ASK ...")
+	cl.accountSwitchEnabled = true
+}
+
 // prepareURL returns URL which is used to make API call
-//
-// client
 func prepareURL(url *url.URL, path string) (*url.URL, error) {
 
 	rel, err := url.Parse(strings.TrimPrefix(path, "/"))
@@ -380,10 +374,14 @@ func prepareURL(url *url.URL, path string) (*url.URL, error) {
 }
 
 // prepareQueryParameters Allows for easy preparation of query string
-//
-// client
 func (cl *Client) prepareQueryParameters(params interface{}) (queryString string, err error) {
 	v, err := query.Values(params)
+
+	// If we do have account switch key - we will add it and toggle ASK back to disabled
+	if cl.accountSwitchEnabled == true {
+		v.Add("accountSwitchKey", cl.accountSwitchKey)
+		cl.accountSwitchEnabled = false
+	}
 
 	if err != nil {
 		return "", err
@@ -392,13 +390,8 @@ func (cl *Client) prepareQueryParameters(params interface{}) (queryString string
 	return v.Encode(), nil
 }
 
-/* makeAPIRequest creates an HTTP request that can be sent to Akamai APIs. It will handle security headers and signinig of the request.
-
-Params:
-
-Returns:
-
-*/
+// makeAPIRequest creates an HTTP request that can be sent to Akamai APIs. It will handle security headers and signinig of the request.
+//
 func (cl *Client) makeAPIRequest(method, path string, queryParams, structResponse, structRequest interface{}, headers map[string]string) (*ClientResponse, error) {
 
 	log.Debug("[NewRequest]::Prepare URL for http request")
@@ -464,12 +457,6 @@ func (cl *Client) makeAPIRequest(method, path string, queryParams, structRespons
 		}
 	}
 
-	// log.WithFields(log.Fields{
-	// 	"method": method,
-	// 	"base":   cl.baseURL,
-	// 	"path":   path,
-	// }).Info("[NewRequest]::Create new request")
-
 	/*
 		Add signature header
 	*/
@@ -481,6 +468,7 @@ func (cl *Client) makeAPIRequest(method, path string, queryParams, structRespons
 		Execute request
 	*/
 	log.Info("Execute http request")
+	log.Debug(fmt.Sprintf("[NewRequest]::Calling %s", req.URL.RequestURI()))
 	resp, err := cl.client.Do(req)
 	if err != nil {
 		log.Debug("[NewRequest]::Error making request")
@@ -492,6 +480,15 @@ func (cl *Client) makeAPIRequest(method, path string, queryParams, structRespons
 	/*
 		Process response
 	*/
+
+	// Save a copy of this request for debugging.
+	respDump, err := httputil.DumpResponse(resp, true)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Debug(string(respDump))
+
 	log.Debug("[NewRequest]::Processing response")
 	clientResp := &ClientResponse{}
 
