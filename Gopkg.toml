@@ -35,11 +35,7 @@
 
 [[constraint]]
   name = "github.com/sirupsen/logrus"
-  version = "1.1.0"
-
-[[constraint]]
-  name = "github.com/stretchr/testify"
-  version = "1.2.2"
+  version = "1.2.0"
 
 [prune]
   go-tests = true
