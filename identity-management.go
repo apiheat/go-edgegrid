@@ -44,6 +44,8 @@ type APIAccountSwitchKey struct {
 	AccountName      string `json:"accountName"`
 }
 
+// QStrAPIClientCredentials contains query string
+// parameters used across calls for API part of Identity Management
 type QStrAPIClientCredentials struct {
 	Actions bool   `url:"actions,omitempty"`
 	Search  string `url:"search,omitempty"`
