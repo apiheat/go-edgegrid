@@ -358,6 +358,18 @@ func (cl *Client) EnableAccountSwitchKey() {
 	cl.accountSwitchEnabled = true
 }
 
+// DisableAccountSwitchKey instructs client to not use ASK
+func (cl *Client) DisableAccountSwitchKey() {
+	log.Debug("[DisableAccountSwitchKey]::Disabling AccountSwitchKey ...")
+	cl.accountSwitchEnabled = false
+}
+
+// SetAccountSwitchKey instructs client to not use ASK
+func (cl *Client) SetAccountSwitchKey(accountSwitchKey string) {
+	log.Debug(fmt.Sprintf("[SetAccountSwitchKey]::Setting AccountSwitchKey ... %s", accountSwitchKey))
+	cl.accountSwitchKey = accountSwitchKey
+}
+
 // prepareURL returns URL which is used to make API call
 func prepareURL(url *url.URL, path string) (*url.URL, error) {
 
