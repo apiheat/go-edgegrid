@@ -17,13 +17,9 @@ import (
 )
 
 // AkamaiEnvironmentVar represents Akamai's env variables used
-//
-// client
 type AkamaiEnvironmentVar string
 
 // AkamaiEnvironmentVar const represents Akamai's env variables to be used.
-//
-// client
 const (
 	EnvVarEdgercPath        AkamaiEnvironmentVar = "AKAMAI_EDGERC_CONFIG"
 	EnvVarEdgercSection     AkamaiEnvironmentVar = "AKAMAI_EDGERC_SECTION"
@@ -47,8 +43,6 @@ const (
 )
 
 // AkamaiEnvironment represents Akamai's target environment type.
-//
-// client
 type AkamaiEnvironment string
 
 const (
@@ -56,9 +50,15 @@ const (
 	Staging    AkamaiEnvironment = "staging"
 )
 
+// AkamaiRequestFrom represents Akamai's source for request.
+type AkamaiRequestFrom string
+
+const (
+	Ghost     AkamaiRequestFrom = "ghost-locations"
+	IPAddress AkamaiRequestFrom = "ip-addresses"
+)
+
 // AkamaiSubscription represents Akamai's notification actions for subscriptions.
-//
-// client
 type AkamaiSubscription string
 
 const (
