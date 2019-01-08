@@ -15,30 +15,30 @@ type NetworkListServicev2 struct {
 	client *Client
 }
 
-// AkamaiNetworkListsv2 represents array of network lists
+// NetworkListsv2 represents array of network lists
 // Akamai API docs: https://developer.akamai.com/api/luna/network-list
-type AkamaiNetworkListsv2 struct {
-	NetworkLists []AkamaiNetworkListv2 `json:"networkLists"`
+type NetworkListsv2 struct {
+	NetworkLists []NetworkListv2 `json:"networkLists"`
 	Links        struct {
-		Create AkamaiNetworkListLinkv2 `json:"create"`
+		Create NetworkListLinkv2 `json:"create"`
 	} `json:"links"`
 }
 
-// AkamaiNetworkListv2 represents the network list structure
+// NetworkListv2 represents the network list structure
 // Akamai API docs: https://developer.akamai.com/api/luna/network-list
-type AkamaiNetworkListv2 struct {
+type NetworkListv2 struct {
 	NetworkListType    string `json:"networkListType,omitempty`
 	AccessControlGroup string `json:"accessControlGroup,omitempty"`
 	Name               string `json:"name,omitempty"`
 	ElementCount       int    `json:"elementCount,omitempty"`
 	Links              struct {
-		ActivateInProduction AkamaiNetworkListLinkv2 `json:"activateInProduction,omitempty"`
-		ActivateInStaging    AkamaiNetworkListLinkv2 `json:"activateInStaging,omitempty"`
-		AppendItems          AkamaiNetworkListLinkv2 `json:"appendItems,omitempty"`
-		Retrieve             AkamaiNetworkListLinkv2 `json:"retrieve,omitempty"`
-		StatusInProduction   AkamaiNetworkListLinkv2 `json:"statusInProduction,omitempty"`
-		StatusInStaging      AkamaiNetworkListLinkv2 `json:"statusInStaging,omitempty"`
-		Update               AkamaiNetworkListLinkv2 `json:"update,omitempty"`
+		ActivateInProduction NetworkListLinkv2 `json:"activateInProduction,omitempty"`
+		ActivateInStaging    NetworkListLinkv2 `json:"activateInStaging,omitempty"`
+		AppendItems          NetworkListLinkv2 `json:"appendItems,omitempty"`
+		Retrieve             NetworkListLinkv2 `json:"retrieve,omitempty"`
+		StatusInProduction   NetworkListLinkv2 `json:"statusInProduction,omitempty"`
+		StatusInStaging      NetworkListLinkv2 `json:"statusInStaging,omitempty"`
+		Update               NetworkListLinkv2 `json:"update,omitempty"`
 	} `json:"links"`
 	List                                []string  `json:"list"`
 	SyncPoint                           int       `json:"syncPoint,omitempty"`
@@ -56,14 +56,14 @@ type AkamaiNetworkListv2 struct {
 
 // AkamaiNetworkListLinks represents the network list `links` structure
 // Akamai API docs: https://developer.akamai.com/api/luna/network-list
-type AkamaiNetworkListLinkv2 struct {
+type NetworkListLinkv2 struct {
 	Href   string `json:"href"`
 	Method string `json:"method"`
 }
 
-// AkamaiNetworkListErrorv2 represents the error returned from Akamai
+// NetworkListErrorv2 represents the error returned from Akamai
 // Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html#errors
-type AkamaiNetworkListErrorv2 struct {
+type NetworkListErrorv2 struct {
 	Detail      string `json:"detail"`
 	Instance    string `json:"instance"`
 	Status      int    `json:"status"`
@@ -80,10 +80,10 @@ type AkamaiNetworkListErrorv2 struct {
 // NetworkListsOptionsv2 represents struct required to create items for network list
 // Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html
 type NetworkListsOptionsv2 struct {
-	Name        string   `json:"name,omitempty"`
-	Type        string   `json:"type,omitempty"`
-	Description string   `json:"description,omitempty"`
-	List        []string `json:"list,omitempty"`
+	Name        string          `json:"name,omitempty"`
+	Type        NetworkListType `json:"type,omitempty"`
+	Description string          `json:"description,omitempty"`
+	List        []string        `json:"list,omitempty"`
 }
 
 // ListNetworkListsOptionsv2 represents the available options for listing network lists
@@ -114,8 +114,8 @@ type NetworkListActivationStatusv2 struct {
 	Fast               bool   `json:"fast"`
 }
 
-// AkamaiNetworkListErrorv2 Error() function implementation
-func (e *AkamaiNetworkListErrorv2) Error() string {
+// NetworkListErrorv2 Error() function implementation
+func (e *NetworkListErrorv2) Error() string {
 	return ShowJSONMessage(e)
 }
 
@@ -142,7 +142,7 @@ type QStrNetworkList struct {
 
 // ListNetworkLists List all configured Network Lists for the authenticated user.
 // Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html#getlists
-func (nls *NetworkListServicev2) ListNetworkLists(opts ListNetworkListsOptionsv2) (*[]AkamaiNetworkListv2, *ClientResponse, error) {
+func (nls *NetworkListServicev2) ListNetworkLists(opts ListNetworkListsOptionsv2) (*[]NetworkListv2, *ClientResponse, error) {
 
 	qParams := QStrNetworkList{
 		Extended:        opts.Extended,
@@ -152,7 +152,7 @@ func (nls *NetworkListServicev2) ListNetworkLists(opts ListNetworkListsOptionsv2
 
 	path := NetworkListPathV2
 
-	var respStruct *AkamaiNetworkListsv2
+	var respStruct *NetworkListsv2
 
 	log.Debug("[NetworkListServicev2]::Execute request")
 	resp, err := nls.client.makeAPIRequest(http.MethodGet, path, qParams, &respStruct, nil, nil)
@@ -166,7 +166,7 @@ func (nls *NetworkListServicev2) ListNetworkLists(opts ListNetworkListsOptionsv2
 	}
 
 	if resp.Response.StatusCode >= http.StatusBadRequest {
-		netListError := &AkamaiNetworkListErrorv2{}
+		netListError := &NetworkListErrorv2{}
 		err := json.Unmarshal([]byte(resp.Body), &netListError)
 		if err != nil {
 			log.Fatal(err)
@@ -180,19 +180,19 @@ func (nls *NetworkListServicev2) ListNetworkLists(opts ListNetworkListsOptionsv2
 
 // CreateNetworkList Create a new network list
 // Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html#postlists
-func (nls *NetworkListServicev2) CreateNetworkList(opts NetworkListsOptionsv2) (*AkamaiNetworkListv2, *ClientResponse, error) {
+func (nls *NetworkListServicev2) CreateNetworkList(opts NetworkListsOptionsv2) (*NetworkListv2, *ClientResponse, error) {
 
 	qParams := QStrNetworkList{}
 	path := NetworkListPathV2
 
-	var respStruct *AkamaiNetworkListv2
+	var respStruct *NetworkListv2
 	resp, err := nls.client.makeAPIRequest(http.MethodPost, path, qParams, &respStruct, opts, nil)
 	if err != nil {
 		return nil, resp, err
 	}
 
 	if resp.Response.StatusCode >= http.StatusBadRequest {
-		netListError := &AkamaiNetworkListErrorv2{}
+		netListError := &NetworkListErrorv2{}
 		err := json.Unmarshal([]byte(resp.Body), &netListError)
 		if err != nil {
 			log.Fatal(err)
@@ -205,7 +205,7 @@ func (nls *NetworkListServicev2) CreateNetworkList(opts NetworkListsOptionsv2) (
 
 // GetNetworkList Gets a specific network list
 // Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html#getlist
-func (nls *NetworkListServicev2) GetNetworkList(ListID string, opts ListNetworkListsOptionsv2) (*AkamaiNetworkListv2, *ClientResponse, error) {
+func (nls *NetworkListServicev2) GetNetworkList(ListID string, opts ListNetworkListsOptionsv2) (*NetworkListv2, *ClientResponse, error) {
 
 	qParams := QStrNetworkList{
 		Extended:        opts.Extended,
@@ -214,7 +214,7 @@ func (nls *NetworkListServicev2) GetNetworkList(ListID string, opts ListNetworkL
 
 	path := fmt.Sprintf("%s/%s", NetworkListPathV2, ListID)
 
-	var respStruct *AkamaiNetworkListv2
+	var respStruct *NetworkListv2
 	resp, err := nls.client.makeAPIRequest(http.MethodGet, path, qParams, &respStruct, nil, nil)
 
 	if err != nil {
@@ -222,7 +222,7 @@ func (nls *NetworkListServicev2) GetNetworkList(ListID string, opts ListNetworkL
 	}
 
 	if resp.Response.StatusCode >= http.StatusBadRequest {
-		netListError := &AkamaiNetworkListErrorv2{}
+		netListError := &NetworkListErrorv2{}
 		err := json.Unmarshal([]byte(resp.Body), &netListError)
 		if err != nil {
 			log.Fatal(err)
@@ -236,19 +236,19 @@ func (nls *NetworkListServicev2) GetNetworkList(ListID string, opts ListNetworkL
 
 // AppendListNetworkList Adds items to network list
 // Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html#postlists
-func (nls *NetworkListServicev2) AppendListNetworkList(ListID string, opts NetworkListsOptionsv2) (*AkamaiNetworkListv2, *ClientResponse, error) {
+func (nls *NetworkListServicev2) AppendListNetworkList(ListID string, opts NetworkListsOptionsv2) (*NetworkListv2, *ClientResponse, error) {
 
 	qParams := QStrNetworkList{}
 	path := fmt.Sprintf("%s/%s/append", NetworkListPathV2, ListID)
 
-	var respStruct *AkamaiNetworkListv2
+	var respStruct *NetworkListv2
 	resp, err := nls.client.makeAPIRequest(http.MethodPost, path, qParams, &respStruct, opts, nil)
 	if err != nil {
 		return nil, resp, err
 	}
 
 	if resp.Response.StatusCode >= http.StatusBadRequest {
-		netListError := &AkamaiNetworkListErrorv2{}
+		netListError := &NetworkListErrorv2{}
 		err := json.Unmarshal([]byte(resp.Body), &netListError)
 		if err != nil {
 			log.Fatal(err)
@@ -261,14 +261,14 @@ func (nls *NetworkListServicev2) AppendListNetworkList(ListID string, opts Netwo
 
 // RemoveNetworkListElement Removes network list element
 // Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html
-func (nls *NetworkListServicev2) RemoveNetworkListElement(ListID, element string) (*AkamaiNetworkListv2, *ClientResponse, error) {
+func (nls *NetworkListServicev2) RemoveNetworkListElement(ListID, element string) (*NetworkListv2, *ClientResponse, error) {
 
 	qParams := QStrNetworkList{
 		Element: element,
 	}
 	path := fmt.Sprintf("%s/%s/elements", NetworkListPathV2, ListID)
 
-	var respStruct *AkamaiNetworkListv2
+	var respStruct *NetworkListv2
 	resp, err := nls.client.makeAPIRequest(http.MethodDelete, path, qParams, &respStruct, nil, nil)
 
 	if err != nil {
@@ -276,7 +276,7 @@ func (nls *NetworkListServicev2) RemoveNetworkListElement(ListID, element string
 	}
 
 	if resp.Response.StatusCode >= http.StatusBadRequest {
-		netListError := &AkamaiNetworkListErrorv2{}
+		netListError := &NetworkListErrorv2{}
 		err := json.Unmarshal([]byte(resp.Body), &netListError)
 		if err != nil {
 			log.Fatal(err)
@@ -301,7 +301,7 @@ func (nls *NetworkListServicev2) ActivateNetworkList(ListID string, targetEnv Ak
 	}
 
 	if resp.Response.StatusCode >= http.StatusBadRequest {
-		netListError := &AkamaiNetworkListErrorv2{}
+		netListError := &NetworkListErrorv2{}
 		err := json.Unmarshal([]byte(resp.Body), &netListError)
 		if err != nil {
 			log.Fatal(err)
@@ -327,7 +327,7 @@ func (nls *NetworkListServicev2) GetNetworkListActStatus(ListID string, targetEn
 	}
 
 	if resp.Response.StatusCode >= http.StatusBadRequest {
-		netListError := &AkamaiNetworkListErrorv2{}
+		netListError := &NetworkListErrorv2{}
 		err := json.Unmarshal([]byte(resp.Body), &netListError)
 		if err != nil {
 			log.Fatal(err)
@@ -353,7 +353,7 @@ func (nls *NetworkListServicev2) DeleteNetworkList(ListID string) (*NetworkListD
 	}
 
 	if resp.Response.StatusCode >= http.StatusBadRequest {
-		netListError := &AkamaiNetworkListErrorv2{}
+		netListError := &NetworkListErrorv2{}
 		err := json.Unmarshal([]byte(resp.Body), &netListError)
 		if err != nil {
 			log.Fatal(err)
@@ -377,7 +377,7 @@ func (nls *NetworkListServicev2) NetworkListNotification(action AkamaiSubscripti
 	}
 
 	if resp.Response.StatusCode >= http.StatusBadRequest {
-		netListError := &AkamaiNetworkListErrorv2{}
+		netListError := &NetworkListErrorv2{}
 		err := json.Unmarshal([]byte(resp.Body), &netListError)
 		if err != nil {
 			log.Fatal(err)
