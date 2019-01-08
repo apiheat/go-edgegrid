@@ -85,3 +85,12 @@ The Identity Management API allows you to manage your credentials. Use this API 
 |  getcredentials                                  | :white_check_mark: |
 |  getaccountswitchkeys                                  | :white_check_mark:      |
 
+
+## Development
+Naming convetions - functions 
+Naming convetions - structs
+```
+QStrAPIClientCredentials
+```
+Comments - struct 
+Comments - functions

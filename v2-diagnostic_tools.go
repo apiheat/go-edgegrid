@@ -13,14 +13,15 @@ type DiagToolsService struct {
 	client *Client
 }
 
-type AkamaiGhostLocationsResp struct {
+// GhostLocationsResp Provides location of Akamai ghost
+type GhostLocationsResp struct {
 	Locations []struct {
 		ID    string `json:"id"`
 		Value string `json:"value"`
 	} `json:"locations"`
 }
 
-type AkamaiDTGTMPropertiesResp struct {
+type DTGTMPropertiesResp struct {
 	GtmProperties []struct {
 		Property string `json:"property"`
 		Domain   string `json:"domain"`
@@ -28,7 +29,7 @@ type AkamaiDTGTMPropertiesResp struct {
 	} `json:"gtmProperties"`
 }
 
-type AkamaiDTGTMPropertyIpsResp struct {
+type DTGTMPropertyIpsResp struct {
 	GtmPropertyIps struct {
 		Property  string   `json:"property"`
 		Domain    string   `json:"domain"`
@@ -37,7 +38,7 @@ type AkamaiDTGTMPropertyIpsResp struct {
 	} `json:"gtmPropertyIps"`
 }
 
-type AkamaiDTDigResp struct {
+type DTDigResp struct {
 	DigInfo struct {
 		Hostname      string `json:"hostname"`
 		QueryType     string `json:"queryType"`
@@ -61,7 +62,7 @@ type AkamaiDTDigResp struct {
 	} `json:"digInfo"`
 }
 
-type AkamaiDTMtrResp struct {
+type DTMtrResp struct {
 	Mtr struct {
 		Source      string    `json:"source"`
 		Destination string    `json:"destination"`
@@ -85,7 +86,7 @@ type AkamaiDTMtrResp struct {
 	} `json:"mtr"`
 }
 
-type AkamaiDTGeolocation struct {
+type DTGeolocation struct {
 	GeoLocation struct {
 		ClientIP    string  `json:"clientIp"`
 		CountryCode string  `json:"countryCode"`
@@ -110,7 +111,7 @@ type AkamaiDTGeolocation struct {
 	} `json:"geoLocation"`
 }
 
-type AkamaiDTCurlResp struct {
+type DTCurlResp struct {
 	CurlResults struct {
 		HTTPStatusCode  int `json:"httpStatusCode"`
 		ResponseHeaders struct {
@@ -126,21 +127,21 @@ type AkamaiDTCurlResp struct {
 	} `json:"curlResults"`
 }
 
-type AkamaiDTUserLinkReq struct {
+type DTUserLinkReq struct {
 	EndUserName string `json:"endUserName"`
 	URL         string `json:"url"`
 }
 
-type AkamaiDTCurlReq struct {
+type DTCurlReq struct {
 	URL       string `json:"url"`
 	UserAgent string `json:"userAgent"`
 }
 
-type AkamaiDTGenerateDiagLinkResp struct {
+type DTGenerateDiagLinkResp struct {
 	DiagnosticURL string `json:"diagnosticUrl"`
 }
 
-type AkamaiDTListDiagLinkRequestsResp struct {
+type DTListDiagLinkRequestsResp struct {
 	EndUserIPRequests []struct {
 		EndUserName string    `json:"name"`
 		RequestID   uint32    `json:"requestId"`
@@ -149,7 +150,7 @@ type AkamaiDTListDiagLinkRequestsResp struct {
 	} `json:"endUserIpRequests"`
 }
 
-type AkamaiDTDiagLinkRequestResp struct {
+type DTDiagLinkRequestResp struct {
 	EndUserIPDetails struct {
 		Name      string    `json:"name"`
 		Email     string    `json:"email"`
@@ -165,17 +166,17 @@ type AkamaiDTDiagLinkRequestResp struct {
 	} `json:"endUserIpDetails"`
 }
 
-type AkamaiDTCDNStatusResp struct {
+type DTCDNStatusResp struct {
 	IsCdnIP bool `json:"isCdnIp"`
 }
 
-type AkamaiDTErrorTranslationResp struct {
+type DTErrorTranslationResp struct {
 	RequestID  string `json:"requestId"`
 	Link       string `json:"link"`
 	RetryAfter int    `json:"retryAfter"`
 }
 
-type AkamaiDTTranslatedErrorResp struct {
+type DTTranslatedErrorResp struct {
 	TranslatedError struct {
 		URL              string `json:"url"`
 		HTTPResponseCode int    `json:"httpResponseCode"`
@@ -241,12 +242,12 @@ type QStrDiagTools struct {
 }
 
 // LaunchErrorTranslationRequest async request creation for Error Translation
-func (nls *DiagToolsService) LaunchErrorTranslationRequest(errorCode string) (*AkamaiDTErrorTranslationResp, *ClientResponse, error) {
+func (nls *DiagToolsService) LaunchErrorTranslationRequest(errorCode string) (*DTErrorTranslationResp, *ClientResponse, error) {
 
 	qParams := QStrDiagTools{}
 	path := fmt.Sprintf("%s/errors/%s/translate-error", DTPathV2, errorCode)
 
-	var respStruct *AkamaiDTErrorTranslationResp
+	var respStruct *DTErrorTranslationResp
 	resp, err := nls.client.makeAPIRequest(http.MethodPost, path, qParams, &respStruct, nil, nil)
 
 	log.Debug(fmt.Sprintf("[%s]::Rate limit for Error Translation requests: %s per 60 seconds", reflect.TypeOf(nls), resp.Response.Header["X-Ratelimit-Limit"]))
@@ -257,11 +258,11 @@ func (nls *DiagToolsService) LaunchErrorTranslationRequest(errorCode string) (*A
 
 // CheckAnErrorTranslationRequest makes polling requests for status of request
 // Looks like not working properly
-func (nls *DiagToolsService) CheckAnErrorTranslationRequest(requestID string) (*AkamaiDTErrorTranslationResp, *ClientResponse, error) {
+func (nls *DiagToolsService) CheckAnErrorTranslationRequest(requestID string) (*DTErrorTranslationResp, *ClientResponse, error) {
 	qParams := QStrDiagTools{}
 	path := fmt.Sprintf("%s/translate-error-requests/%s", DTPathV2, requestID)
 
-	var respStruct *AkamaiDTErrorTranslationResp
+	var respStruct *DTErrorTranslationResp
 	resp, err := nls.client.makeAPIRequest(http.MethodGet, path, qParams, &respStruct, nil, nil)
 
 	if resp.Response.StatusCode == http.StatusSeeOther {
@@ -271,11 +272,11 @@ func (nls *DiagToolsService) CheckAnErrorTranslationRequest(requestID string) (*
 }
 
 // TranslateAnError gets translated error message
-func (nls *DiagToolsService) TranslateAnError(requestID string) (*AkamaiDTTranslatedErrorResp, *ClientResponse, error) {
+func (nls *DiagToolsService) TranslateAnError(requestID string) (*DTTranslatedErrorResp, *ClientResponse, error) {
 	qParams := QStrDiagTools{}
 	path := fmt.Sprintf("%s/translate-error-requests/%s/translated-error", DTPathV2, requestID)
 
-	var respStruct *AkamaiDTTranslatedErrorResp
+	var respStruct *DTTranslatedErrorResp
 	resp, err := nls.client.makeAPIRequest(http.MethodGet, path, qParams, &respStruct, nil, nil)
 
 	return respStruct, resp, err
@@ -283,11 +284,11 @@ func (nls *DiagToolsService) TranslateAnError(requestID string) (*AkamaiDTTransl
 
 // CDNStatus checks if given IP belongs to Akamai CDN
 // TODO: migrate to async if required
-func (nls *DiagToolsService) CDNStatus(ip string) (*AkamaiDTCDNStatusResp, *ClientResponse, error) {
+func (nls *DiagToolsService) CDNStatus(ip string) (*DTCDNStatusResp, *ClientResponse, error) {
 	qParams := QStrDiagTools{}
 	path := fmt.Sprintf("%s/ip-addresses/%s/is-cdn-ip", DTPathV2, ip)
 
-	var respStruct *AkamaiDTCDNStatusResp
+	var respStruct *DTCDNStatusResp
 	resp, err := nls.client.makeAPIRequest(http.MethodGet, path, qParams, &respStruct, nil, nil)
 
 	log.Debug(fmt.Sprintf("[%s]::Rate limit for CDN status requests: %s per 60 seconds", reflect.TypeOf(nls), resp.Response.Header["X-Ratelimit-Limit"]))
@@ -297,13 +298,13 @@ func (nls *DiagToolsService) CDNStatus(ip string) (*AkamaiDTCDNStatusResp, *Clie
 }
 
 // GenerateDiagnosticLink generates user link and request
-func (nls *DiagToolsService) GenerateDiagnosticLink(username, testURL string) (*AkamaiDTGenerateDiagLinkResp, *ClientResponse, error) {
+func (nls *DiagToolsService) GenerateDiagnosticLink(username, testURL string) (*DTGenerateDiagLinkResp, *ClientResponse, error) {
 	qParams := QStrDiagTools{}
 	path := fmt.Sprintf("%s/end-users/diagnostic-url", DTPathV2)
 
-	var respStruct *AkamaiDTGenerateDiagLinkResp
+	var respStruct *DTGenerateDiagLinkResp
 
-	requestStruct := AkamaiDTUserLinkReq{
+	requestStruct := DTUserLinkReq{
 		EndUserName: username,
 		URL:         testURL,
 	}
@@ -314,33 +315,33 @@ func (nls *DiagToolsService) GenerateDiagnosticLink(username, testURL string) (*
 }
 
 // ListDiagnosticLinkRequests lists all requests
-func (nls *DiagToolsService) ListDiagnosticLinkRequests() (*AkamaiDTListDiagLinkRequestsResp, *ClientResponse, error) {
+func (nls *DiagToolsService) ListDiagnosticLinkRequests() (*DTListDiagLinkRequestsResp, *ClientResponse, error) {
 	qParams := QStrDiagTools{}
 	path := fmt.Sprintf("%s/end-users/ip-requests", DTPathV2)
 
-	var respStruct *AkamaiDTListDiagLinkRequestsResp
+	var respStruct *DTListDiagLinkRequestsResp
 	resp, err := nls.client.makeAPIRequest(http.MethodGet, path, qParams, &respStruct, nil, nil)
 
 	return respStruct, resp, err
 }
 
 // GetDiagnosticLinkRequest gets request details
-func (nls *DiagToolsService) GetDiagnosticLinkRequest(id string) (*AkamaiDTDiagLinkRequestResp, *ClientResponse, error) {
+func (nls *DiagToolsService) GetDiagnosticLinkRequest(id string) (*DTDiagLinkRequestResp, *ClientResponse, error) {
 	qParams := QStrDiagTools{}
 	path := fmt.Sprintf("%s/end-users/ip-requests/%s/ip-details", DTPathV2, id)
 
-	var respStruct *AkamaiDTDiagLinkRequestResp
+	var respStruct *DTDiagLinkRequestResp
 	resp, err := nls.client.makeAPIRequest(http.MethodGet, path, qParams, &respStruct, nil, nil)
 
 	return respStruct, resp, err
 }
 
 // IPGeolocation provides given IP geolocation details
-func (nls *DiagToolsService) IPGeolocation(ip string) (*AkamaiDTGeolocation, *ClientResponse, error) {
+func (nls *DiagToolsService) IPGeolocation(ip string) (*DTGeolocation, *ClientResponse, error) {
 	qParams := QStrDiagTools{}
 	path := fmt.Sprintf("%s/ip-addresses/%s/geo-location", DTPathV2, ip)
 
-	var respStruct *AkamaiDTGeolocation
+	var respStruct *DTGeolocation
 	resp, err := nls.client.makeAPIRequest(http.MethodGet, path, qParams, &respStruct, nil, nil)
 
 	log.Debug(fmt.Sprintf("[%s]::Rate limit for IP geolacation requests: %s per 60 seconds, but maximum 500 per day", reflect.TypeOf(nls), resp.Response.Header["X-Ratelimit-Limit"]))
@@ -350,7 +351,7 @@ func (nls *DiagToolsService) IPGeolocation(ip string) (*AkamaiDTGeolocation, *Cl
 }
 
 // Dig provides dig functionality
-func (nls *DiagToolsService) Dig(obj string, requestFrom AkamaiRequestFrom, hostname, query string) (*AkamaiDTDigResp, *ClientResponse, error) {
+func (nls *DiagToolsService) Dig(obj string, requestFrom AkamaiRequestFrom, hostname, query string) (*DTDigResp, *ClientResponse, error) {
 
 	if hostname == "" {
 		return nil, nil, fmt.Errorf("'hostname' is required parameter: '%s'", hostname)
@@ -362,7 +363,7 @@ func (nls *DiagToolsService) Dig(obj string, requestFrom AkamaiRequestFrom, host
 	}
 	path := fmt.Sprintf("%s/%s/%s/dig-info", DTPathV2, requestFrom, obj)
 
-	var respStruct *AkamaiDTDigResp
+	var respStruct *DTDigResp
 	resp, err := nls.client.makeAPIRequest(http.MethodGet, path, qParams, &respStruct, nil, nil)
 
 	log.Debug(fmt.Sprintf("[%s]::Rate limit for request: %s per 60 seconds", reflect.TypeOf(nls), resp.Response.Header["X-Ratelimit-Limit"]))
@@ -372,7 +373,7 @@ func (nls *DiagToolsService) Dig(obj string, requestFrom AkamaiRequestFrom, host
 }
 
 // Mtr provides mtr functionality
-func (nls *DiagToolsService) Mtr(obj string, requestFrom AkamaiRequestFrom, destinationDomain string, resolveDNS bool) (*AkamaiDTMtrResp, *ClientResponse, error) {
+func (nls *DiagToolsService) Mtr(obj string, requestFrom AkamaiRequestFrom, destinationDomain string, resolveDNS bool) (*DTMtrResp, *ClientResponse, error) {
 
 	if destinationDomain == "" {
 		return nil, nil, fmt.Errorf("'destinationDomain' is required parameter: '%s'", destinationDomain)
@@ -385,14 +386,14 @@ func (nls *DiagToolsService) Mtr(obj string, requestFrom AkamaiRequestFrom, dest
 
 	path := fmt.Sprintf("%s/%s/%s/mtr-data", DTPathV2, requestFrom, obj)
 
-	var respStruct *AkamaiDTMtrResp
+	var respStruct *DTMtrResp
 	resp, err := nls.client.makeAPIRequest(http.MethodGet, path, qParams, &respStruct, nil, nil)
 
 	return respStruct, resp, err
 }
 
 // Curl provides curl functionality
-func (nls *DiagToolsService) Curl(obj string, requestFrom AkamaiRequestFrom, testURL, userAgent string) (*AkamaiDTCurlResp, *ClientResponse, error) {
+func (nls *DiagToolsService) Curl(obj string, requestFrom AkamaiRequestFrom, testURL, userAgent string) (*DTCurlResp, *ClientResponse, error) {
 
 	if testURL == "" {
 		return nil, nil, fmt.Errorf("'testURL' is required parameter: '%s'", testURL)
@@ -401,9 +402,9 @@ func (nls *DiagToolsService) Curl(obj string, requestFrom AkamaiRequestFrom, tes
 	qParams := QStrDiagTools{}
 	path := fmt.Sprintf("%s/%s/%s/curl-results", DTPathV2, requestFrom, obj)
 
-	var respStruct *AkamaiDTCurlResp
+	var respStruct *DTCurlResp
 
-	requestStruct := AkamaiDTCurlReq{
+	requestStruct := DTCurlReq{
 		UserAgent: userAgent,
 		URL:       testURL,
 	}
@@ -414,29 +415,29 @@ func (nls *DiagToolsService) Curl(obj string, requestFrom AkamaiRequestFrom, tes
 }
 
 // ListGhostLocations provides Ghost locations
-func (nls *DiagToolsService) ListGhostLocations() (*AkamaiGhostLocationsResp, *ClientResponse, error) {
+func (nls *DiagToolsService) ListGhostLocations() (*GhostLocationsResp, *ClientResponse, error) {
 	qParams := QStrDiagTools{}
 	path := fmt.Sprintf("%s/ghost-locations/available", DTPathV2)
 
-	var respStruct *AkamaiGhostLocationsResp
+	var respStruct *GhostLocationsResp
 	resp, err := nls.client.makeAPIRequest(http.MethodGet, path, qParams, &respStruct, nil, nil)
 
 	return respStruct, resp, err
 }
 
 // ListGTMProperties provides available GTM properties
-func (nls *DiagToolsService) ListGTMProperties() (*AkamaiDTGTMPropertiesResp, *ClientResponse, error) {
+func (nls *DiagToolsService) ListGTMProperties() (*DTGTMPropertiesResp, *ClientResponse, error) {
 	qParams := QStrDiagTools{}
 	path := fmt.Sprintf("%s/gtm/gtm-properties", DTPathV2)
 
-	var respStruct *AkamaiDTGTMPropertiesResp
+	var respStruct *DTGTMPropertiesResp
 	resp, err := nls.client.makeAPIRequest(http.MethodGet, path, qParams, &respStruct, nil, nil)
 
 	return respStruct, resp, err
 }
 
 // ListGTMPropertyIPs provides available GTM properties
-func (nls *DiagToolsService) ListGTMPropertyIPs(property, domain string) (*AkamaiDTGTMPropertyIpsResp, *ClientResponse, error) {
+func (nls *DiagToolsService) ListGTMPropertyIPs(property, domain string) (*DTGTMPropertyIpsResp, *ClientResponse, error) {
 
 	if property == "" {
 		return nil, nil, fmt.Errorf("'property' is required parameter: '%s'", property)
@@ -448,7 +449,7 @@ func (nls *DiagToolsService) ListGTMPropertyIPs(property, domain string) (*Akama
 	qParams := QStrDiagTools{}
 	path := fmt.Sprintf("%s/gtm/%s/%s/gtm-property-ips", DTPathV2, property, domain)
 
-	var respStruct *AkamaiDTGTMPropertyIpsResp
+	var respStruct *DTGTMPropertyIpsResp
 	resp, err := nls.client.makeAPIRequest(http.MethodGet, path, qParams, &respStruct, nil, nil)
 
 	return respStruct, resp, err
