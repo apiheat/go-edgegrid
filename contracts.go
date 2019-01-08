@@ -3,17 +3,16 @@ package edgegrid
 import (
 	"fmt"
 	"net/http"
-
-	"github.com/google/go-querystring/query"
 )
 
 type ContractsService struct {
 	client *Client
 }
 
-type ContractsProductsParams struct {
-	From string `url:"from,omitempty"`
-	To   string `url:"to,omitempty"`
+type QStrContractsProducts struct {
+	From  string `url:"from,omitempty"`
+	To    string `url:"to,omitempty"`
+	Depth string `url:"depth,omitempty"`
 }
 
 type ContractProductsResp struct {
@@ -26,40 +25,29 @@ type ContractProductsResp struct {
 	} `json:"products"`
 }
 
-func prepareContractsQueryParameters(params ContractsProductsParams) (queryString string, err error) {
-	v, err := query.Values(params)
-
-	if err != nil {
-		return "", err
-	}
-
-	return v.Encode(), nil
-}
-
+// List Lists contracts
 func (nls *ContractsService) List(depth string) (*[]string, *ClientResponse, error) {
-	apiURI := fmt.Sprintf("%s/contracts/identifiers", ContractsPath)
-	if depth != "" {
-		apiURI = fmt.Sprintf("%s/contracts/identifiers?depth=%s", ContractsPath, depth)
+	qParams := QStrContractsProducts{
+		Depth: depth,
 	}
+	path := fmt.Sprintf("%s/contracts/identifiers", ContractsPath)
 
-	var k *[]string
-	resp, err := nls.client.NewRequest(http.MethodGet, apiURI, nil, &k)
+	var respStruct *[]string
+	resp, err := nls.client.makeAPIRequest(http.MethodGet, path, qParams, &respStruct, nil, nil)
 
-	return k, resp, err
+	return respStruct, resp, err
 }
 
-func (nls *ContractsService) ListContractProducts(contractID string, params ContractsProductsParams) (*ContractProductsResp, *ClientResponse, error) {
-	apiURI := fmt.Sprintf("%s/contracts/%s/products/summaries", ContractsPath, contractID)
-	if params.From != "" || params.To != "" {
-		queryParams, err := prepareContractsQueryParameters(params)
-		if err != nil {
-			return nil, nil, err
-		}
-		apiURI = fmt.Sprintf("%s/contracts/%s/products/summaries?%s", ContractsPath, contractID, queryParams)
+// ListContractProducts Lists products
+func (nls *ContractsService) ListContractProducts(contractID, qFrom, qTo string) (*ContractProductsResp, *ClientResponse, error) {
+	qParams := QStrContractsProducts{
+		From: qFrom,
+		To:   qTo,
 	}
+	path := fmt.Sprintf("%s/contracts/%s/products/summaries", ContractsPath, contractID)
 
-	var k *ContractProductsResp
-	resp, err := nls.client.NewRequest(http.MethodGet, apiURI, nil, &k)
+	var respStruct *ContractProductsResp
+	resp, err := nls.client.makeAPIRequest(http.MethodGet, path, qParams, &respStruct, nil, nil)
 
-	return k, resp, err
+	return respStruct, resp, err
 }
