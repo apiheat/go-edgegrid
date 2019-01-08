@@ -58,14 +58,15 @@ type QStrAPIClientCredentials struct {
 // ╚██████╔╝███████║███████╗██║  ██║
 //  ╚═════╝ ╚══════╝╚══════╝╚═╝  ╚═╝
 
+// ListUsers provides list of Akamai users
 func (nls *IdentityManagementService) ListUsers() (*[]AkamaiUser, *ClientResponse, error) {
-
+	qParams := QStrAPIClientCredentials{}
 	path := fmt.Sprintf("%s/user-admin/ui-identities", IdentityManagementPathV2)
 
-	var k *[]AkamaiUser
-	resp, err := nls.client.NewRequest(http.MethodGet, path, nil, &k)
+	var respStruct *[]AkamaiUser
+	resp, err := nls.client.makeAPIRequest(http.MethodGet, path, qParams, &respStruct, nil, nil)
 
-	return k, resp, err
+	return respStruct, resp, err
 }
 
 //  █████╗ ██████╗ ██╗
@@ -76,7 +77,6 @@ func (nls *IdentityManagementService) ListUsers() (*[]AkamaiUser, *ClientRespons
 // ╚═╝  ╚═╝╚═╝     ╚═╝
 
 // GetAPIClientCreds Lists API credentials
-//
 // Akamai API docs: https://developer.akamai.com/api/core_features/identity_management/v1.html#getcredentials
 func (nls *IdentityManagementService) GetAPIClientCreds(openIdentityID string, includeActions bool) (*[]APICredentialDetails, *ClientResponse, error) {
 
