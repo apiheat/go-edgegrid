@@ -499,9 +499,6 @@ func (cl *Client) makeAPIRequest(method, path string, queryParams, structRespons
 	clientResp.Response = resp
 	clientResp.Body = string(byt)
 
-	log.Debug("[NewRequest]::Response code is:" + strconv.Itoa(resp.StatusCode))
-	log.Debug("[NewRequest]::Body is " + clientResp.Body)
-
 	if structResponse != nil {
 		respType := reflect.TypeOf(structResponse)
 		log.Debug(fmt.Sprintf("[NewRequest]::Map response to provided type ( %s ) ", respType))
