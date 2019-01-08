@@ -9,42 +9,24 @@ type FirewallRulesNotificationsService struct {
 	client *Client
 }
 
-// AkamaiFRNServices data representation
-type AkamaiFRNServices []struct {
-	AkamaiFRNService
+// FRNServices data representation
+type FRNServices []struct {
+	FRNService
 }
 
-type AkamaiFRNService struct {
+type FRNService struct {
 	ServiceID   int    `json:"serviceId"`
 	ServiceName string `json:"serviceName"`
 	Description string `json:"description"`
 }
 
-func (nls *FirewallRulesNotificationsService) ListServices() (*AkamaiFRNServices, *ClientResponse, error) {
-	apiURI := fmt.Sprintf("%s/services", FRNPathV1)
-
-	var k *AkamaiFRNServices
-	resp, err := nls.client.NewRequest(http.MethodGet, apiURI, nil, &k)
-
-	return k, resp, err
+// FRNSubscriptions data representation
+type FRNSubscriptions struct {
+	Subscriptions []FRNSubscription `json:"subscriptions"`
 }
 
-func (nls *FirewallRulesNotificationsService) ListService(id string) (*AkamaiFRNService, *ClientResponse, error) {
-	apiURI := fmt.Sprintf("%s/services/%s", FRNPathV1, id)
-
-	var k *AkamaiFRNService
-	resp, err := nls.client.NewRequest(http.MethodGet, apiURI, nil, &k)
-
-	return k, resp, err
-}
-
-// AkamaiFRNSubscriptions data representation
-type AkamaiFRNSubscriptions struct {
-	Subscriptions []AkamaiFRNSubscription `json:"subscriptions"`
-}
-
-// AkamaiFRNSubscription data representation
-type AkamaiFRNSubscription struct {
+// FRNSubscription data representation
+type FRNSubscription struct {
 	ServiceID   int    `json:"serviceId"`
 	ServiceName string `json:"serviceName,omitempty"`
 	Description string `json:"description,omitempty"`
@@ -52,35 +34,8 @@ type AkamaiFRNSubscription struct {
 	SignupDate  string `json:"signupDate,omitempty"`
 }
 
-func (nls *FirewallRulesNotificationsService) ListSubscriptions() (*AkamaiFRNSubscriptions, *ClientResponse, error) {
-	apiURI := fmt.Sprintf("%s/subscriptions", FRNPathV1)
-
-	var k *AkamaiFRNSubscriptions
-	resp, err := nls.client.NewRequest(http.MethodGet, apiURI, nil, &k)
-
-	return k, resp, err
-}
-
-func (nls *FirewallRulesNotificationsService) UpdateSubscriptions(services []int, email string) (*AkamaiFRNSubscriptions, *ClientResponse, error) {
-	apiURI := fmt.Sprintf("%s/subscriptions", FRNPathV1)
-
-	var obj AkamaiFRNSubscriptions
-	for _, s := range services {
-		service := AkamaiFRNSubscription{
-			ServiceID: s,
-			Email:     email,
-		}
-		obj.Subscriptions = append(obj.Subscriptions, service)
-	}
-
-	var k *AkamaiFRNSubscriptions
-	resp, err := nls.client.NewRequest(http.MethodPut, apiURI, obj, &k)
-
-	return k, resp, err
-}
-
-// AkamaiFRNCidrs data representation
-type AkamaiFRNCidrs []struct {
+// FRNCidrs data representation
+type FRNCidrs []struct {
 	CidrID        int         `json:"cidrId"`
 	ServiceID     int         `json:"serviceId"`
 	ServiceName   string      `json:"serviceName"`
@@ -96,14 +51,72 @@ type AkamaiFRNCidrs []struct {
 	LastAction    string      `json:"lastAction"`
 }
 
-func (nls *FirewallRulesNotificationsService) ListCIDRBlocks(filterStr string) (*AkamaiFRNCidrs, *ClientResponse, error) {
-	apiURI := fmt.Sprintf("%s/cidr-blocks", FRNPathV1)
-	if filterStr != "" {
-		apiURI = fmt.Sprintf("%s/cidr-blocks%s", FRNPathV1, filterStr)
+// QStrFRN includes query params used across firewall network rules
+type QStrFRN struct{}
+
+// ListServices provides list of services to which it is possible to subscribe
+func (nls *FirewallRulesNotificationsService) ListServices() (*FRNServices, *ClientResponse, error) {
+	qParams := QStrFRN{}
+	path := fmt.Sprintf("%s/services", FRNPathV1)
+
+	var respStruct *FRNServices
+	resp, err := nls.client.makeAPIRequest(http.MethodGet, path, qParams, &respStruct, nil, nil)
+
+	return respStruct, resp, err
+}
+
+// ListService provides details of service specified by its unique ID
+func (nls *FirewallRulesNotificationsService) ListService(id string) (*FRNService, *ClientResponse, error) {
+	qParams := QStrFRN{}
+	path := fmt.Sprintf("%s/services/%s", FRNPathV1, id)
+
+	var respStruct *FRNService
+	resp, err := nls.client.makeAPIRequest(http.MethodGet, path, qParams, &respStruct, nil, nil)
+
+	return respStruct, resp, err
+}
+
+// ListSubscriptions provides list of services to which we are subscribed
+func (nls *FirewallRulesNotificationsService) ListSubscriptions() (*FRNSubscriptions, *ClientResponse, error) {
+	qParams := QStrFRN{}
+	path := fmt.Sprintf("%s/subscriptions", FRNPathV1)
+
+	var respStruct *FRNSubscriptions
+	resp, err := nls.client.makeAPIRequest(http.MethodGet, path, qParams, &respStruct, nil, nil)
+
+	return respStruct, resp, err
+}
+
+//UpdateSubscriptions updates current subscription
+func (nls *FirewallRulesNotificationsService) UpdateSubscriptions(services []int, email string) (*FRNSubscriptions, *ClientResponse, error) {
+	qParams := QStrFRN{}
+	path := fmt.Sprintf("%s/subscriptions", FRNPathV1)
+
+	var requestStruct FRNSubscriptions
+	for _, s := range services {
+		service := FRNSubscription{
+			ServiceID: s,
+			Email:     email,
+		}
+		requestStruct.Subscriptions = append(requestStruct.Subscriptions, service)
 	}
 
-	var k *AkamaiFRNCidrs
-	resp, err := nls.client.NewRequest(http.MethodGet, apiURI, nil, &k)
+	var respStruct *FRNSubscriptions
+	resp, err := nls.client.makeAPIRequest(http.MethodPut, path, qParams, &respStruct, requestStruct, nil)
 
-	return k, resp, err
+	return respStruct, resp, err
+}
+
+// ListCIDRBlocks provides information about CIDR blocks
+func (nls *FirewallRulesNotificationsService) ListCIDRBlocks(filterStr string) (*FRNCidrs, *ClientResponse, error) {
+	qParams := QStrFRN{}
+	path := fmt.Sprintf("%s/cidr-blocks", FRNPathV1)
+	if filterStr != "" {
+		path = fmt.Sprintf("%s/cidr-blocks%s", FRNPathV1, filterStr)
+	}
+
+	var respStruct *FRNCidrs
+	resp, err := nls.client.makeAPIRequest(http.MethodGet, path, qParams, &respStruct, nil, nil)
+
+	return respStruct, resp, err
 }
