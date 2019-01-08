@@ -43,7 +43,7 @@ func InitEdgerc(edgercConfig, edgercSection string) (*EdgercCredentials, error) 
 	log.WithFields(log.Fields{
 		"edgercConfig":  edgercConfig,
 		"edgercSection": edgercSection,
-	}).Info("Initialize credentials")
+	}).Info("[InitEdgerc]::Initialize credentials")
 
 	// Load the file based on our provided config
 	log.Debug("[InitEdgerc]::Loading credentials file")

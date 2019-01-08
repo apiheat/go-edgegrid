@@ -141,16 +141,16 @@ func NewClient(httpClient *http.Client, conf *ClientOptions) (*Client, error) {
 		"section":   section,
 		"debuglvl":  debuglvl,
 		"switchKey": conf.AccountSwitchKey,
-	}).Info("Create new edge client")
+	}).Info("[newClient]::Create new edge client")
 
 	APIClient, errAPIClient := newClient(httpClient, path, section)
 
 	// Assign values for accountSwitchKey
 	if conf.AccountSwitchKey != "" {
-		log.Debug(fmt.Sprintf("[newClient]::Assigning AccountSwitchKey ...  %s", conf.AccountSwitchKey))
+		log.Debug(fmt.Sprintf("[newClient]::Assigning Account Switch Key %s", conf.AccountSwitchKey))
 		APIClient.accountSwitchKey = conf.AccountSwitchKey
 		APIClient.accountSwitchEnabled = true
-		log.Debug("[newClient]::AccountSwitchKey enabled")
+		log.Debug("[newClient]::Account Switch Key enabled")
 	}
 
 	if errAPIClient != nil {
@@ -249,7 +249,7 @@ func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*Cli
 	}
 
 	if method == http.MethodPost || method == http.MethodPut {
-		log.Info("Prepare request body object")
+		log.Info("[NewRequest]::Prepare request body object")
 		log.Debug("[NewRequest]::Method is POST/PUT")
 		log.Debug("[NewRequest]::Marshal request object")
 
@@ -276,7 +276,7 @@ func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*Cli
 	log.Debug("[NewRequest]::Set header Authorization")
 	req.Header.Add("Authorization", authorizationHeader)
 
-	log.Info("Execute http request")
+	log.Info("[NewRequest]::Execute http request")
 	resp, err := cl.client.Do(req)
 	if err != nil {
 		log.Debug("[NewRequest]::Error making request")
@@ -325,7 +325,7 @@ func (cl *Client) SetBaseURL(urlStr string, passThrough bool) error {
 	log.WithFields(log.Fields{
 		"urlStr":      urlStr,
 		"passThrough": passThrough,
-	}).Info("Set BaseURL for client")
+	}).Info("[SetBaseURL]::Set BaseURL for client")
 
 	var err error
 
@@ -414,7 +414,7 @@ func (cl *Client) makeAPIRequest(method, path string, queryParams, structRespons
 		Modify request for POST/PUT
 	*/
 	if method == http.MethodPost || method == http.MethodPut {
-		log.Info("Prepare request body object")
+		log.Info("[NewRequest]::Prepare request body object")
 		log.Debug(fmt.Sprintf("[NewRequest]::Method is %s", method))
 		log.Debug("[NewRequest]::Marshal request object")
 
@@ -474,7 +474,7 @@ func (cl *Client) makeAPIRequest(method, path string, queryParams, structRespons
 	/*
 		Execute request
 	*/
-	log.Info("Execute http request")
+	log.Info("[NewRequest]::Execute http request")
 	log.Debug(fmt.Sprintf("[NewRequest]::Calling %s", req.URL.RequestURI()))
 	resp, err := cl.client.Do(req)
 	if err != nil {
