@@ -390,7 +390,10 @@ func (cl *Client) prepareQueryParameters(params interface{}) (queryString string
 func (cl *Client) makeAPIRequest(method, path string, queryParams, structResponse, structRequest interface{}, headers map[string]string) (*ClientResponse, error) {
 
 	log.Debug("[NewRequest]::Prepare URL for http request")
-	targetURL, _ := prepareURL(cl.baseURL, path)
+	targetURL, err := prepareURL(cl.baseURL, path)
+	if err != nil {
+		return nil, err
+	}
 
 	log.Debug("[NewRequest]::Create http request")
 	req, err := http.NewRequest(method, targetURL.String(), nil)
