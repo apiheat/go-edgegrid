@@ -9,13 +9,13 @@ type SiteShieldService struct {
 	client *Client
 }
 
-// AkamaiSiteShieldMapsResp response struct
-type AkamaiSiteShieldMapsResp struct {
-	SiteShieldMaps []AkamaiSiteShieldMap `json:"siteShieldMaps"`
+// SiteShieldMapsResp response struct
+type SiteShieldMapsResp struct {
+	SiteShieldMaps []SiteShieldMap `json:"siteShieldMaps"`
 }
 
-// AkamaiSiteShieldMap struct
-type AkamaiSiteShieldMap struct {
+// SiteShieldMap struct
+type SiteShieldMap struct {
 	AcknowledgeRequiredBy int64    `json:"acknowledgeRequiredBy"`
 	Acknowledged          bool     `json:"acknowledged"`
 	AcknowledgedBy        string   `json:"acknowledgedBy"`
@@ -33,27 +33,34 @@ type AkamaiSiteShieldMap struct {
 	Type                  string   `json:"type"`
 }
 
-func (nls *SiteShieldService) ListMaps() (*AkamaiSiteShieldMapsResp, *ClientResponse, error) {
-	var k *AkamaiSiteShieldMapsResp
-	resp, err := nls.client.NewRequest(http.MethodGet, SiteshieldPathV1, nil, &k)
+//ListMaps Lists siteshield maps
+func (nls *SiteShieldService) ListMaps() (*SiteShieldMapsResp, *ClientResponse, error) {
+	qParams := QStrNetworkList{}
 
-	return k, resp, err
+	var respStruct *SiteShieldMapsResp
+	resp, err := nls.client.makeAPIRequest(http.MethodGet, SiteshieldPathV1, qParams, &respStruct, nil, nil)
+
+	return respStruct, resp, err
 }
 
-func (nls *SiteShieldService) ListMap(id string) (*AkamaiSiteShieldMap, *ClientResponse, error) {
-	apiURI := fmt.Sprintf("%s/%s", SiteshieldPathV1, id)
+//ListMap Retrieves specific map based on ID
+func (nls *SiteShieldService) ListMap(id string) (*SiteShieldMap, *ClientResponse, error) {
+	qParams := QStrNetworkList{}
+	path := fmt.Sprintf("%s/%s", SiteshieldPathV1, id)
 
-	var k *AkamaiSiteShieldMap
-	resp, err := nls.client.NewRequest(http.MethodGet, apiURI, nil, &k)
+	var respStruct *SiteShieldMap
+	resp, err := nls.client.makeAPIRequest(http.MethodGet, path, qParams, &respStruct, nil, nil)
 
-	return k, resp, err
+	return respStruct, resp, err
 }
 
-func (nls *SiteShieldService) AckMap(id string) (*AkamaiSiteShieldMap, *ClientResponse, error) {
-	apiURI := fmt.Sprintf("%s/%s/acknowledge", SiteshieldPathV1, id)
+//AckMap Acknowledges specific map based on ID
+func (nls *SiteShieldService) AckMap(id string) (*SiteShieldMap, *ClientResponse, error) {
+	qParams := QStrNetworkList{}
+	path := fmt.Sprintf("%s/%s/acknowledge", SiteshieldPathV1, id)
 
-	var k *AkamaiSiteShieldMap
-	resp, err := nls.client.NewRequest(http.MethodPost, apiURI, nil, &k)
+	var respStruct *SiteShieldMap
+	resp, err := nls.client.makeAPIRequest(http.MethodPost, path, qParams, &respStruct, nil, nil)
 
-	return k, resp, err
+	return respStruct, resp, err
 }
