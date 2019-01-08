@@ -153,7 +153,10 @@ func NewClient(httpClient *http.Client, conf *ClientOptions) (*Client, error) {
 
 	// Assign values for accountSwitchKey
 	if conf.AccountSwitchKey != "" {
+		log.Debug(fmt.Sprintf("[newClient]::Assigning AccountSwitchKey ...  %s", conf.AccountSwitchKey))
 		APIClient.accountSwitchKey = conf.AccountSwitchKey
+		APIClient.accountSwitchEnabled = true
+		log.Debug("[newClient]::AccountSwitchKey enabled")
 	}
 
 	if errAPIClient != nil {
