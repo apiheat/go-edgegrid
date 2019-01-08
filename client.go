@@ -19,12 +19,17 @@ import (
 // AkamaiEnvironmentVar represents Akamai's env variables used
 type AkamaiEnvironmentVar string
 
-// AkamaiEnvironmentVar const represents Akamai's env variables to be used.
-const (
-	EnvVarEdgercPath        AkamaiEnvironmentVar = "AKAMAI_EDGERC_CONFIG"
-	EnvVarEdgercSection     AkamaiEnvironmentVar = "AKAMAI_EDGERC_SECTION"
-	EnvVarDebugLevelSection AkamaiEnvironmentVar = "AKAMAI_EDGERC_DEBUGLEVEL"
-)
+// AkamaiEnvironment represents Akamai's target environment type.
+type AkamaiEnvironment string
+
+// AkamaiRequestFrom represents Akamai's source for request.
+type AkamaiRequestFrom string
+
+// NetworkListType represents Akamai's network list type.
+type NetworkListType string
+
+// AkamaiSubscription represents Akamai's notification actions for subscriptions.
+type AkamaiSubscription string
 
 // Akamai Services Paths
 const (
@@ -40,41 +45,23 @@ const (
 	DTPathV2                 = "/diagnostic-tools/v2"
 	BillingPathV2            = "/billing-center-api/v2"
 	ContractsPath            = "/contract-api/v1"
-)
 
-// AkamaiEnvironment represents Akamai's target environment type.
-type AkamaiEnvironment string
+	EnvVarEdgercPath        AkamaiEnvironmentVar = "AKAMAI_EDGERC_CONFIG"
+	EnvVarEdgercSection     AkamaiEnvironmentVar = "AKAMAI_EDGERC_SECTION"
+	EnvVarDebugLevelSection AkamaiEnvironmentVar = "AKAMAI_EDGERC_DEBUGLEVEL"
 
-const (
 	Production AkamaiEnvironment = "production"
 	Staging    AkamaiEnvironment = "staging"
-)
 
-// AkamaiRequestFrom represents Akamai's source for request.
-type AkamaiRequestFrom string
-
-const (
 	Ghost     AkamaiRequestFrom = "ghost-locations"
 	IPAddress AkamaiRequestFrom = "ip-addresses"
-)
 
-// NetworkListType represents Akamai's network list type.
-type NetworkListType string
-
-const (
 	Geo NetworkListType = "GEO"
 	IP  NetworkListType = "IP"
-)
 
-// AkamaiSubscription represents Akamai's notification actions for subscriptions.
-type AkamaiSubscription string
-
-const (
 	Subscribe   AkamaiSubscription = "subscribe"
 	Unsubscribe AkamaiSubscription = "unsubscribe"
-)
 
-const (
 	userAgent = "go-edgegrid"
 )
 
