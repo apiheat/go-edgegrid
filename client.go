@@ -403,7 +403,7 @@ func (cl *Client) makeAPIRequest(method, path string, queryParams, structRespons
 	*/
 	if method == http.MethodPost || method == http.MethodPut {
 		log.Info("Prepare request body object")
-		log.Debug("[NewRequest]::Method is POST/PUT")
+		log.Debug(fmt.Sprintf("[NewRequest]::Method is %s", method))
 		log.Debug("[NewRequest]::Marshal request object")
 
 		reqType := reflect.TypeOf(structRequest)
