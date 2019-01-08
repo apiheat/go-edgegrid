@@ -9,18 +9,25 @@ type AdaptiveAccelerationService struct {
 	client *Client
 }
 
-func (nls *AdaptiveAccelerationService) ReportProperty(id string) (*ClientResponse, error) {
-	apiURI := fmt.Sprintf("%s/%s", A2PathV1, id)
+//QStrAdaptiveAcceleration includes query params used across AdaptiveAccelerationService
+type QStrAdaptiveAcceleration struct{}
 
-	resp, err := nls.client.NewRequest(http.MethodGet, apiURI, nil, nil)
+//ReportProperty reports property ID
+func (nls *AdaptiveAccelerationService) ReportProperty(id string) (*ClientResponse, error) {
+	qParams := QStrAdaptiveAcceleration{}
+	path := fmt.Sprintf("%s/%s", A2PathV1, id)
+
+	resp, err := nls.client.makeAPIRequest(http.MethodGet, path, qParams, nil, nil, nil)
 
 	return resp, err
 }
 
+//ResetProperty Resets property AdaptiveAcceleration based on given ID
 func (nls *AdaptiveAccelerationService) ResetProperty(id string) (*ClientResponse, error) {
-	apiURI := fmt.Sprintf("%s/%s", A2PathV1, id)
+	qParams := QStrAdaptiveAcceleration{}
+	path := fmt.Sprintf("%s/%s", A2PathV1, id)
 
-	resp, err := nls.client.NewRequest(http.MethodPost, apiURI, nil, nil)
+	resp, err := nls.client.makeAPIRequest(http.MethodPost, path, qParams, nil, nil, nil)
 
 	return resp, err
 }
