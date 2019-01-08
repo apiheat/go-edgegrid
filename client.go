@@ -349,9 +349,9 @@ func (cl *Client) SetBaseURL(urlStr string, passThrough bool) error {
 	return err
 }
 
-// EnableASK instructs client to use ASK
-func (cl *Client) EnableASK() {
-	log.Debug("[EnableASK]::Enabling ASK ...")
+// EnableAccountSwitchKey instructs client to use ASK
+func (cl *Client) EnableAccountSwitchKey() {
+	log.Debug("[EnableAccountSwitchKey]::Enabling AccountSwitchKey ...")
 	cl.accountSwitchEnabled = true
 }
 
