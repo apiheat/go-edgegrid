@@ -58,6 +58,14 @@ const (
 	IPAddress AkamaiRequestFrom = "ip-addresses"
 )
 
+// NetworkListType represents Akamai's network list type.
+type NetworkListType string
+
+const (
+	Geo NetworkListType = "GEO"
+	IP  NetworkListType = "IP"
+)
+
 // AkamaiSubscription represents Akamai's notification actions for subscriptions.
 type AkamaiSubscription string
 
