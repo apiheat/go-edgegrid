@@ -426,17 +426,6 @@ func (cl *Client) makeAPIRequest(method, path string, queryParams, structRespons
 	}
 
 	/*
-		Add headers
-	*/
-	if headers != nil {
-		log.Debug("[NewRequest]::Add extra headers")
-		for k, v := range headers {
-			log.Debug(fmt.Sprintf("[NewRequest]::Adding %s:%s", k, v))
-			req.Header.Add(k, v)
-		}
-	}
-
-	/*
 		Add query params
 	*/
 	if queryParams != nil {
@@ -449,6 +438,17 @@ func (cl *Client) makeAPIRequest(method, path string, queryParams, structRespons
 			log.Debug("[NewRequest]::Error adding query string parameters")
 			log.Debug(fmt.Sprintf("[NewRequest]:: %s", queryStringError.Error()))
 			return nil, queryStringError
+		}
+	}
+
+	/*
+		Add headers
+	*/
+	if headers != nil {
+		log.Debug("[NewRequest]::Add extra headers")
+		for k, v := range headers {
+			log.Debug(fmt.Sprintf("[NewRequest]::Adding %s:%s", k, v))
+			req.Header.Add(k, v)
 		}
 	}
 
