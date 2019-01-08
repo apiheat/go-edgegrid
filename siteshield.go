@@ -33,9 +33,16 @@ type SiteShieldMap struct {
 	Type                  string   `json:"type"`
 }
 
+type QStrSiteShield struct {
+	IncludeElements bool   `url:"includeElements,omitempty"`
+	Extended        bool   `url:"extended,omitempty"`
+	Search          string `url:"search,omitempty"`
+	Element         string `url:"element,omitempty"`
+}
+
 //ListMaps Lists siteshield maps
 func (nls *SiteShieldService) ListMaps() (*SiteShieldMapsResp, *ClientResponse, error) {
-	qParams := QStrNetworkList{}
+	qParams := QStrSiteShield{}
 
 	var respStruct *SiteShieldMapsResp
 	resp, err := nls.client.makeAPIRequest(http.MethodGet, SiteshieldPathV1, qParams, &respStruct, nil, nil)
@@ -45,7 +52,7 @@ func (nls *SiteShieldService) ListMaps() (*SiteShieldMapsResp, *ClientResponse, 
 
 //ListMap Retrieves specific map based on ID
 func (nls *SiteShieldService) ListMap(id string) (*SiteShieldMap, *ClientResponse, error) {
-	qParams := QStrNetworkList{}
+	qParams := QStrSiteShield{}
 	path := fmt.Sprintf("%s/%s", SiteshieldPathV1, id)
 
 	var respStruct *SiteShieldMap
@@ -56,7 +63,7 @@ func (nls *SiteShieldService) ListMap(id string) (*SiteShieldMap, *ClientRespons
 
 //AckMap Acknowledges specific map based on ID
 func (nls *SiteShieldService) AckMap(id string) (*SiteShieldMap, *ClientResponse, error) {
-	qParams := QStrNetworkList{}
+	qParams := QStrSiteShield{}
 	path := fmt.Sprintf("%s/%s/acknowledge", SiteshieldPathV1, id)
 
 	var respStruct *SiteShieldMap
