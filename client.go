@@ -25,9 +25,6 @@ type AkamaiEnvironment string
 // AkamaiRequestFrom represents Akamai's source for request.
 type AkamaiRequestFrom string
 
-// NetworkListType represents Akamai's network list type.
-type NetworkListType string
-
 // AkamaiSubscription represents Akamai's notification actions for subscriptions.
 type AkamaiSubscription string
 
@@ -55,9 +52,6 @@ const (
 
 	Ghost     AkamaiRequestFrom = "ghost-locations"
 	IPAddress AkamaiRequestFrom = "ip-addresses"
-
-	Geo NetworkListType = "GEO"
-	IP  NetworkListType = "IP"
 
 	Subscribe   AkamaiSubscription = "subscribe"
 	Unsubscribe AkamaiSubscription = "unsubscribe"

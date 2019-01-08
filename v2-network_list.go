@@ -80,10 +80,10 @@ type NetworkListErrorv2 struct {
 // NetworkListsOptionsv2 represents struct required to create items for network list
 // Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html
 type NetworkListsOptionsv2 struct {
-	Name        string          `json:"name,omitempty"`
-	Type        NetworkListType `json:"type,omitempty"`
-	Description string          `json:"description,omitempty"`
-	List        []string        `json:"list,omitempty"`
+	Name        string   `json:"name,omitempty"`
+	Type        string   `json:"type,omitempty"`
+	Description string   `json:"description,omitempty"`
+	List        []string `json:"list,omitempty"`
 }
 
 // ListNetworkListsOptionsv2 represents the available options for listing network lists
