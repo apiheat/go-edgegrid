@@ -384,7 +384,6 @@ func (cl *Client) prepareQueryParameters(params interface{}) (queryString string
 	// If we do have account switch key - we will add it and toggle ASK back to disabled
 	if cl.accountSwitchEnabled == true {
 		v.Add("accountSwitchKey", cl.accountSwitchKey)
-		cl.accountSwitchEnabled = false
 	}
 
 	if err != nil {
