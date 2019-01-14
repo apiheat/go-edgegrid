@@ -6,27 +6,27 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/http/httputil"
 	"net/url"
 	"reflect"
 	"strconv"
 	"strings"
 
+	"github.com/google/go-querystring/query"
 	log "github.com/sirupsen/logrus"
 )
 
 // AkamaiEnvironmentVar represents Akamai's env variables used
-//
-// client
 type AkamaiEnvironmentVar string
 
-// AkamaiEnvironmentVar const represents Akamai's env variables to be used.
-//
-// client
-const (
-	EnvVarEdgercPath        AkamaiEnvironmentVar = "AKAMAI_EDGERC_CONFIG"
-	EnvVarEdgercSection     AkamaiEnvironmentVar = "AKAMAI_EDGERC_SECTION"
-	EnvVarDebugLevelSection AkamaiEnvironmentVar = "AKAMAI_EDGERC_DEBUGLEVEL"
-)
+// AkamaiEnvironment represents Akamai's target environment type.
+type AkamaiEnvironment string
+
+// AkamaiRequestFrom represents Akamai's source for request.
+type AkamaiRequestFrom string
+
+// AkamaiSubscription represents Akamai's notification actions for subscriptions.
+type AkamaiSubscription string
 
 // Akamai Services Paths
 const (
@@ -35,41 +35,31 @@ const (
 	NetworkListPathV2        = "/network-list/v2/network-lists"
 	PAPIPathV1               = "/papi/v1"
 	ReportingPathV1          = "/reporting-api/v1/reports"
+	IdentityManagementPathV1 = "/identity-management/v1"
 	IdentityManagementPathV2 = "/identity-management/v2"
 	SiteshieldPathV1         = "/siteshield/v1/maps"
 	FRNPathV1                = "/firewall-rules-manager/v1"
 	DTPathV2                 = "/diagnostic-tools/v2"
 	BillingPathV2            = "/billing-center-api/v2"
 	ContractsPath            = "/contract-api/v1"
-)
 
-// AkamaiEnvironment represents Akamai's target environment type.
-//
-// client
-type AkamaiEnvironment string
+	EnvVarEdgercPath        AkamaiEnvironmentVar = "AKAMAI_EDGERC_CONFIG"
+	EnvVarEdgercSection     AkamaiEnvironmentVar = "AKAMAI_EDGERC_SECTION"
+	EnvVarDebugLevelSection AkamaiEnvironmentVar = "AKAMAI_EDGERC_DEBUGLEVEL"
 
-const (
 	Production AkamaiEnvironment = "production"
 	Staging    AkamaiEnvironment = "staging"
-)
 
-// AkamaiSubscription represents Akamai's notification actions for subscriptions.
-//
-// client
-type AkamaiSubscription string
+	Ghost     AkamaiRequestFrom = "ghost-locations"
+	IPAddress AkamaiRequestFrom = "ip-addresses"
 
-const (
 	Subscribe   AkamaiSubscription = "subscribe"
 	Unsubscribe AkamaiSubscription = "unsubscribe"
-)
 
-const (
 	userAgent = "go-edgegrid"
 )
 
 // Client represents Akamai's API client for communicating with service
-//
-// client
 type Client struct {
 	// HTTP client used to communicate with the API.
 	client *http.Client
@@ -79,6 +69,11 @@ type Client struct {
 
 	// edgerc credentials
 	credentials *EdgercCredentials
+
+	// Manage many accounts with one API client
+	// https://learn.akamai.com/en-us/learn_akamai/getting_started_with_akamai_developers/developer_tools/accountSwitch.html
+	accountSwitchKey     string
+	accountSwitchEnabled bool
 
 	// Services used for talking to different parts of the Akamai API.
 	Auth               *AuthService
@@ -96,26 +91,21 @@ type Client struct {
 }
 
 // ClientResponse represents response from our API call
-//
-// client
 type ClientResponse struct {
 	Body     string
 	Response *http.Response
 }
 
 // ClientOptions represents options we can pass during client creation
-//
-// client
 type ClientOptions struct {
-	ConfigPath    string
-	ConfigSection string
-	DebugLevel    string
+	ConfigPath       string
+	ConfigSection    string
+	DebugLevel       string
+	AccountSwitchKey string
 }
 
 // NewClient returns a new edgegrid.Client for API. If a nil httpClient is
 // provided, http.DefaultClient will be used.
-//
-// client
 func NewClient(httpClient *http.Client, conf *ClientOptions) (*Client, error) {
 	var (
 		path, section, debuglvl string
@@ -143,13 +133,25 @@ func NewClient(httpClient *http.Client, conf *ClientOptions) (*Client, error) {
 		log.SetLevel(log.ErrorLevel)
 	}
 
+	// We need to wait for better implementation as the current one spits out to much info
+	//log.SetReportCaller(true)
+
 	log.WithFields(log.Fields{
-		"path":     path,
-		"section":  section,
-		"debuglvl": debuglvl,
-	}).Info("Create new edge client")
+		"path":      path,
+		"section":   section,
+		"debuglvl":  debuglvl,
+		"switchKey": conf.AccountSwitchKey,
+	}).Info("[newClient]::Create new edge client")
 
 	APIClient, errAPIClient := newClient(httpClient, path, section)
+
+	// Assign values for accountSwitchKey
+	if conf.AccountSwitchKey != "" {
+		log.Debug(fmt.Sprintf("[newClient]::Assigning Account Switch Key %s", conf.AccountSwitchKey))
+		APIClient.accountSwitchKey = conf.AccountSwitchKey
+		APIClient.accountSwitchEnabled = true
+		log.Debug("[newClient]::Account Switch Key enabled")
+	}
 
 	if errAPIClient != nil {
 		log.Debug("[newClient]::Create new client object failed: " + errAPIClient.Error())
@@ -160,8 +162,6 @@ func NewClient(httpClient *http.Client, conf *ClientOptions) (*Client, error) {
 }
 
 // newClient *private* function to initiaite client
-//
-// client
 func newClient(httpClient *http.Client, edgercPath, edgercSection string) (*Client, error) {
 	var errInitEdgerc error
 
@@ -223,19 +223,24 @@ func newClient(httpClient *http.Client, edgercPath, edgercSection string) (*Clie
 	return c, nil
 }
 
+// * DEPRECATED *
 // newRequest creates an HTTP request that can be sent to Akamai APIs. A relative URL can be provided in path, which will be resolved to the
 // Host specified in Config. If body is specified, it will be sent as the request body.
-//
-// client
 func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*ClientResponse, error) {
 
+	log.Debug("[NewRequest]::Prepare URL for http request")
 	targetURL, _ := prepareURL(cl.baseURL, path)
 
+	log.Debug("[NewRequest]::Account Switch Enabled - adding query string")
+	q := targetURL.Query()
+	log.Println(targetURL.Query())
+	q.Add("api_key", "key_from_environment_or_flag")
+	q.Add("another_thing", "foo & bar")
 	log.WithFields(log.Fields{
 		"method": method,
 		"base":   cl.baseURL,
 		"path":   path,
-	}).Info("Create new request")
+	}).Info("[NewRequest]::Create new request")
 
 	log.Debug("[NewRequest]::Create http request")
 	req, err := http.NewRequest(method, targetURL.String(), nil)
@@ -244,7 +249,7 @@ func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*Cli
 	}
 
 	if method == http.MethodPost || method == http.MethodPut {
-		log.Info("Prepare request body object")
+		log.Info("[NewRequest]::Prepare request body object")
 		log.Debug("[NewRequest]::Method is POST/PUT")
 		log.Debug("[NewRequest]::Marshal request object")
 
@@ -271,7 +276,7 @@ func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*Cli
 	log.Debug("[NewRequest]::Set header Authorization")
 	req.Header.Add("Authorization", authorizationHeader)
 
-	log.Info("Execute http request")
+	log.Info("[NewRequest]::Execute http request")
 	resp, err := cl.client.Do(req)
 	if err != nil {
 		log.Debug("[NewRequest]::Error making request")
@@ -315,14 +320,12 @@ func (cl *Client) NewRequest(method, path string, vreq, vresp interface{}) (*Cli
 }
 
 // SetBaseURL sets the base URL for API requests to a custom endpoint.
-//
-// client
 func (cl *Client) SetBaseURL(urlStr string, passThrough bool) error {
 
 	log.WithFields(log.Fields{
 		"urlStr":      urlStr,
 		"passThrough": passThrough,
-	}).Info("Set BaseURL for client")
+	}).Info("[SetBaseURL]::Set BaseURL for client")
 
 	var err error
 
@@ -343,9 +346,25 @@ func (cl *Client) SetBaseURL(urlStr string, passThrough bool) error {
 	return err
 }
 
+// EnableAccountSwitchKey instructs client to use ASK
+func (cl *Client) EnableAccountSwitchKey() {
+	log.Debug("[EnableAccountSwitchKey]::Enabling AccountSwitchKey ...")
+	cl.accountSwitchEnabled = true
+}
+
+// DisableAccountSwitchKey instructs client to not use ASK
+func (cl *Client) DisableAccountSwitchKey() {
+	log.Debug("[DisableAccountSwitchKey]::Disabling AccountSwitchKey ...")
+	cl.accountSwitchEnabled = false
+}
+
+// SetAccountSwitchKey instructs client to not use ASK
+func (cl *Client) SetAccountSwitchKey(accountSwitchKey string) {
+	log.Debug(fmt.Sprintf("[SetAccountSwitchKey]::Setting AccountSwitchKey ... %s", accountSwitchKey))
+	cl.accountSwitchKey = accountSwitchKey
+}
+
 // prepareURL returns URL which is used to make API call
-//
-// client
 func prepareURL(url *url.URL, path string) (*url.URL, error) {
 
 	rel, err := url.Parse(strings.TrimPrefix(path, "/"))
@@ -356,4 +375,153 @@ func prepareURL(url *url.URL, path string) (*url.URL, error) {
 	u := url.ResolveReference(rel)
 
 	return u, nil
+}
+
+// prepareQueryParameters Allows for easy preparation of query string
+func (cl *Client) prepareQueryParameters(params interface{}) (queryString string, err error) {
+	v, err := query.Values(params)
+
+	// If we do have account switch key - we will add it and toggle ASK back to disabled
+	if cl.accountSwitchEnabled == true {
+		v.Add("accountSwitchKey", cl.accountSwitchKey)
+	}
+
+	if err != nil {
+		return "", err
+	}
+
+	return v.Encode(), nil
+}
+
+// makeAPIRequest creates an HTTP request that can be sent to Akamai APIs. It will handle security headers and signinig of the request.
+//
+func (cl *Client) makeAPIRequest(method, path string, queryParams, structResponse, structRequest interface{}, headers map[string]string) (*ClientResponse, error) {
+
+	log.Debug("[NewRequest]::Prepare URL for http request")
+	targetURL, err := prepareURL(cl.baseURL, path)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Debug("[NewRequest]::Create http request")
+	req, err := http.NewRequest(method, targetURL.String(), nil)
+	if err != nil {
+		return nil, err
+	}
+
+	/*
+		Modify request for POST/PUT
+	*/
+	if method == http.MethodPost || method == http.MethodPut {
+		log.Info("[NewRequest]::Prepare request body object")
+		log.Debug(fmt.Sprintf("[NewRequest]::Method is %s", method))
+		log.Debug("[NewRequest]::Marshal request object")
+
+		reqType := reflect.TypeOf(structRequest)
+		log.Debug(fmt.Sprintf("[NewRequest]::Object request provided type ( %s ) ", reqType))
+
+		bodyBytes, err := json.Marshal(structRequest)
+		if err != nil {
+			return nil, err
+		}
+		bodyReader := bytes.NewReader(bodyBytes)
+
+		log.Debug("[NewRequest]::Body object added to request")
+		req.Body = ioutil.NopCloser(bodyReader)
+		req.ContentLength = int64(bodyReader.Len())
+
+		log.Debug("[NewRequest]::Body object is:" + string(bodyBytes))
+		log.Debug("[NewRequest]::Set header Content-Type to 'application/json' ")
+		req.Header.Set("Content-Type", "application/json")
+
+	}
+
+	/*
+		Add query params
+	*/
+	if queryParams != nil {
+		log.Debug("[NewRequest]::Add query string parameters")
+		rawQueryString, queryStringError := cl.prepareQueryParameters(queryParams)
+
+		req.URL.RawQuery = rawQueryString
+
+		if queryStringError != nil {
+			log.Debug("[NewRequest]::Error adding query string parameters")
+			log.Debug(fmt.Sprintf("[NewRequest]:: %s", queryStringError.Error()))
+			return nil, queryStringError
+		}
+	}
+
+	/*
+		Add headers
+	*/
+	if headers != nil {
+		log.Debug("[NewRequest]::Add extra headers")
+		for k, v := range headers {
+			log.Debug(fmt.Sprintf("[NewRequest]::Adding %s:%s", k, v))
+			req.Header.Add(k, v)
+		}
+	}
+
+	/*
+		Add signature header
+	*/
+	authorizationHeader := AuthString(cl.credentials, req, []string{})
+	log.Debug("[NewRequest]::Set header Authorization")
+	req.Header.Add("Authorization", authorizationHeader)
+
+	/*
+		Execute request
+	*/
+	log.Info("[NewRequest]::Execute http request")
+	log.Debug(fmt.Sprintf("[NewRequest]::Calling %s", req.URL.RequestURI()))
+	resp, err := cl.client.Do(req)
+	if err != nil {
+		log.Debug("[NewRequest]::Error making request")
+		log.Debug(fmt.Sprintf("[NewRequest]:: %s", err.Error()))
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	/*
+		Process response
+	*/
+
+	// Save a copy of this request for debugging.
+	respDump, err := httputil.DumpResponse(resp, true)
+	if err != nil {
+		return nil, err
+	}
+
+	log.Debug(string(respDump))
+
+	log.Debug("[NewRequest]::Processing response")
+	clientResp := &ClientResponse{}
+
+	log.Debug("[NewRequest]::Read response body")
+	byt, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		log.Debug("[NewRequest]::Error reading response body")
+		log.Debug(fmt.Sprintf("[NewRequest]:: %s", err.Error()))
+		return nil, err
+	}
+
+	log.Debug("[NewRequest]::Set client object response and body")
+	clientResp.Response = resp
+	clientResp.Body = string(byt)
+
+	if structResponse != nil {
+		respType := reflect.TypeOf(structResponse)
+		log.Debug(fmt.Sprintf("[NewRequest]::Map response to provided type ( %s ) ", respType))
+
+		if err = json.Unmarshal([]byte(byt), &structResponse); err != nil {
+			log.Debug("[NewRequest]::Error while unmarshaling response body")
+			log.Debug(fmt.Sprintf("[NewRequest]:: %s", err.Error()))
+			return nil, err
+		}
+	}
+
+	log.Debug("[NewRequest]::Return response")
+
+	return clientResp, nil
 }

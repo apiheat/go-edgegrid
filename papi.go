@@ -111,90 +111,92 @@ type PropertyProps struct {
 	} `json:"properties"`
 }
 
+// QStrPropertyAPI includes query params used across calls for PAPI
+type QStrPropertyAPI struct {
+	ContractID string `url:"contractId,omitempty"`
+	GroupID    string `url:"groupId,omitempty"`
+	Options    string `url:"options,omitempty"`
+}
+
 // ListPropertyContracts This operation provides a read-only list of contract names and identifiers
-//
 // Akamai API docs: https://developer.akamai.com/api/luna/papi/resources.html#getcontracts
 func (pas *PropertyService) ListPropertyContracts() (*PropertyContracts, *ClientResponse, error) {
+	qParams := QStrPropertyAPI{}
+	path := fmt.Sprintf("%s/contracts", PAPIPathV1)
 
-	apiURI := fmt.Sprintf("%s/contracts", PAPIPathV1)
-
-	var k *PropertyContracts
-	resp, err := pas.client.NewRequest(http.MethodGet, apiURI, nil, &k)
+	var respStruct *PropertyContracts
+	resp, err := pas.client.makeAPIRequest(http.MethodGet, path, qParams, &respStruct, nil, nil)
 	if err != nil {
 		return nil, resp, err
 	}
 
-	return k, resp, err
+	return respStruct, resp, err
 
 }
 
 // ListPropertyGroups This operation provides a read-only list of groups, which may contain properties.
-//
 // Akamai API docs: https://developer.akamai.com/api/luna/papi/resources.html#getgroups
 func (pas *PropertyService) ListPropertyGroups() (*PropertyGroups, *ClientResponse, error) {
+	qParams := QStrPropertyAPI{}
+	path := fmt.Sprintf("%s/groups", PAPIPathV1)
 
-	apiURI := fmt.Sprintf("%s/groups", PAPIPathV1)
-
-	var k *PropertyGroups
-	resp, err := pas.client.NewRequest(http.MethodGet, apiURI, nil, &k)
+	var respStruct *PropertyGroups
+	resp, err := pas.client.makeAPIRequest(http.MethodGet, path, qParams, &respStruct, nil, nil)
 	if err != nil {
 		return nil, resp, err
 	}
 
-	return k, resp, err
+	return respStruct, resp, err
 
 }
 
 // ListPropertyCPCodes This operation lists CP codes available within your contract/group pairing.
-//
 // Akamai API docs: https://developer.akamai.com/api/luna/papi/resources.html#getcpcodes
 func (pas *PropertyService) ListPropertyCPCodes(contractID, groupID string) (*PropertyCPCodes, *ClientResponse, error) {
+	qParams := QStrPropertyAPI{
+		ContractID: contractID,
+		GroupID:    groupID,
+	}
+	path := fmt.Sprintf("%s/cpcodes", PAPIPathV1)
 
-	apiURI := fmt.Sprintf("%s/cpcodes?contractId=%s&groupId=%s",
-		PAPIPathV1,
-		contractID,
-		groupID)
-
-	var k *PropertyCPCodes
-	resp, err := pas.client.NewRequest(http.MethodGet, apiURI, nil, &k)
+	var respStruct *PropertyCPCodes
+	resp, err := pas.client.makeAPIRequest(http.MethodGet, path, qParams, &respStruct, nil, nil)
 	if err != nil {
 		return nil, resp, err
 	}
 
-	return k, resp, err
+	return respStruct, resp, err
 
 }
 
 // ListPropertyProducts ListPropertyProducts.
-//
 // Akamai API docs: https://developer.akamai.com/api/luna/papi/resources.html#getcpcodes
 func (pas *PropertyService) ListPropertyProducts(contractId string) (*PropertyProducts, *ClientResponse, error) {
+	qParams := QStrPropertyAPI{
+		ContractID: contractId,
+	}
+	path := fmt.Sprintf("%s/products", PAPIPathV1)
 
-	apiURI := fmt.Sprintf("%s/products?contractId=%s",
-		PAPIPathV1,
-		contractId)
-
-	var k *PropertyProducts
-	resp, err := pas.client.NewRequest(http.MethodGet, apiURI, nil, &k)
+	var respStruct *PropertyProducts
+	resp, err := pas.client.makeAPIRequest(http.MethodGet, path, qParams, &respStruct, nil, nil)
 	if err != nil {
 		return nil, resp, err
 	}
 
-	return k, resp, err
+	return respStruct, resp, err
 
 }
 
 // NewPropertyCPcode Creates new CP Code
-//
 // Akamai API docs: https://developer.akamai.com/api/luna/papi/resources.html#postcpcodes
 func (pas *PropertyService) NewPropertyCPcode(newCPcode *PropertyCPCodeNew, contractID, groupID string) (*ClientResponse, error) {
+	qParams := QStrPropertyAPI{
+		ContractID: contractID,
+		GroupID:    groupID,
+	}
 
-	apiURI := fmt.Sprintf("%s/cpcodes?contractId=%s&groupId=%s",
-		PAPIPathV1,
-		contractID,
-		groupID)
-
-	resp, err := pas.client.NewRequest(http.MethodPost, apiURI, newCPcode, nil)
+	path := fmt.Sprintf("%s/cpcodes", PAPIPathV1)
+	resp, err := pas.client.makeAPIRequest(http.MethodPost, path, qParams, nil, newCPcode, nil)
 	if err != nil {
 		return resp, err
 	}
@@ -204,41 +206,40 @@ func (pas *PropertyService) NewPropertyCPcode(newCPcode *PropertyCPCodeNew, cont
 }
 
 // ListPropertyCPEdgehosts This lists all edge hostnames available under a contract..
-//
 // Akamai API docs: https://developer.akamai.com/api/luna/papi/resources.html#getedgehostnames
 func (pas *PropertyService) ListPropertyCPEdgehosts(contractId, groupID string) (*PropertyCPEdgehosts, *ClientResponse, error) {
+	qParams := QStrPropertyAPI{
+		ContractID: contractId,
+		GroupID:    groupID,
+		Options:    "mapDetails",
+	}
+	path := fmt.Sprintf("%s/edgehostnames", PAPIPathV1)
 
-	apiURI := fmt.Sprintf("%s/edgehostnames?contractId=%s&groupId=%s&options=mapDetails",
-		PAPIPathV1,
-		contractId,
-		groupID)
-
-	var k *PropertyCPEdgehosts
-	resp, err := pas.client.NewRequest(http.MethodGet, apiURI, nil, &k)
+	var respStruct *PropertyCPEdgehosts
+	resp, err := pas.client.makeAPIRequest(http.MethodGet, path, qParams, &respStruct, nil, nil)
 	if err != nil {
 		return nil, resp, err
 	}
 
-	return k, resp, err
+	return respStruct, resp, err
 
 }
 
 // ListProperties This lists all properties available under a contract/group
-//
 // Akamai API docs: https://developer.akamai.com/api/core_features/property_manager/v1.html#getproperties
 func (pas *PropertyService) ListPropertyProperties(contractId, groupID string) (*PropertyProps, *ClientResponse, error) {
+	qParams := QStrPropertyAPI{
+		ContractID: contractId,
+		GroupID:    groupID,
+	}
+	path := fmt.Sprintf("%s/properties", PAPIPathV1)
 
-	apiURI := fmt.Sprintf("%s/properties?contractId=%s&groupId=%s",
-		PAPIPathV1,
-		contractId,
-		groupID)
-
-	var k *PropertyProps
-	resp, err := pas.client.NewRequest(http.MethodGet, apiURI, nil, &k)
+	var respStruct *PropertyProps
+	resp, err := pas.client.makeAPIRequest(http.MethodGet, path, qParams, &respStruct, nil, nil)
 	if err != nil {
 		return nil, resp, err
 	}
 
-	return k, resp, err
+	return respStruct, resp, err
 
 }

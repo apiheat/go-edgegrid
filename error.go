@@ -7,8 +7,6 @@ import (
 )
 
 // An AkamaiGeneralError reports one or more errors caused by an API request.
-//
-// error
 type AkamaiGeneralError struct {
 	Type        string `json:"type"`
 	Title       string `json:"title"`
@@ -23,30 +21,23 @@ type AkamaiGeneralError struct {
 }
 
 // An AkamaiGeneralError Error() function implementation
-//
-// error
 func (e *AkamaiGeneralError) Error() string {
 	return ShowJSONMessage(e)
 }
 
 // An EdgegridError is used to provide higher level clients with
-//					error which occured. Later on can be casted to specific type if needed
-// error
+// error which occured. Later on can be casted to specific type if needed
 type EdgegridError struct {
 	ResponseCode int    `json:"response_code"`
 	ResponseBody string `json:"response_body"`
 }
 
 // An EdgegridError Error() function implementation
-//
-// error
 func (e *EdgegridError) Error() string {
 	return ShowJSONMessage(e.ResponseBody)
 }
 
 // ShowJSONMessage returns string JSON message
-//
-// error
 func ShowJSONMessage(errType interface{}) string {
 	b, err := json.Marshal(errType)
 	if err != nil {
