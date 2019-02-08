@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/asaskevich/govalidator"
 	"github.com/go-ini/ini"
 	uuid "github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
@@ -57,6 +58,9 @@ func InitEdgerc(edgercConfig, edgercSection string) (*EdgercCredentials, error) 
 
 	for _, opt := range requiredOptions {
 		val, ok := os.LookupEnv(prefix + opt)
+		if val == "" {
+			missing = append(missing, prefix+opt)
+		}
 		if !ok {
 			missing = append(missing, prefix+opt)
 		} else {
@@ -73,12 +77,18 @@ func InitEdgerc(edgercConfig, edgercSection string) (*EdgercCredentials, error) 
 		}
 	}
 
-	if len(missing) == 0 {
-		log.Debug("[InitEdgerc]::Return ENV credentials object")
-		return envCredentials, nil
+	if len(missing) > 0 {
+		log.Debug(fmt.Sprintf("[InitEdgerc]::Missing required environment variables: %s", missing))
 	}
 
-	log.Debug(fmt.Sprintf("[InitEdgerc]:: Missing required environment variables: %s", missing))
+	if len(missing) == 0 {
+		err := validateCreds(envCredentials, "environment variable")
+		if err == nil {
+			log.Debug("[InitEdgerc]::Return ENV credentials object")
+			return envCredentials, nil
+		}
+		log.Debug(fmt.Sprintf("[InitEdgerc]::Environment variables are not correct: %s", err))
+	}
 
 	// Load the file based on our provided config
 	log.Debug("[InitEdgerc]::Loading credentials file")
@@ -95,38 +105,9 @@ func InitEdgerc(edgercConfig, edgercSection string) (*EdgercCredentials, error) 
 
 	log.Debug("[InitEdgerc]::Lookup for credentials ( host/secrets etc)")
 	edgercHost := edgerc.Section(edgercSection).Key("host").String()
-
-	log.Debug("[InitEdgerc]::Validating credentials - 'host'")
-	if edgercHost == "" {
-		return nil, fmt.Errorf("'host' is empty in section '%s'", edgercSection)
-	}
-
-	u, err := url.Parse(edgercHost)
-	if err != nil {
-		return nil, fmt.Errorf("'host' is not valid URL in section '%s'", edgercSection)
-	}
-
-	if u.Scheme != "" {
-		return nil, fmt.Errorf("'host' in section '%s' contains URL scheme: '%s', please remove '%s//'", edgercSection, u.Scheme, u.Scheme)
-	}
-
 	edgercclientToken := edgerc.Section(edgercSection).Key("client_token").String()
-	log.Debug("[InitEdgerc]::Validating credentials - 'client_token'")
-	if edgercclientToken == "" {
-		return nil, fmt.Errorf("'client_token' is empty in section '%s'", edgercSection)
-	}
-
 	edgercclientSecret := edgerc.Section(edgercSection).Key("client_secret").String()
-	log.Debug("[InitEdgerc]::Validating credentials - 'client_secret'")
-	if edgercclientSecret == "" {
-		return nil, fmt.Errorf("'client_secret' is empty in section '%s'", edgercSection)
-	}
-
 	edgercaccessToken := edgerc.Section(edgercSection).Key("access_token").String()
-	log.Debug("[InitEdgerc]::Validating credentials - 'access_token'")
-	if edgercaccessToken == "" {
-		return nil, fmt.Errorf("'access_token' is empty in section '%s'", edgercSection)
-	}
 
 	log.Debug("[InitEdgerc]::Create credentials object")
 	loadedCredentials := &EdgercCredentials{
@@ -135,6 +116,12 @@ func InitEdgerc(edgercConfig, edgercSection string) (*EdgercCredentials, error) 
 		clientSecret: edgercclientSecret,
 		accessToken:  edgercaccessToken,
 	}
+
+	err = validateCreds(loadedCredentials, fmt.Sprintf("section '%s'", edgercSection))
+	if err != nil {
+		return nil, err
+	}
+
 	log.Debug("[InitEdgerc]::Map credentials to appropiate object")
 	err = edgerc.Section(edgercSection).MapTo(loadedCredentials)
 	if err != nil {
@@ -144,6 +131,44 @@ func InitEdgerc(edgercConfig, edgercSection string) (*EdgercCredentials, error) 
 	log.Debug("[InitEdgerc]::Return credentials object")
 	return loadedCredentials, nil
 
+}
+
+func validateCreds(creds *EdgercCredentials, location string) error {
+	log.Debug("[InitEdgerc]::Validating credentials - 'host'")
+	if creds.host == "" {
+		return fmt.Errorf("'host' is empty in '%s'", location)
+	}
+
+	valid := govalidator.IsURL(creds.host)
+	if !valid {
+		return fmt.Errorf("'host' is not valid URL in '%s'", location)
+	}
+
+	u, err := url.Parse(creds.host)
+	if err != nil {
+		return fmt.Errorf("'host' cannot be parsed correctly in '%s'", location)
+	}
+
+	if u.Scheme != "" {
+		return fmt.Errorf("'host' in '%s' contains URL scheme: '%s', please remove '%s//'", location, u.Scheme, u.Scheme)
+	}
+
+	log.Debug("[InitEdgerc]::Validating credentials - 'client_token'")
+	if creds.clientToken == "" {
+		return fmt.Errorf("'client_token' is empty in '%s'", location)
+	}
+
+	log.Debug("[InitEdgerc]::Validating credentials - 'client_secret'")
+	if creds.clientSecret == "" {
+		return fmt.Errorf("'client_secret' is empty in '%s'", location)
+	}
+
+	log.Debug("[InitEdgerc]::Validating credentials - 'access_token'")
+	if creds.accessToken == "" {
+		return fmt.Errorf("'access_token' is empty in '%s'", location)
+	}
+
+	return nil
 }
 
 // AuthString takes prm and returns a string that can be
