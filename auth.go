@@ -77,6 +77,8 @@ func InitEdgerc(edgercConfig, edgercSection string) (*EdgercCredentials, error) 
 		}
 	}
 
+	missing = removeStringDuplicates(missing)
+
 	if len(missing) > 0 {
 		log.Debug(fmt.Sprintf("[InitEdgerc]::Missing required environment variables: %s", missing))
 	}
@@ -131,6 +133,28 @@ func InitEdgerc(edgercConfig, edgercSection string) (*EdgercCredentials, error) 
 	log.Debug("[InitEdgerc]::Return credentials object")
 	return loadedCredentials, nil
 
+}
+
+// removeStringDuplicates removes duplicated elements from strings array
+func removeStringDuplicates(str []string) []string {
+	// Use map to record duplicates as we find them.
+	encountered := map[string]bool{}
+	result := []string{}
+
+	for v := range str {
+		if encountered[str[v]] == true {
+			// Do not add duplicate.
+		} else {
+			// Record this element as an encountered element.
+			encountered[str[v]] = true
+			// Append to result slice.
+			if str[v] != "" {
+				result = append(result, str[v])
+			}
+		}
+	}
+	// Return the new slice.
+	return result
 }
 
 func validateCreds(creds *EdgercCredentials, location string) error {
