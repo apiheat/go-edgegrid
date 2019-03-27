@@ -295,7 +295,7 @@ func (nls *NetworkListServicev2) ActivateNetworkList(ListID string, targetEnv Ak
 	path := fmt.Sprintf("%s/%s/environments/%s/activate", NetworkListPathV2, ListID, targetEnv)
 
 	var respStruct *NetworkListActivationStatusv2
-	resp, err := nls.client.makeAPIRequest(http.MethodDelete, path, qParams, &respStruct, nil, nil)
+	resp, err := nls.client.makeAPIRequest(http.MethodPost, path, qParams, &respStruct, nil, nil)
 	if err != nil {
 		return nil, resp, err
 	}
