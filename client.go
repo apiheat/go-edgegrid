@@ -90,20 +90,6 @@ type Client struct {
 	Contracts          *ContractsService
 }
 
-// ClientResponse represents response from our API call
-type ClientResponse struct {
-	Body     string
-	Response *http.Response
-}
-
-// ClientOptions represents options we can pass during client creation
-type ClientOptions struct {
-	ConfigPath       string
-	ConfigSection    string
-	DebugLevel       string
-	AccountSwitchKey string
-}
-
 // NewClient returns a new edgegrid.Client for API. If a nil httpClient is
 // provided, http.DefaultClient will be used.
 func NewClient(httpClient *http.Client, conf *ClientOptions) (*Client, error) {
