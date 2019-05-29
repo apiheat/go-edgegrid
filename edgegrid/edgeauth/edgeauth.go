@@ -14,14 +14,14 @@ import (
 type Edgeauth struct {
 }
 
-//GetCredsFromEnv Retrieves credentials from env variables which are prefixed with 'AKAMAI_'
+//GetCredentialsFromEnv Retrieves credentials from env variables which are prefixed with 'AKAMAI_'
 //In order to sucesfully build credentials file we need the following variables:
 // AKAMAI_HOST
 // AKAMAI_CLIENT_TOKEN
 // AKAMAI_CLIENT_SECRET
 // AKAMAI_ACCESS_TOKEN
 // Returns new EdgercCredentials or error
-func (ea *Edgeauth) GetCredsFromEnv() (*EdgercCredentials, error) {
+func (ea *Edgeauth) GetCredentialsFromEnv() (*EdgercCredentials, error) {
 
 	log.Debug("[InitEdgerc]::Loading credentials from environment variables")
 	var (
