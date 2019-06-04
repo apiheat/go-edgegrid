@@ -1,7 +1,8 @@
 package edgeauth
 
-//EdgercCredentials are items from config file
-type EdgercCredentials struct {
+//Credentials object represents items required for authentication
+//towards Akamai' API
+type Credentials struct {
 	Host         string `ini:"host"`
 	ClientToken  string `ini:"client_token"`
 	ClientSecret string `ini:"client_secret"`

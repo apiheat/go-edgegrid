@@ -100,6 +100,23 @@ Licensed under the Apache License, Version 2.0 (the "License"); you may not use 
 
 
 
+## go-edgegrid - refactored
+```go
+package main
 
+import (
+	"fmt"
+
+	eauth "github.com/apiheat/go-edgegrid/edgegrid/edgeauth"
+)
+
+func main() {
+	x, _ := eauth.NewCredentials().FromFile("/Users/rafpe/.edgerc").Section("abc")
+	x, _ := eauth.NewCredentials().FromEnv()
+	x, _ := eauth.NewCredentials().FromJSON(`{ "args":"xxx"}`)
+
+	fmt.Println(x)
+}
+```
 
 
