@@ -1,13 +1,22 @@
 package edgeauth
 
 import (
+	"bytes"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/base64"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"net/url"
 	"os"
+	"strings"
+	"time"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/go-ini/ini"
+	uuid "github.com/satori/go.uuid"
 	log "github.com/sirupsen/logrus"
 	"github.com/thedevsaddam/gojsonq"
 )
@@ -20,6 +29,12 @@ type CredentialsBuilder struct {
 	edgercFile    string
 	edgercSection string
 }
+
+type reader struct {
+	*bytes.Buffer
+}
+
+func (m reader) Close() error { return nil }
 
 //NewCredentials is used to create new object on which we can chain our methods
 func NewCredentials() *CredentialsBuilder {
@@ -218,123 +233,135 @@ func validateCredentials(creds *Credentials) error {
 	return nil
 }
 
-// // AuthString takes prm and returns a string that can be
-// // used as the `Authorization` header in making Akamai API requests.
-// //
-// // The string returned by Auth conforms to the
-// // Akamai {OPEN} EdgeGrid Authentication scheme.
-// // https://developer.akamai.com/introduction/Client_Auth.html
-// func AuthString(eprm *Credentials, request *http.Request, headersToSign []string) string {
+// GenerateEdgeGridAuthString takes request and returns a string that can be
+// used as the `Authorization` header in making Akamai API requests.
+//
+// The string returned by Auth conforms to the
+// Akamai {OPEN} EdgeGrid Authentication scheme.
+// https://developer.akamai.com/introduction/Client_Auth.html
+func GenerateEdgeGridAuthString(creds *Credentials, request *http.Request) string {
 
-// 	u := uuid.NewV4()
+	u := uuid.NewV4()
 
-// 	nonce := u.String()
+	nonce := u.String()
 
-// 	timestamp := time.Now().UTC().Format("20060102T15:04:05+0000")
+	timestamp := time.Now().UTC().Format("20060102T15:04:05+0000")
 
-// 	var auth bytes.Buffer
-// 	orderedKeys := []string{"client_token", "access_token", "timestamp", "nonce"}
+	var auth bytes.Buffer
+	orderedKeys := []string{"client_token", "access_token", "timestamp", "nonce"}
 
-// 	m := map[string]string{
-// 		orderedKeys[0]: eprm.clientToken,
-// 		orderedKeys[1]: eprm.accessToken,
-// 		orderedKeys[2]: timestamp,
-// 		orderedKeys[3]: nonce,
-// 	}
+	m := map[string]string{
+		orderedKeys[0]: creds.ClientToken,
+		orderedKeys[1]: creds.AccessToken,
+		orderedKeys[2]: timestamp,
+		orderedKeys[3]: nonce,
+	}
 
-// 	auth.WriteString("EG1-HMAC-SHA256 ")
+	auth.WriteString("EG1-HMAC-SHA256 ")
 
-// 	for _, each := range orderedKeys {
-// 		auth.WriteString(concat([]string{
-// 			each,
-// 			"=",
-// 			m[each],
-// 			";",
-// 		}))
-// 	}
+	for _, each := range orderedKeys {
+		auth.WriteString(concat([]string{
+			each,
+			"=",
+			m[each],
+			";",
+		}))
+	}
 
-// 	auth.WriteString(signRequest(request, timestamp, eprm.clientSecret, auth.String(), headersToSign))
+	auth.WriteString(signRequest(request, timestamp, creds.ClientSecret, auth.String()))
 
-// 	return auth.String()
-// }
+	return auth.String()
+}
 
-// func signRequest(request *http.Request, timestamp, clientSecret, authHeader string, headersToSign []string) string {
-// 	dataToSign := makeDataToSign(request, authHeader, headersToSign)
-// 	signingKey := makeSigningKey(timestamp, clientSecret)
+func signRequest(request *http.Request, timestamp, clientSecret, authHeader string) string {
+	dataToSign := makeDataToSign(request, authHeader)
+	signingKey := makeSigningKey(timestamp, clientSecret)
 
-// 	return concat([]string{
-// 		"signature=",
-// 		base64HmacSha256(dataToSign, signingKey),
-// 	})
-// }
+	return concat([]string{
+		"signature=",
+		base64HmacSha256(dataToSign, signingKey),
+	})
+}
 
-// func base64Sha256(str string) string {
-// 	h := sha256.New()
+func base64Sha256(str string) string {
+	h := sha256.New()
 
-// 	h.Write([]byte(str))
+	h.Write([]byte(str))
 
-// 	return base64.StdEncoding.EncodeToString(h.Sum(nil))
-// }
+	return base64.StdEncoding.EncodeToString(h.Sum(nil))
+}
 
-// func base64HmacSha256(message, secret string) string {
-// 	h := hmac.New(sha256.New, []byte(secret))
+func base64HmacSha256(message, secret string) string {
+	h := hmac.New(sha256.New, []byte(secret))
 
-// 	h.Write([]byte(message))
+	h.Write([]byte(message))
 
-// 	return base64.StdEncoding.EncodeToString(h.Sum(nil))
-// }
+	return base64.StdEncoding.EncodeToString(h.Sum(nil))
+}
 
-// func makeDataToSign(request *http.Request, authHeader string, headersToSign []string) string {
-// 	var data bytes.Buffer
-// 	values := []string{
-// 		request.Method,
-// 		request.URL.Scheme,
-// 		request.Host,
-// 		urlPathWithQuery(request),
-// 		canonicalizeHeaders(request, headersToSign),
-// 		makeContentHash(request),
-// 		authHeader,
-// 	}
+func makeDataToSign(request *http.Request, authHeader string) string {
+	var data bytes.Buffer
+	values := []string{
+		request.Method,
+		request.URL.Scheme,
+		request.Host,
+		urlPathWithQuery(request),
+		makeContentHash(request),
+		authHeader,
+	}
 
-// 	data.WriteString(strings.Join(values, "\t"))
+	data.WriteString(strings.Join(values, "\t"))
 
-// 	return data.String()
-// }
+	return data.String()
+}
 
-// func canonicalizeHeaders(request *http.Request, headersToSign []string) string {
-// 	var canonicalized bytes.Buffer
+func makeContentHash(req *http.Request) string {
+	if req.Method == "POST" {
+		buf, err := ioutil.ReadAll(req.Body)
+		rdr := reader{bytes.NewBuffer(buf)}
 
-// 	for key, values := range request.Header {
-// 		if stringInSlice(key, headersToSign) {
-// 			canonicalized.WriteString(concat([]string{
-// 				strings.ToLower(key),
-// 				":",
-// 				strings.Join(strings.Fields(values[0]), " "),
-// 				"\t",
-// 			}))
-// 		}
-// 	}
+		if err != nil {
+			panic(err)
+		}
 
-// 	return canonicalized.String()
-// }
+		req.Body = rdr
 
-// func makeContentHash(req *http.Request) string {
-// 	if req.Method == "POST" {
-// 		buf, err := ioutil.ReadAll(req.Body)
-// 		rdr := reader{bytes.NewBuffer(buf)}
+		return base64Sha256(string(buf))
+	}
 
-// 		if err != nil {
-// 			panic(err)
-// 		}
+	return ""
+}
 
-// 		req.Body = rdr
+func makeSigningKey(timestamp, clientSecret string) string {
+	return base64HmacSha256(timestamp, clientSecret)
+}
 
-// 		return base64Sha256(string(buf))
-// 	}
+//concat
+func concat(arr []string) string {
+	var buff bytes.Buffer
 
-// 	return ""
-// }
+	for _, elem := range arr {
+		buff.WriteString(elem)
+	}
 
-// func makeSigningKey(timestamp, clientSecret string) string {
-// 	return base64HmacSha256(timestamp, clientSecret)
-// }
+	return buff.String()
+}
+
+//urlPathWithQuery
+func urlPathWithQuery(req *http.Request) string {
+	var query string
+
+	if req.URL.RawQuery != "" {
+		query = concat([]string{
+			"?",
+			req.URL.RawQuery,
+		})
+	} else {
+		query = ""
+	}
+
+	return concat([]string{
+		req.URL.Path,
+		query,
+	})
+}

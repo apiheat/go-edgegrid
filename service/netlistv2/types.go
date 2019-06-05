@@ -48,22 +48,6 @@ type NetworkListLinkv2 struct {
 	Method string `json:"method"`
 }
 
-// NetworkListErrorv2 represents the error returned from Akamai
-// Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html#errors
-type NetworkListErrorv2 struct {
-	Detail      string `json:"detail"`
-	Instance    string `json:"instance"`
-	Status      int    `json:"status"`
-	Title       string `json:"title"`
-	Type        string `json:"type"`
-	FieldErrors struct {
-		Entry []struct {
-			Key   string   `json:"key"`
-			Value []string `json:"value"`
-		} `json:"entry"`
-	} `json:"fieldErrors"`
-}
-
 // NetworkListsOptionsv2 represents struct required to create items for network list
 // Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html
 type NetworkListsOptionsv2 struct {
