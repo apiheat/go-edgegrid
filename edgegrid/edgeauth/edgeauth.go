@@ -12,13 +12,16 @@ import (
 	"net/url"
 	"os"
 	"strings"
+
 	"time"
 
 	"github.com/asaskevich/govalidator"
 	"github.com/go-ini/ini"
 	uuid "github.com/satori/go.uuid"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/thedevsaddam/gojsonq"
+	"gopkg.in/resty.v1"
 )
 
 //CredentialsBuilder is used to build credentials object.
@@ -233,13 +236,22 @@ func validateCredentials(creds *Credentials) error {
 	return nil
 }
 
+func GenerateEdgeGridAuthString2(firstPart, secondPart string) string {
+	var auth bytes.Buffer
+
+	auth.WriteString(firstPart)
+	auth.WriteString(secondPart)
+
+	return auth.String()
+}
+
 // GenerateEdgeGridAuthString takes request and returns a string that can be
 // used as the `Authorization` header in making Akamai API requests.
 //
 // The string returned by Auth conforms to the
 // Akamai {OPEN} EdgeGrid Authentication scheme.
 // https://developer.akamai.com/introduction/Client_Auth.html
-func GenerateEdgeGridAuthString(creds *Credentials, request *http.Request) string {
+func GenerateEdgeGridAuthString(clientToken, clientSecret, accessToken string, req *resty.Request) string {
 
 	u := uuid.NewV4()
 
@@ -251,8 +263,8 @@ func GenerateEdgeGridAuthString(creds *Credentials, request *http.Request) strin
 	orderedKeys := []string{"client_token", "access_token", "timestamp", "nonce"}
 
 	m := map[string]string{
-		orderedKeys[0]: creds.ClientToken,
-		orderedKeys[1]: creds.AccessToken,
+		orderedKeys[0]: clientToken,
+		orderedKeys[1]: accessToken,
 		orderedKeys[2]: timestamp,
 		orderedKeys[3]: nonce,
 	}
@@ -268,9 +280,16 @@ func GenerateEdgeGridAuthString(creds *Credentials, request *http.Request) strin
 		}))
 	}
 
-	auth.WriteString(signRequest(request, timestamp, creds.ClientSecret, auth.String()))
+	// auth.WriteString(signRequest(request, timestamp, clientSecret, auth.String()))
 
 	return auth.String()
+}
+
+func SignRequest2(dataToSign, signingKey string) string {
+	return concat([]string{
+		"signature=",
+		base64HmacSha256(dataToSign, signingKey),
+	})
 }
 
 func signRequest(request *http.Request, timestamp, clientSecret, authHeader string) string {
@@ -297,6 +316,33 @@ func base64HmacSha256(message, secret string) string {
 	h.Write([]byte(message))
 
 	return base64.StdEncoding.EncodeToString(h.Sum(nil))
+}
+
+func Base64HmacSha256(secret string) string {
+
+	timestamp := time.Now().UTC().Format("20060102T15:04:05+0000")
+
+	h := hmac.New(sha256.New, []byte(secret))
+
+	h.Write([]byte(timestamp))
+
+	return base64.StdEncoding.EncodeToString(h.Sum(nil))
+}
+
+func MakeDataToSign2(method, scheme, host, urlPathIncQuery, authHeader string) string {
+	var data bytes.Buffer
+	values := []string{
+		method,
+		scheme,
+		host,
+		urlPathIncQuery,
+		"",
+		authHeader,
+	}
+
+	data.WriteString(strings.Join(values, "\t"))
+
+	return data.String()
 }
 
 func makeDataToSign(request *http.Request, authHeader string) string {

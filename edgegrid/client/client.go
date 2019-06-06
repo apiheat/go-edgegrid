@@ -34,15 +34,37 @@ func New(cfg *edgegrid.Config, creds *edgeauth.Credentials, options ...func(*Cli
 	// Host URL for all request. So you can use relative URL in the request
 	// TODO: Scheme option / Endpoint option
 	svc.REST.SetHostURL(fmt.Sprintf("https://%s", svc.Credentials.Host))
+	svc.REST.SetScheme("https")
 
 	// // OnBeforeRequest registers function that will sign our request for Akamai API
-	// svc.REST.OnBeforeRequest(func(c *resty.Client, req *resty.Request) error {
+	svc.REST.OnBeforeRequest(func(c *resty.Client, req *resty.Request) error {
+		var credentialsAccessToken = svc.Credentials.AccessToken
+		var credentialsClientSecret = svc.Credentials.ClientSecret
+		var credentialsClientToken = svc.Credentials.ClientToken
 
-	// 	authHeaderVal := edgeauth.GenerateEdgeGridAuthString(svc.Credentials, req.RawRequest)
-	// 	req.SetHeader("Authorization", authHeaderVal)
+		// fmt.Println()
+		// fmt.Println(req.URL)
+		// fmt.Println(req.Header)
+		// fmt.Println()
+		// fmt.Println(req.RawRequest)
 
-	// 	return nil // if its success otherwise return error
-	// })
+		uno := edgeauth.GenerateEdgeGridAuthString(credentialsClientToken, credentialsClientSecret, credentialsAccessToken, req)
+		dataToSign := edgeauth.MakeDataToSign2(req.Method, "https", c.HostURL, "/network-list/v2/network-lists?extended=true&includeElements=true&search=", uno)
+		signingKey := edgeauth.Base64HmacSha256(credentialsClientSecret)
+		signed := edgeauth.SignRequest2(dataToSign, signingKey)
+
+		fmt.Println(uno)
+		fmt.Println(dataToSign)
+		fmt.Println(signingKey)
+		fmt.Println(signed)
+
+		finalHeader := edgeauth.GenerateEdgeGridAuthString2(uno, signed)
+
+		fmt.Println(finalHeader)
+		req.SetHeader("Authorization", finalHeader)
+
+		return nil // if its success otherwise return error
+	})
 	return svc
 }
 
