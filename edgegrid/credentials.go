@@ -1,4 +1,4 @@
-package credentials
+package edgegrid
 
 import (
 	"fmt"
@@ -24,6 +24,17 @@ type Credentials struct {
 	Key      string `ini:"key"`
 	KeyName  string `ini:"keyname"`
 	CPCode   int    `ini:"cpcode"`
+}
+
+// ErrorCredentials represents an error caused during credentials retrieval
+type ErrorCredentials struct {
+	ErrorMessage string `json:"error_message"`
+	ErrorType    string `json:"error_type"`
+}
+
+// ErrorCredentials implements the error interface.
+func (e ErrorCredentials) Error() string {
+	return e.ErrorMessage
 }
 
 //CredentialsBuilder provides method to build credentials using
@@ -67,7 +78,7 @@ func NewCredentials() *CredentialsBuilder {
 //         // handle error
 //     }
 func (ea *CredentialsBuilder) FromEnv() (*Credentials, error) {
-	e := Error{}
+	e := ErrorCredentials{}
 
 	log.Info("[FromEnv]::Loading credentials from environment variables")
 	var (
@@ -125,7 +136,7 @@ func (ea *CredentialsBuilder) FromEnv() (*Credentials, error) {
 // 	fmt.Println(err)
 // }
 func (ea *CredentialsBuilder) FromJSON(json string) (*Credentials, error) {
-	e := Error{}
+	e := ErrorCredentials{}
 	log.Info("[FromJSON]::Loading credentials from JSON string")
 
 	credentials := &Credentials{}
@@ -160,7 +171,7 @@ func (ea *CredentialsBuilder) FromFile(fileName string) *CredentialsBuilder {
 
 //Section Should be used in conjuction with FromFile() and defines which section to read credentials from.
 func (ea *CredentialsBuilder) Section(section string) (*Credentials, error) {
-	e := Error{}
+	e := ErrorCredentials{}
 
 	ea.edgercSection = section
 
