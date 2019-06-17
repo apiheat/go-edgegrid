@@ -5,13 +5,20 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
+	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
 	"github.com/apiheat/go-edgegrid/edgegrid"
 	uuid "github.com/satori/go.uuid"
+	"gopkg.in/resty.v1"
+)
+
+const (
+	moniker string = "EG1-HMAC-SHA256"
 )
 
 // SignatureRequest represents object which is used to sign request
@@ -39,61 +46,53 @@ type reader struct {
 
 func (m reader) Close() error { return nil }
 
-// AuthString takes prm and returns a string that can be
-// used as the `Authorization` header in making Akamai API requests.
+// SignRequest returns a string that can be used as the `Authorization` header
+// when making Akamai API requests.
 //
-// The string returned by Auth conforms to the
+// The string returned by this method conforms to the
 // Akamai {OPEN} EdgeGrid Authentication scheme.
 // https://developer.akamai.com/introduction/Client_Auth.html
-func (sr *SignatureRequest) AuthString(ecr *edgegrid.Credentials, method, host, scheme, urlpath string, headersToSign []string) string {
+func (sr *SignatureRequest) SignRequest(rrq *resty.Request, headersToSign []string) string {
 
-	u := uuid.NewV4()
-
-	nonce := u.String()
-
-	timestamp := time.Now().UTC().Format("20060102T15:04:05+0000")
+	nonce := generateNonce()
+	timestamp := generateTimestamp()
 
 	var auth bytes.Buffer
-	orderedKeys := []string{"client_token", "access_token", "timestamp", "nonce"}
 
-	m := map[string]string{
-		orderedKeys[0]: ecr.ClientToken,
-		orderedKeys[1]: ecr.AccessToken,
-		orderedKeys[2]: timestamp,
-		orderedKeys[3]: nonce,
+	joinedPairs := []string{
+		"client_token=" + sr.creds.ClientToken,
+		"access_token=" + sr.creds.AccessToken,
+		"timestamp=" + timestamp,
+		"nonce=" + nonce,
 	}
 
-	auth.WriteString("EG1-HMAC-SHA256 ")
+	auth.WriteString(moniker + " " + strings.Join(joinedPairs, ";") + ";")
 
-	for _, each := range orderedKeys {
-		auth.WriteString(concat([]string{
-			each,
-			"=",
-			m[each],
-			";",
-		}))
-	}
+	dataToSign := generateDataToSign(rrq, auth.String(), []string{})
+	signingKey := generateSigningKey(timestamp, sr.creds.ClientSecret)
 
-	data2sign := makeDataToSignv2(method, host, scheme, urlpath, auth.String(), []string{})
-	signingKey := makeSigningKey(timestamp, ecr.ClientSecret)
-	ah := concat([]string{
+	signature := concat([]string{
 		"signature=",
-		base64HmacSha256(data2sign, signingKey),
+		base64HmacSha256(dataToSign, signingKey),
 	})
 
-	auth.WriteString(ah)
+	auth.WriteString(signature)
 
 	return auth.String()
 }
 
-func signRequest(request *http.Request, timestamp, clientSecret, authHeader string, headersToSign []string) string {
-	dataToSign := makeDataToSign(request, authHeader, headersToSign)
-	signingKey := makeSigningKey(timestamp, clientSecret)
+// generateTimestamp retrurns timestamp in the
+// format of “yyyyMMddTHH:mm:ss+0000” as required by Akamai network
+func generateTimestamp() string {
+	timestamp := time.Now().UTC().Format("20060102T15:04:05+0000")
 
-	return concat([]string{
-		"signature=",
-		base64HmacSha256(dataToSign, signingKey),
-	})
+	return timestamp
+}
+
+// generateNonce is a random string used to detect replayed request messages.
+// A UUID is always randomly generated
+func generateNonce() string {
+	return uuid.NewV4().String()
 }
 
 func base64Sha256(str string) string {
@@ -112,32 +111,20 @@ func base64HmacSha256(message, secret string) string {
 	return base64.StdEncoding.EncodeToString(h.Sum(nil))
 }
 
-func makeDataToSign(request *http.Request, authHeader string, headersToSign []string) string {
-	var data bytes.Buffer
-	values := []string{
-		request.Method,
-		request.URL.Scheme,
-		request.Host,
-		urlPathWithQuery(request),
-		canonicalizeHeaders(request, headersToSign),
-		makeContentHash(request),
-		authHeader,
+func generateDataToSign(rrq *resty.Request, authHeader string, headersToSign []string) string {
+	parsedURL, err := url.Parse(rrq.URL)
+	if err != nil {
+		return ""
 	}
 
-	data.WriteString(strings.Join(values, "\t"))
-
-	return data.String()
-}
-
-func makeDataToSignv2(method, host, scheme, urlpath, authHeader string, headersToSign []string) string {
 	var data bytes.Buffer
 	values := []string{
-		method,
-		scheme,
-		host,
-		urlpath,
-		"", // canonical headers 2 sign
-		"", // makeContentHash(request),
+		rrq.Method,
+		parsedURL.Scheme,
+		parsedURL.Host,
+		urlPathWithQuery(parsedURL.Path, parsedURL.RawQuery),
+		"", //TODO: to be implemented - not required in initial stage
+		makeContentHash(rrq),
 		authHeader,
 	}
 
@@ -163,9 +150,9 @@ func canonicalizeHeaders(request *http.Request, headersToSign []string) string {
 	return canonicalized.String()
 }
 
-func makeContentHash(req *http.Request) string {
+func makeContentHash(req *resty.Request) string {
 	if req.Method == "POST" {
-		buf, err := ioutil.ReadAll(req.Body)
+		buf, err := ioutil.ReadAll(req.RawRequest.Body)
 		rdr := reader{bytes.NewBuffer(buf)}
 
 		if err != nil {
@@ -180,27 +167,17 @@ func makeContentHash(req *http.Request) string {
 	return ""
 }
 
-func makeSigningKey(timestamp, clientSecret string) string {
+func generateSigningKey(timestamp, clientSecret string) string {
 	return base64HmacSha256(timestamp, clientSecret)
 }
 
-//#TODO: Move to common CLI
-func urlPathWithQuery(req *http.Request) string {
-	var query string
+func urlPathWithQuery(path, queryParams string) string {
 
-	if req.URL.RawQuery != "" {
-		query = concat([]string{
-			"?",
-			req.URL.RawQuery,
-		})
-	} else {
-		query = ""
+	if queryParams != "" {
+		return fmt.Sprintf("%s?%s", path, queryParams)
 	}
 
-	return concat([]string{
-		req.URL.Path,
-		query,
-	})
+	return path
 }
 
 func stringInSlice(a string, list []string) bool {
