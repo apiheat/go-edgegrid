@@ -5,9 +5,6 @@ type Config struct {
 	// Defines account switch key used to manage sub-accounts with partner API keys
 	AccountSwitchKey string
 
-	//BasePath is used to provide information about what is the base path we would be using for our calls.
-	BasePath string
-
 	// Credentials holds the current credentials configuration
 	Credentials *Credentials
 
@@ -16,6 +13,9 @@ type Config struct {
 
 	// Defines log level output i.e. debug/error/warning/info
 	LogVerbosity string
+
+	// Scheme used ( http or https )
+	Scheme string
 
 	// Used for adding the User Agent header for the requests we make towards APIs
 	UserAgent string
@@ -50,5 +50,26 @@ func (c *Config) WithLogVerbosity(logVerbosity string) *Config {
 // for chaining.
 func (c *Config) WithCredentials(creds *Credentials) *Config {
 	c.Credentials = creds
+	return c
+}
+
+// WithLocalTesting sets a config value to determine if local testing is being used and returns
+// a Config pointer.
+func (c *Config) WithLocalTesting(localTesting bool) *Config {
+	c.LocalTesting = localTesting
+	return c
+}
+
+// WithScheme sets a config value for http calls scheme and returns
+// a Config pointer.
+func (c *Config) WithScheme(scheme string) *Config {
+	c.Scheme = scheme
+	return c
+}
+
+// WithUserAgent sets a config value for user agent and returns
+// a Config pointer.
+func (c *Config) WithUserAgent(ua string) *Config {
+	c.UserAgent = ua
 	return c
 }
