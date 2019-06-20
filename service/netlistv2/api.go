@@ -3,239 +3,237 @@ package netlistv2
 import (
 	"fmt"
 	"strconv"
+
+	"github.com/apiheat/go-edgegrid/edgegrid"
 )
 
 // ListNetworkLists List all configured Network Lists for the authenticated user.
 // Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html#getlists
 func (nls *Netlistv2) ListNetworkLists(opts ListNetworkListsOptionsv2) (*NetworkListsv2, error) {
+	var networkListsv2 NetworkListsv2
+	var e NetworkListErrorv2
 
-	// Create new request
-	req := nls.REST.NewRequest()
+	// Create and execute request
+	_, err := nls.Client.Rclient.R().
+		SetQueryParams(map[string]string{
+			"extended":        strconv.FormatBool(opts.Extended),
+			"includeElements": strconv.FormatBool(opts.IncludeElements),
+			"search":          opts.Search,
+		}).
+		SetResult(&networkListsv2).
+		SetError(&e).
+		Get(basePath)
 
-	response, err := req.SetQueryParams(map[string]string{
-		"includeElements": strconv.FormatBool(opts.IncludeElements),
-		"extended":        strconv.FormatBool(opts.Extended),
-		"search":          opts.Search,
-	}).SetHeaders(
-		map[string]string{
-			"Content-Type": "application/json",
-			"User-Agent":   nls.Config.UserAgent,
-		}).SetResult(&NetworkListsv2{}).SetError(&NetworkListErrorv2{}).Get("/network-list/v2/network-lists")
+	if err != nil {
+		return nil, err
+	}
 
-	fmt.Println("Error is .... ")
-	fmt.Println(err)
+	if e.Status != 0 {
+		return nil, e
+	}
 
-	fmt.Println("xxx...")
-	return response.Result().(*NetworkListsv2), response.Error().(*NetworkListErrorv2)
+	return &networkListsv2, nil
+}
+
+// CreateNetworkList Create a new network list
+// Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html#postlists
+func (nls *Netlistv2) CreateNetworkList(opts NetworkListsOptionsv2) (*NetworkListv2, error) {
+
+	var networkListv2 NetworkListv2
+	var e NetworkListErrorv2
+
+	// Create and execute request
+	_, err := nls.Client.Rclient.R().
+		SetResult(&networkListv2).
+		SetError(&e).
+		SetBody(opts).
+		Post(basePath)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if e.Status != 0 {
+		return nil, e
+	}
+
+	return &networkListv2, nil
+}
+
+// GetNetworkList Gets a specific network list
+// Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html#getlist
+func (nls *Netlistv2) GetNetworkList(ListID string, opts ListNetworkListsOptionsv2) (*NetworkListv2, error) {
+
+	var networkListv2 NetworkListv2
+	var e NetworkListErrorv2
+
+	// Create and execute request
+	_, err := nls.Client.Rclient.R().
+		SetQueryParams(map[string]string{
+			"extended":        strconv.FormatBool(opts.Extended),
+			"includeElements": strconv.FormatBool(opts.IncludeElements),
+		}).
+		SetResult(&networkListv2).
+		SetError(&e).
+		Get(fmt.Sprintf("%s/%s", basePath, ListID))
+
+	if err != nil {
+		return nil, err
+	}
+
+	if e.Status != 0 {
+		return nil, e
+	}
+
+	return &networkListv2, nil
 
 }
 
-// // CreateNetworkList Create a new network list
-// // Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html#postlists
-// func (nls *Netlistv2) CreateNetworkList(opts NetworkListsOptionsv2) (*NetworkListv2, *ClientResponse, error) {
+// AddNetworkListElement Adds items to network list
+// Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html#postlists
+func (nls *Netlistv2) AddNetworkListElement(ListID string, opts NetworkListsOptionsv2) (*NetworkListv2, error) {
 
-// 	qParams := QStrNetworkList{}
-// 	path := NetworkListPathV2
+	var networkListv2 NetworkListv2
+	var e NetworkListErrorv2
 
-// 	var respStruct *NetworkListv2
-// 	resp, err := nls.client.makeAPIRequest(http.MethodPost, path, qParams, &respStruct, opts, nil)
-// 	if err != nil {
-// 		return nil, resp, err
-// 	}
+	// Create and execute request
+	_, err := nls.Client.Rclient.R().
+		SetResult(&networkListv2).
+		SetError(&e).
+		SetBody(opts).
+		Post(fmt.Sprintf("%s/%s/append", basePath, ListID))
 
-// 	if resp.Response.StatusCode >= http.StatusBadRequest {
-// 		netListError := &NetworkListErrorv2{}
-// 		err := json.Unmarshal([]byte(resp.Body), &netListError)
-// 		if err != nil {
-// 			log.Fatal(err)
-// 		}
-// 		return respStruct, resp, netListError
-// 	}
+	if err != nil {
+		return nil, err
+	}
 
-// 	return respStruct, resp, err
-// }
+	if e.Status != 0 {
+		return nil, e
+	}
 
-// // GetNetworkList Gets a specific network list
-// // Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html#getlist
-// func (nls *Netlistv2) GetNetworkList(ListID string, opts ListNetworkListsOptionsv2) (*NetworkListv2, *ClientResponse, error) {
+	return &networkListv2, nil
+}
 
-// 	qParams := QStrNetworkList{
-// 		Extended:        opts.Extended,
-// 		IncludeElements: opts.IncludeElements,
-// 	}
+// RemoveNetworkListElement Removes network list element
+// Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html
+func (nls *Netlistv2) RemoveNetworkListElement(ListID, element string) (*NetworkListv2, error) {
 
-// 	path := fmt.Sprintf("%s/%s", NetworkListPathV2, ListID)
+	var networkListv2 NetworkListv2
+	var e NetworkListErrorv2
 
-// 	var respStruct *NetworkListv2
-// 	resp, err := nls.client.makeAPIRequest(http.MethodGet, path, qParams, &respStruct, nil, nil)
+	// Create and execute request
+	_, err := nls.Client.Rclient.R().
+		SetResult(&networkListv2).
+		SetQueryParams(map[string]string{
+			"element": element,
+		}).
+		SetError(&e).
+		Delete(fmt.Sprintf("%s/%s/elements", basePath, ListID))
 
-// 	if err != nil {
-// 		return nil, resp, err
-// 	}
+	if err != nil {
+		return nil, err
+	}
 
-// 	if resp.Response.StatusCode >= http.StatusBadRequest {
-// 		netListError := &NetworkListErrorv2{}
-// 		err := json.Unmarshal([]byte(resp.Body), &netListError)
-// 		if err != nil {
-// 			log.Fatal(err)
-// 		}
-// 		return respStruct, resp, netListError
-// 	}
+	if e.Status != 0 {
+		return nil, e
+	}
 
-// 	return respStruct, resp, err
+	return &networkListv2, nil
+}
 
-// }
+// ActivateNetworkList Activates network list on specified network ( PRODUCTION or STAGING )
+// Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html
+func (nls *Netlistv2) ActivateNetworkList(ListID string, targetEnv edgegrid.AkamaiEnvironment, opts NetworkListActivationOptsv2) (*NetworkListActivationStatusv2, error) {
+	var networkListActivationStatusv2 NetworkListActivationStatusv2
+	var e NetworkListErrorv2
 
-// // AppendListNetworkList Adds items to network list
-// // Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html#postlists
-// func (nls *Netlistv2) AppendListNetworkList(ListID string, opts NetworkListsOptionsv2) (*NetworkListv2, *ClientResponse, error) {
+	// Create and execute request
+	_, err := nls.Client.Rclient.R().
+		SetBody(opts).
+		SetResult(&networkListActivationStatusv2).
+		SetError(&e).
+		Post(fmt.Sprintf("%s/%s/environments/%s/activate", basePath, ListID, targetEnv))
 
-// 	qParams := QStrNetworkList{}
-// 	path := fmt.Sprintf("%s/%s/append", NetworkListPathV2, ListID)
+	if err != nil {
+		return nil, err
+	}
 
-// 	var respStruct *NetworkListv2
-// 	resp, err := nls.client.makeAPIRequest(http.MethodPost, path, qParams, &respStruct, opts, nil)
-// 	if err != nil {
-// 		return nil, resp, err
-// 	}
+	if e.Status != 0 {
+		return nil, e
+	}
 
-// 	if resp.Response.StatusCode >= http.StatusBadRequest {
-// 		netListError := &NetworkListErrorv2{}
-// 		err := json.Unmarshal([]byte(resp.Body), &netListError)
-// 		if err != nil {
-// 			log.Fatal(err)
-// 		}
-// 		return respStruct, resp, netListError
-// 	}
+	return &networkListActivationStatusv2, nil
+}
 
-// 	return respStruct, resp, err
-// }
+// GetActivationStatus Gets activation network list status on specified network ( PRODUCTION or STAGING )
+// Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html
+func (nls *Netlistv2) GetActivationStatus(ListID string, targetEnv edgegrid.AkamaiEnvironment) (*NetworkListActivationStatusv2, error) {
+	var networkListActivationStatusv2 NetworkListActivationStatusv2
+	var e NetworkListErrorv2
 
-// // RemoveNetworkListElement Removes network list element
-// // Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html
-// func (nls *Netlistv2) RemoveNetworkListElement(ListID, element string) (*NetworkListv2, *ClientResponse, error) {
+	// Create and execute request
+	_, err := nls.Client.Rclient.R().
+		SetResult(&networkListActivationStatusv2).
+		SetError(&e).
+		Get(fmt.Sprintf("%s/%s/environments/%s/status", basePath, ListID, targetEnv))
 
-// 	qParams := QStrNetworkList{
-// 		Element: element,
-// 	}
-// 	path := fmt.Sprintf("%s/%s/elements", NetworkListPathV2, ListID)
+	if err != nil {
+		return nil, err
+	}
 
-// 	var respStruct *NetworkListv2
-// 	resp, err := nls.client.makeAPIRequest(http.MethodDelete, path, qParams, &respStruct, nil, nil)
+	if e.Status != 0 {
+		return nil, e
+	}
 
-// 	if err != nil {
-// 		return nil, resp, err
-// 	}
+	return &networkListActivationStatusv2, nil
 
-// 	if resp.Response.StatusCode >= http.StatusBadRequest {
-// 		netListError := &NetworkListErrorv2{}
-// 		err := json.Unmarshal([]byte(resp.Body), &netListError)
-// 		if err != nil {
-// 			log.Fatal(err)
-// 		}
-// 		return respStruct, resp, netListError
-// 	}
+}
 
-// 	return respStruct, resp, err
-// }
+// DeleteNetworkList Remove network list element
+// Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html
+func (nls *Netlistv2) DeleteNetworkList(ListID string) (*NetworkListDeleteResponse, error) {
+	var networkListDeleteResponse NetworkListDeleteResponse
+	var e NetworkListErrorv2
 
-// // ActivateNetworkList Activates network list on specified network ( PRODUCTION or STAGING )
-// // Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html
-// func (nls *Netlistv2) ActivateNetworkList(ListID string, targetEnv AkamaiEnvironment, opts NetworkListActivationOptsv2) (*NetworkListActivationStatusv2, *ClientResponse, error) {
+	// Create and execute request
+	_, err := nls.Client.Rclient.R().
+		SetResult(&networkListDeleteResponse).
+		SetError(&e).
+		Delete(fmt.Sprintf("%s/%s", basePath, ListID))
 
-// 	qParams := QStrNetworkList{}
-// 	path := fmt.Sprintf("%s/%s/environments/%s/activate", NetworkListPathV2, ListID, targetEnv)
+	if err != nil {
+		return nil, err
+	}
 
-// 	var respStruct *NetworkListActivationStatusv2
-// 	resp, err := nls.client.makeAPIRequest(http.MethodPost, path, qParams, &respStruct, opts, nil)
-// 	if err != nil {
-// 		return nil, resp, err
-// 	}
+	if e.Status != 0 {
+		return nil, e
+	}
 
-// 	if resp.Response.StatusCode >= http.StatusBadRequest {
-// 		netListError := &NetworkListErrorv2{}
-// 		err := json.Unmarshal([]byte(resp.Body), &netListError)
-// 		if err != nil {
-// 			log.Fatal(err)
-// 		}
-// 		return respStruct, resp, netListError
-// 	}
+	return &networkListDeleteResponse, nil
+}
 
-// 	return respStruct, resp, err
-// }
+// NetworkListNotification Manage network list subscription
+// Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html
+func (nls *Netlistv2) NetworkListNotification(action edgegrid.AkamaiSubscription, sub NetworkListSubscription) error {
 
-// // GetNetworkListActStatus Gets activation network list status on specified network ( PRODUCTION or STAGING )
-// // Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html
-// func (nls *Netlistv2) GetNetworkListActStatus(ListID string, targetEnv AkamaiEnvironment) (*NetworkListActivationStatusv2, *ClientResponse, error) {
+	var networkListv2 NetworkListv2
+	var e NetworkListErrorv2
 
-// 	qParams := QStrNetworkList{}
-// 	path := fmt.Sprintf("%s/%s/environments/%s/status", NetworkListPathV2, ListID, targetEnv)
+	// Create and execute request
+	_, err := nls.Client.Rclient.R().
+		SetResult(&networkListv2).
+		SetError(&e).
+		SetBody(sub).
+		Post(fmt.Sprintf("/network-list/v2/notifications/%s", action))
 
-// 	var respStruct *NetworkListActivationStatusv2
-// 	resp, err := nls.client.makeAPIRequest(http.MethodGet, path, qParams, &respStruct, nil, nil)
+	if err != nil {
+		return err
+	}
 
-// 	if err != nil {
-// 		return nil, resp, err
-// 	}
+	if e.Status != 0 {
+		return e
+	}
 
-// 	if resp.Response.StatusCode >= http.StatusBadRequest {
-// 		netListError := &NetworkListErrorv2{}
-// 		err := json.Unmarshal([]byte(resp.Body), &netListError)
-// 		if err != nil {
-// 			log.Fatal(err)
-// 		}
-// 		return respStruct, resp, netListError
-// 	}
+	return nil
 
-// 	return respStruct, resp, err
-// }
-
-// // DeleteNetworkList Remove network list element
-// // Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html
-// func (nls *Netlistv2) DeleteNetworkList(ListID string) (*NetworkListDeleteResponse, *ClientResponse, error) {
-
-// 	qParams := QStrNetworkList{}
-// 	path := fmt.Sprintf("%s/%s", NetworkListPathV2, ListID)
-
-// 	var respStruct *NetworkListDeleteResponse
-// 	resp, err := nls.client.makeAPIRequest(http.MethodDelete, path, qParams, &respStruct, nil, nil)
-
-// 	if err != nil {
-// 		return nil, resp, err
-// 	}
-
-// 	if resp.Response.StatusCode >= http.StatusBadRequest {
-// 		netListError := &NetworkListErrorv2{}
-// 		err := json.Unmarshal([]byte(resp.Body), &netListError)
-// 		if err != nil {
-// 			log.Fatal(err)
-// 		}
-// 		return respStruct, resp, netListError
-// 	}
-
-// 	return respStruct, resp, err
-// }
-
-// // NetworkListNotification Manage network list subscription
-// // Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html
-// func (nls *Netlistv2) NetworkListNotification(action AkamaiSubscription, sub NetworkListSubscription) (*ClientResponse, error) {
-
-// 	qParams := QStrNetworkList{}
-// 	path := fmt.Sprintf("/network-list/v2/notifications/%s", action)
-
-// 	resp, err := nls.client.makeAPIRequest(http.MethodPost, path, qParams, nil, sub, nil)
-// 	if err != nil {
-// 		return resp, err
-// 	}
-
-// 	if resp.Response.StatusCode >= http.StatusBadRequest {
-// 		netListError := &NetworkListErrorv2{}
-// 		err := json.Unmarshal([]byte(resp.Body), &netListError)
-// 		if err != nil {
-// 			log.Fatal(err)
-// 		}
-// 		return resp, err
-// 	}
-
-// 	return resp, err
-// }
+}

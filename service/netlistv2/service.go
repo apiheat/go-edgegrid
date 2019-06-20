@@ -3,7 +3,6 @@ package netlistv2
 import (
 	"github.com/apiheat/go-edgegrid/edgegrid"
 	"github.com/apiheat/go-edgegrid/edgegrid/client"
-	"github.com/apiheat/go-edgegrid/edgegrid/edgeauth"
 )
 
 const (
@@ -16,7 +15,6 @@ const (
 // for details on the service.
 type Netlistv2 struct {
 	*client.Client
-	path string
 }
 
 // New creates a new instance of the Netlistv2 client with a config.
@@ -26,17 +24,14 @@ type Netlistv2 struct {
 // Example:
 //     // Create a netlistv2 client from just a config.
 //     svc := netlistv2.New(myConfig))
-func New(cfgs *edgegrid.Config, creds *edgeauth.Credentials) *Netlistv2 {
-	return newClient(cfgs, creds)
+func New(cfgs *edgegrid.Config) *Netlistv2 {
+	return newClient(cfgs)
 }
 
 // newClient creates, initializes and returns a new service client instance.
-func newClient(cfg *edgegrid.Config, creds *edgeauth.Credentials) *Netlistv2 {
+func newClient(cfg *edgegrid.Config) *Netlistv2 {
 	svc := &Netlistv2{
-		Client: client.New(
-			cfg, creds,
-		),
-		path: basePath,
+		Client: client.New(cfg),
 	}
 
 	return svc

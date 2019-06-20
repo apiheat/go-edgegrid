@@ -41,7 +41,7 @@ type NetworkListv2 struct {
 	UpdatedBy                           string    `json:"updatedBy,omitempty"`
 }
 
-// AkamaiNetworkListLinks represents the network list `links` structure
+// NetworkListLinkv2 represents the network list `links` structure
 // Akamai API docs: https://developer.akamai.com/api/luna/network-list
 type NetworkListLinkv2 struct {
 	Href   string `json:"href"`
@@ -96,12 +96,4 @@ type NetworkListDeleteResponse struct {
 type NetworkListSubscription struct {
 	Recipients []string `json:"recipients"`
 	UniqueIds  []string `json:"uniqueIds"`
-}
-
-// QStrNetworkList includes query params used across network lists
-type QStrNetworkList struct {
-	IncludeElements bool   `url:"includeElements,omitempty"`
-	Extended        bool   `url:"extended,omitempty"`
-	Search          string `url:"search,omitempty"`
-	Element         string `url:"element,omitempty"`
 }
