@@ -117,6 +117,46 @@ func main() {
 
 	fmt.Println(x)
 }
+
+
+// GetSets returns all user sets in Quizlet.
+func (c *Config) GetSets() ([]Set, error) {
+	var sets []Set
+	var e QuizletError
+
+	uri := fmt.Sprintf("%s/users/%s/sets", apiBaseURL, c.Username)
+
+	_, err := resty.SetDebug(c.Debug).R().
+		SetHeader("Accept", "application/json").
+		SetAuthToken(c.AuthToken).
+		SetResult(&sets).
+		SetError(&e).
+		Get(uri)
+	if err != nil {
+		return nil, err
+	}
+
+	if e.Code != 0 {
+		return nil, e
+	}
+
+	return sets, err
+}
+
+// QuizletError represents an error response from the Quizlet API.
+type QuizletError struct {
+	Code             int      `json:"http_code"`
+	QError           string   `json:"error"`
+	Title            string   `json:"error_title"`
+	Description      string   `json:"error_description"`
+	ValidationErrors []string `json:"validation_errors"`
+}
+
+// Error implements the error interface.
+func (e QuizletError) Error() string {
+	return e.Description
+}
+
 ```
 
 

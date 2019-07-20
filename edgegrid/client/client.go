@@ -25,7 +25,13 @@ func New(cfg *edgegrid.Config, options ...func(*Client)) *Client {
 	// Create instance of resty client
 	svc.Rclient = resty.New()
 	svc.Rclient.SetDebug(true)
-	svc.Rclient.SetHostURL(fmt.Sprintf("%s://%s", svc.Config.Scheme, svc.Config.Credentials.Host))
+
+	if svc.Config.LocalTesting {
+		svc.Rclient.SetHostURL(svc.Config.TestingURL)
+
+	} else {
+		svc.Rclient.SetHostURL(fmt.Sprintf("%s://%s", svc.Config.Scheme, svc.Config.Credentials.Host))
+	}
 
 	// Create inistance of auth signer
 	authSigner := signer.New(svc.Config.Credentials, svc.Config.Scheme, svc.Config.Credentials.Host)
@@ -34,7 +40,8 @@ func New(cfg *edgegrid.Config, options ...func(*Client)) *Client {
 	svc.Rclient.SetPreRequestHook(func(c *resty.Client, req *resty.Request) error {
 
 		// Set authentication header with signed data based on request
-		req.SetHeader("Authorization", authSigner.SignRequest(req, []string{}))
+		req.SetHeader("Authorization", authSigner.SignRequest(req, []string{}, svc.Config.LocalTesting))
+
 		return nil
 	})
 

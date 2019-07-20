@@ -17,6 +17,9 @@ type Config struct {
 	// Scheme used ( http or https )
 	Scheme string
 
+	// TestingURL sets our desired url for mocked server
+	TestingURL string
+
 	// Used for adding the User Agent header for the requests we make towards APIs
 	UserAgent string
 }
@@ -71,5 +74,12 @@ func (c *Config) WithScheme(scheme string) *Config {
 // a Config pointer.
 func (c *Config) WithUserAgent(ua string) *Config {
 	c.UserAgent = ua
+	return c
+}
+
+// WithTestingURL sets a config value for test server URL and returns
+// a Config pointer.
+func (c *Config) WithTestingURL(testingURL string) *Config {
+	c.TestingURL = testingURL
 	return c
 }
