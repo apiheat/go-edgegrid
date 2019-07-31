@@ -40,7 +40,7 @@ func New(cfg *edgegrid.Config, options ...func(*Client)) *Client {
 	svc.Rclient.SetPreRequestHook(func(c *resty.Client, req *resty.Request) error {
 
 		// Set authentication header with signed data based on request
-		req.SetHeader("Authorization", authSigner.SignRequest(req, []string{}, svc.Config.LocalTesting))
+		req.SetHeader("Authorization", authSigner.SignRequest(req, []string{}))
 
 		return nil
 	})

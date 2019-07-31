@@ -52,7 +52,7 @@ func (m reader) Close() error { return nil }
 // The string returned by this method conforms to the
 // Akamai {OPEN} EdgeGrid Authentication scheme.
 // https://developer.akamai.com/introduction/Client_Auth.html
-func (sr *SignatureRequest) SignRequest(rrq *resty.Request, headersToSign []string, localTesting bool) string {
+func (sr *SignatureRequest) SignRequest(rrq *resty.Request, headersToSign []string) string {
 
 	nonce := generateNonce()
 	timestamp := generateTimestamp()
@@ -68,7 +68,7 @@ func (sr *SignatureRequest) SignRequest(rrq *resty.Request, headersToSign []stri
 
 	auth.WriteString(moniker + " " + strings.Join(joinedPairs, ";") + ";")
 
-	dataToSign := generateDataToSign(rrq, auth.String(), []string{}, localTesting)
+	dataToSign := generateDataToSign(rrq, auth.String(), []string{})
 	signingKey := generateSigningKey(timestamp, sr.creds.ClientSecret)
 
 	signature := concat([]string{
@@ -111,7 +111,7 @@ func base64HmacSha256(message, secret string) string {
 	return base64.StdEncoding.EncodeToString(h.Sum(nil))
 }
 
-func generateDataToSign(rrq *resty.Request, authHeader string, headersToSign []string, localTesting bool) string {
+func generateDataToSign(rrq *resty.Request, authHeader string, headersToSign []string) string {
 	parsedURL, err := url.Parse(rrq.URL)
 	if err != nil {
 		return ""
@@ -124,7 +124,7 @@ func generateDataToSign(rrq *resty.Request, authHeader string, headersToSign []s
 		parsedURL.Host,
 		urlPathWithQuery(parsedURL.Path, parsedURL.RawQuery),
 		"", //TODO: to be implemented - not required in initial stage
-		makeContentHash(rrq, localTesting),
+		makeContentHash(rrq),
 		authHeader,
 	}
 
@@ -150,7 +150,7 @@ func canonicalizeHeaders(request *http.Request, headersToSign []string) string {
 	return canonicalized.String()
 }
 
-func makeContentHash(req *resty.Request, localTesting bool) string {
+func makeContentHash(req *resty.Request) string {
 
 	if req.Method == "POST" {
 		buf, err := ioutil.ReadAll(req.RawRequest.Body)
@@ -160,14 +160,8 @@ func makeContentHash(req *resty.Request, localTesting bool) string {
 			panic(err)
 		}
 
-		/*
-			This is bit hacky way to access check body content in testing framework
-		*/
-		if localTesting {
-			req.SetHeader("X-Test-Body", base64.StdEncoding.EncodeToString(buf))
-		}
-
-		req.Body = ioutil.NopCloser(bytes.NewBuffer(buf))
+		// Correct body setup based on https://github.com/go-resty/resty/issues/252
+		req.RawRequest.Body = ioutil.NopCloser(bytes.NewBuffer(buf))
 		return base64Sha256(string(buf))
 	}
 
