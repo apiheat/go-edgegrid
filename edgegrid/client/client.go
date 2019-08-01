@@ -37,7 +37,18 @@ func New(cfg *edgegrid.Config, options ...func(*Client)) *Client {
 	// Create inistance of auth signer
 	authSigner := signer.New(svc.Config.Credentials, svc.Config.Scheme, svc.Config.Credentials.Host)
 
-	// Registering Request Middleware - which will run just before every request
+	// Registering Request Middleware - which will run just before every request is prepared
+	svc.Rclient.OnBeforeRequest(func(c *resty.Client, r *resty.Request) error {
+
+		if svc.Config.AccountSwitchKey != "" {
+			r.SetQueryParam("accountSwitchKey", svc.Config.AccountSwitchKey)
+		}
+
+		return nil
+	})
+
+	// Registering Request Middleware - which will run just before every request but after
+	// preparation of the request.
 	svc.Rclient.SetPreRequestHook(func(c *resty.Client, req *resty.Request) error {
 
 		// Set authentication header with signed data based on request
