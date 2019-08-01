@@ -80,7 +80,7 @@ func NewCredentials() *CredentialsBuilder {
 func (ea *CredentialsBuilder) FromEnv() (*Credentials, error) {
 	e := ErrorCredentials{}
 
-	log.Info("[FromEnv]::Loading credentials from environment variables")
+	log.Debug("[FromEnv]::Loading credentials from environment variables")
 	var (
 		requiredOptions = []string{"HOST", "CLIENT_TOKEN", "CLIENT_SECRET", "ACCESS_TOKEN"}
 		missing         []string
@@ -124,7 +124,7 @@ func (ea *CredentialsBuilder) FromEnv() (*Credentials, error) {
 		return nil, e
 	}
 
-	log.Info(fmt.Sprintf("[FromEnv]::Credentials from environment variables validated to: %v", result))
+	log.Debug(fmt.Sprintf("[FromEnv]::Credentials from environment variables validated to: %v", result))
 
 	return envCredentials, nil
 }
@@ -137,7 +137,7 @@ func (ea *CredentialsBuilder) FromEnv() (*Credentials, error) {
 // }
 func (ea *CredentialsBuilder) FromJSON(json string) (*Credentials, error) {
 	e := ErrorCredentials{}
-	log.Info("[FromJSON]::Loading credentials from JSON string")
+	log.Debug("[FromJSON]::Loading credentials from JSON string")
 
 	credentials := &Credentials{}
 	gojsonq.New().FromString(json).Out(credentials)
@@ -151,7 +151,7 @@ func (ea *CredentialsBuilder) FromJSON(json string) (*Credentials, error) {
 		return nil, e
 	}
 
-	log.Info(fmt.Sprintf("[FromJSON]::Credentials from JSON validated to: %v", result))
+	log.Debug(fmt.Sprintf("[FromJSON]::Credentials from JSON validated to: %v", result))
 
 	return credentials, nil
 }
@@ -175,7 +175,7 @@ func (ea *CredentialsBuilder) Section(section string) (*Credentials, error) {
 
 	ea.edgercSection = section
 
-	log.Info("[FromFile/Section]::Loading credentials file")
+	log.Debug("[FromFile/Section]::Loading credentials file")
 	edgerc, err := ini.Load(ea.edgercFile)
 	if err != nil {
 		e.ErrorMessage = fmt.Sprintf("[FromFile/Section]::%s", err.Error())
@@ -209,7 +209,7 @@ func (ea *CredentialsBuilder) Section(section string) (*Credentials, error) {
 		return nil, e
 	}
 
-	log.Info(fmt.Sprintf("[FromFile/Section]::Credentials from file validated to: %v", result))
+	log.Debug(fmt.Sprintf("[FromFile/Section]::Credentials from file validated to: %v", result))
 	return credentials, nil
 
 }

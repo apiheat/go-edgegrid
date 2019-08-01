@@ -24,7 +24,8 @@ func New(cfg *edgegrid.Config, options ...func(*Client)) *Client {
 
 	// Create instance of resty client
 	svc.Rclient = resty.New()
-	svc.Rclient.SetDebug(true)
+
+	svc.Rclient.SetDebug(svc.Config.RequestDebug)
 
 	if svc.Config.LocalTesting {
 		svc.Rclient.SetHostURL(svc.Config.TestingURL)

@@ -95,10 +95,10 @@ func generateNonce() string {
 	return uuid.NewV4().String()
 }
 
-func base64Sha256(str string) string {
+func base64Sha256(data []byte) string {
 	h := sha256.New()
 
-	h.Write([]byte(str))
+	h.Write(data)
 
 	return base64.StdEncoding.EncodeToString(h.Sum(nil))
 }
@@ -162,7 +162,7 @@ func makeContentHash(req *resty.Request) string {
 
 		// Correct body setup based on https://github.com/go-resty/resty/issues/252
 		req.RawRequest.Body = ioutil.NopCloser(bytes.NewBuffer(buf))
-		return base64Sha256(string(buf))
+		return base64Sha256(buf)
 	}
 
 	return ""

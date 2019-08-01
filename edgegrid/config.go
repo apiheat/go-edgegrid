@@ -14,6 +14,9 @@ type Config struct {
 	// Defines log level output i.e. debug/error/warning/info
 	LogVerbosity string
 
+	// RequestDebug determines if we should print out debug info for http request/responses we make
+	RequestDebug bool
+
 	// Scheme used ( http or https )
 	Scheme string
 
@@ -32,7 +35,12 @@ type Config struct {
 //   cfg := edgegrid.NewConfig().WithAccountSwitchKey("MS-123BV")
 //
 func NewConfig() *Config {
-	return &Config{}
+	// Return new config object with default values
+	return &Config{
+		RequestDebug: false,
+		LogVerbosity: "info",
+		Scheme:       "https",
+	}
 }
 
 // WithAccountSwitchKey sets account switch key used across calls
@@ -81,5 +89,11 @@ func (c *Config) WithUserAgent(ua string) *Config {
 // a Config pointer.
 func (c *Config) WithTestingURL(testingURL string) *Config {
 	c.TestingURL = testingURL
+	return c
+}
+
+// WithRequestDebug toggles debug of http requests/repsonse output
+func (c *Config) WithRequestDebug(requestDebug bool) *Config {
+	c.RequestDebug = requestDebug
 	return c
 }
