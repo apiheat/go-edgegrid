@@ -42,14 +42,6 @@ func setupEdgeClient(baseURL string) *Netlistv2 {
 	return client
 }
 
-// To test:
-// * list all [x]
-// * list by id [x]
-// * add network list element [x]
-// * remove network list element [x]
-// * create network list [x]
-// * activate network list []
-
 func TestListNetworkLists(t *testing.T) {
 	//--Init API client
 	apiClient := setupEdgeClient("")
