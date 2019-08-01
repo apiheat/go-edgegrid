@@ -36,8 +36,6 @@ func setupEdgeClient(baseURL string) *Netlistv2 {
 		WithScheme("http").
 		WithTestingURL(targetURL)
 
-	fmt.Println(creds, cfg)
-
 	// Create new client
 	client := New(cfg)
 
@@ -46,13 +44,11 @@ func setupEdgeClient(baseURL string) *Netlistv2 {
 
 // To test:
 // * list all [x]
-// * lisy by id [x]
-// * list by name []
+// * list by id [x]
 // * add network list element [x]
-// * remove network list element []
-// * create network list []
+// * remove network list element [x]
+// * create network list [x]
 // * activate network list []
-// * modify network list []
 
 func TestListNetworkLists(t *testing.T) {
 	//--Init API client
@@ -160,6 +156,131 @@ func TestAddNetworNetworkListElement(t *testing.T) {
 	addItemRequest, err := apiClient.AddNetworkListElement("345_BOTLIST", editListOpts)
 	if assert.NoError(t, err) {
 		assert.IsType(t, expectedType, addItemRequest)
+	}
+
+}
+
+func TestCreateNetworkList(t *testing.T) {
+	//--Init API client
+	apiClient := setupEdgeClient("")
+	responseJSON := `{"name":"name-of-netlist","uniqueId":"1024_AMAZONELASTICCOMPUTECLOU","syncPoint":65,"type":"IP","networkListType":"networkListResponse","account":"Kona Security Engineering","accessControlGroup":"Top-Level Group: 3-12DAF123","elementCount":13,"readOnly":true,"list":["13.125.0.0/16","13.126.0.0/15","13.210.0.0/15","13.228.0.0/15","13.230.0.0/15","13.232.0.0/14","13.236.0.0/14","13.250.0.0/15","13.54.0.0/15","13.56.0.0/16","13.57.0.0/16","13.58.0.0/15","174.129.0.0/16"],"links":{"activateInProduction":{"href":"/network-list/v2/network-lists/1024_AMAZONELASTICCOMPUTECLOU/environments/PRODUCTION/activate","method":"POST"},"activateInStaging":{"href":"/network-list/v2/network-lists/1024_AMAZONELASTICCOMPUTECLOU/environments/STAGING/activate","method":"POST"},"appendItems":{"href":"/network-list/v2/network-lists/1024_AMAZONELASTICCOMPUTECLOU/append","method":"POST"},"retrieve":{"href":"/network-list/v2/network-lists/1024_AMAZONELASTICCOMPUTECLOU"},"statusInProduction":{"href":"/network-list/v2/network-lists/1024_AMAZONELASTICCOMPUTECLOU/environments/PRODUCTION/status"},"statusInStaging":{"href":"/network-list/v2/network-lists/1024_AMAZONELASTICCOMPUTECLOU/environments/STAGING/status"},"update":{"href":"/network-list/v2/network-lists/1024_AMAZONELASTICCOMPUTECLOU","method":"PUT"}}}`
+
+	httpmock.ActivateNonDefault(apiClient.Client.Rclient.GetClient())
+	defer httpmock.DeactivateAndReset()
+
+	// mock APIs
+	httpmock.RegisterResponder("POST", "http://test.local/network-list/v2/network-lists",
+		func(req *http.Request) (*http.Response, error) {
+
+			body, err := ioutil.ReadAll(req.Body)
+			if assert.NoError(t, err) {
+				assert.Equal(t, "{\"name\":\"name-of-netlist\",\"type\":\"IP\",\"description\":\"desc-by-test\"}", string(body), "Request body should be empty")
+				assert.Equal(t, "POST", req.Method, "Request method should be POST")
+			}
+
+			resp := httpmock.NewStringResponse(201, responseJSON)
+			resp.Header.Add("Content-Type", "application/json")
+
+			return resp, nil
+
+		})
+
+	//--Create options
+	newNetworkListOpst := NetworkListsOptionsv2{}
+	newNetworkListOpst.Description = "desc-by-test"
+	newNetworkListOpst.Name = "name-of-netlist"
+	newNetworkListOpst.Type = "IP"
+
+	var expectedType *NetworkListv2
+
+	//--Call api
+	apiResp, err := apiClient.CreateNetworkList(newNetworkListOpst)
+	if assert.NoError(t, err) {
+		assert.IsType(t, expectedType, apiResp)
+	}
+}
+
+func TestRemoveNetworkListItem(t *testing.T) {
+	//--Init API client
+	apiClient := setupEdgeClient("")
+	responseJSON := `{"name":"Ec2 Akamai Network List","uniqueId":"345_BOTLIST","syncPoint":65,"type":"IP","networkListType":"networkListResponse","account":"Kona Security Engineering","accessControlGroup":"Top-Level Group: 3-12DAF123","elementCount":13,"readOnly":true,"list":["13.126.0.0/15","13.210.0.0/15","13.228.0.0/15","13.230.0.0/15","13.232.0.0/14","13.236.0.0/14","13.250.0.0/15","13.54.0.0/15","13.56.0.0/16","13.57.0.0/16","13.58.0.0/15","174.129.0.0/16"],"links":{"activateInProduction":{"href":"/network-list/v2/network-lists/1024_AMAZONELASTICCOMPUTECLOU/environments/PRODUCTION/activate","method":"POST"},"activateInStaging":{"href":"/network-list/v2/network-lists/1024_AMAZONELASTICCOMPUTECLOU/environments/STAGING/activate","method":"POST"},"appendItems":{"href":"/network-list/v2/network-lists/1024_AMAZONELASTICCOMPUTECLOU/append","method":"POST"},"retrieve":{"href":"/network-list/v2/network-lists/1024_AMAZONELASTICCOMPUTECLOU"},"statusInProduction":{"href":"/network-list/v2/network-lists/1024_AMAZONELASTICCOMPUTECLOU/environments/PRODUCTION/status"},"statusInStaging":{"href":"/network-list/v2/network-lists/1024_AMAZONELASTICCOMPUTECLOU/environments/STAGING/status"},"update":{"href":"/network-list/v2/network-lists/1024_AMAZONELASTICCOMPUTECLOU","method":"PUT"}}}`
+
+	httpmock.ActivateNonDefault(apiClient.Client.Rclient.GetClient())
+	defer httpmock.DeactivateAndReset()
+
+	// mock APIs
+	httpmock.RegisterResponder("DELETE", "http://test.local/network-list/v2/network-lists/345_BOTLIST/elements",
+		func(req *http.Request) (*http.Response, error) {
+
+			assert.Equal(t, "DELETE", req.Method, "Request method should be DELETE")
+			assert.Contains(t, req.URL.String(), "345_BOTLIST/elements", "Request URL should contain list ID")
+
+			// // body, err := ioutil.ReadAll(req.Body)
+			// body := ""
+			// if assert.NoError(t, err) {
+
+			// }
+
+			resp := httpmock.NewStringResponse(201, responseJSON)
+			resp.Header.Add("Content-Type", "application/json")
+
+			return resp, nil
+
+		})
+
+	//--Expect result type
+	var expectedType *NetworkListv2
+
+	//--Init API client
+	apiResp, err := apiClient.RemoveNetworkListElement("345_BOTLIST", "1.2.3.4/32")
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	if assert.NoError(t, err) {
+		assert.IsType(t, expectedType, apiResp)
+	}
+}
+
+func TestActivateNetworkList(t *testing.T) {
+	//--Init API client
+	apiClient := setupEdgeClient("")
+	responseJSON := `{"activationId":12345,"activationComments":"test-activation","activationStatus":"PENDING_ACTIVATION","syncPoint":5,"uniqueId":"345_BOTLIST","fast":false,"dispatchCount":1,"links":{"appendItems":{"href":"/networklist-api/rest/v2/network-lists/25614_GENERALLIST/append","method":"POST"},"retrieve":{"href":"/networklist-api/rest/v2/network-lists/25614_GENERALLIST"},"statusInProduction":{"href":"/networklist-api/rest/v2/network-lists/25614_GENERALLIST/environments/PRODUCTION/status"},"statusInStaging":{"href":"/networklist-api/rest/v2/network-lists/25614_GENERALLIST/environments/STAGING/status"},"syncPointHistory":{"href":"/networklist-api/rest/v2/network-lists/25614_GENERALLIST/sync-points/5/history"},"update":{"href":"/networklist-api/rest/v2/network-lists/25614_GENERALLIST","method":"PUT"},"activationDetails":{"href":"/network-list/v2/network-lists/activations/12345/"}}}`
+
+	httpmock.ActivateNonDefault(apiClient.Client.Rclient.GetClient())
+	defer httpmock.DeactivateAndReset()
+
+	// mock APIs
+	httpmock.RegisterResponder("POST", "http://test.local/network-list/v2/network-lists/345_BOTLIST/environments/production/activate",
+		func(req *http.Request) (*http.Response, error) {
+
+			body, err := ioutil.ReadAll(req.Body)
+			if assert.NoError(t, err) {
+				assert.NotEmpty(t, string(body), "Request body should not be empty")
+				assert.Equal(t, `{"comments":"test-activation","notificationRecipients":["dummy@mailinator.com"],"fast":true}`, string(body), "Request body should contain list of addresses to activate")
+				assert.Equal(t, "POST", req.Method, "Request method should be POST")
+				assert.Contains(t, req.URL.String(), "/network-list/v2/network-lists/345_BOTLIST/environments/production/activate", "Request URL should target activation env with list ID")
+
+			}
+
+			resp := httpmock.NewStringResponse(201, responseJSON)
+			resp.Header.Add("Content-Type", "application/json")
+
+			return resp, nil
+
+		})
+
+	var expectedType *NetworkListActivationStatusv2
+
+	//--Init API client
+	actNetworkListOpts := NetworkListActivationOptsv2{
+		Comments:               "test-activation",
+		Fast:                   true,
+		NotificationRecipients: []string{"dummy@mailinator.com"},
+	}
+	apiResp, err := apiClient.ActivateNetworkList("345_BOTLIST", edgegrid.Production, actNetworkListOpts)
+	if assert.NoError(t, err) {
+		assert.IsType(t, expectedType, apiResp)
 	}
 
 }
