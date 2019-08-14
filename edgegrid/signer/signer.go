@@ -153,10 +153,15 @@ func canonicalizeHeaders(request *http.Request, headersToSign []string) string {
 func makeContentHash(req *resty.Request) string {
 
 	if req.Method == "POST" {
+		// Make sure we do have body to build content from
+		if req.RawRequest.Body == nil {
+			return ""
+		}
 		buf, err := ioutil.ReadAll(req.RawRequest.Body)
 		req.RawRequest.Body.Close() //  must close
 
 		if err != nil {
+			//TODO: log here
 			panic(err)
 		}
 
