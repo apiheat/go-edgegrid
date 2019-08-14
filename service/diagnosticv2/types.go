@@ -15,6 +15,37 @@ type TranslateErrorAsync struct {
 	RetryAfter int    `json:"retryAfter"`
 }
 
+type TranslatedError struct {
+	TranslatedError TranslatedErrorClass `json:"translatedError"`
+}
+
+type TranslatedErrorClass struct {
+	URL              string               `json:"url"`
+	HTTPResponseCode int64                `json:"httpResponseCode"`
+	Timestamp        string               `json:"timestamp"`
+	EpochTime        int64                `json:"epochTime"`
+	ClientIP         string               `json:"clientIp"`
+	ConnectingIP     string               `json:"connectingIp"`
+	ServerIP         string               `json:"serverIp"`
+	OriginHostname   string               `json:"originHostname"`
+	OriginIP         string               `json:"originIp"`
+	UserAgent        string               `json:"userAgent"`
+	RequestMethod    string               `json:"requestMethod"`
+	ReasonForFailure string               `json:"reasonForFailure"`
+	WafDetails       string               `json:"wafDetails"`
+	Logs             []TranslatedErrorLog `json:"logs"`
+}
+
+type TranslatedErrorLog struct {
+	Description string            `json:"description"`
+	Fields      map[string]string `json:"fields"`
+}
+
+//VerifyIP represents information if given IP address belongs to Akamai platform
+type VerifyIP struct {
+	IsAkamai bool `json:"isCdnIp"`
+}
+
 /*
 type DTGTMPropertiesResp struct {
 	GtmProperties []struct {
@@ -161,9 +192,7 @@ type DTDiagLinkRequestResp struct {
 	} `json:"endUserIpDetails"`
 }
 
-type DTCDNStatusResp struct {
-	IsCdnIP bool `json:"isCdnIp"`
-}
+
 
 
 
