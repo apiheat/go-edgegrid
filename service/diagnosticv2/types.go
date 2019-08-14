@@ -7,6 +7,14 @@ type GhostLocations struct {
 	} `json:"locations"`
 }
 
+//TranslateErrorAsync is returned during async call to retrieve error from Akamai platform.
+//It contains information needed to further retrieve error
+type TranslateErrorAsync struct {
+	RequestID  string `json:"requestId"`
+	Link       string `json:"link"`
+	RetryAfter int    `json:"retryAfter"`
+}
+
 /*
 type DTGTMPropertiesResp struct {
 	GtmProperties []struct {
@@ -157,11 +165,7 @@ type DTCDNStatusResp struct {
 	IsCdnIP bool `json:"isCdnIp"`
 }
 
-type DTErrorTranslationResp struct {
-	RequestID  string `json:"requestId"`
-	Link       string `json:"link"`
-	RetryAfter int    `json:"retryAfter"`
-}
+
 
 type DTTranslatedErrorResp struct {
 	TranslatedError struct {
