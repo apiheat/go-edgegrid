@@ -2,7 +2,6 @@ package diagnosticv2
 
 import (
 	"fmt"
-	"net/http"
 )
 
 //ListGhostLocations returns location for ghost servers
@@ -124,13 +123,76 @@ func (dts *Diagnosticv2) VerifyIPAddress(ip string) (*VerifyIP, error) {
 	return resp.Result().(*VerifyIP), nil
 }
 
-// RetrieveIPGeolocation provides given geolocation details based on given IP
-func (dts *Diagnosticv2) RetrieveIPGeolocation(ip string) (*DTGeolocation, *ClientResponse, error) {
-	qParams := QStrDiagTools{}
-	path := fmt.Sprintf("%s/ip-addresses/%s/geo-location", DTPathV2, ip)
+// CreateDiagnosticLink generates user link and request
+func (dts *Diagnosticv2) CreateDiagnosticLink(username, testURL string) (*DiagnosticLinkURL, error) {
 
-	var respStruct *DTGeolocation
-	resp, err := nls.client.makeAPIRequest(http.MethodGet, path, qParams, &respStruct, nil, nil)
+	diagnosticLinkRequest := DiagnosticLinkRequest{
+		EndUserName: username,
+		URL:         testURL,
+	}
 
-	return respStruct, resp, err
+	// Create and execute request
+	resp, err := dts.Client.Rclient.R().
+		SetBody(diagnosticLinkRequest).
+		SetResult(DiagnosticLinkURL{}).
+		SetError(DiagnosticErrorv2{}).
+		Post(fmt.Sprintf("%s/end-users/diagnostic-url", basePath))
+
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.IsError() {
+		e := resp.Error().(*DiagnosticErrorv2)
+		if e.Status != 0 {
+			return nil, e
+		}
+	}
+
+	return resp.Result().(*DiagnosticLinkURL), nil
+}
+
+// ListDiagnosticLinkRequests lists all requests
+func (dts *Diagnosticv2) ListDiagnosticLinkRequests() (*DiagnosticLinkRequests, error) {
+	// Create and execute request
+	resp, err := dts.Client.Rclient.R().
+		SetResult(DiagnosticLinkRequests{}).
+		SetError(DiagnosticErrorv2{}).
+		Get(fmt.Sprintf("%s/end-users/ip-requests", basePath))
+
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.IsError() {
+		e := resp.Error().(*DiagnosticErrorv2)
+		if e.Status != 0 {
+			return nil, e
+		}
+	}
+
+	return resp.Result().(*DiagnosticLinkRequests), nil
+}
+
+// RetrieveDiagnosticLinkRequest gets request details
+func (dts *Diagnosticv2) RetrieveDiagnosticLinkRequest(id string) (*DiagnosticLinkResult, error) {
+
+	// Create and execute request
+	resp, err := dts.Client.Rclient.R().
+		SetResult(DiagnosticLinkResult{}).
+		SetError(DiagnosticErrorv2{}).
+		Get(fmt.Sprintf("%s/end-users/ip-requests/%s/ip-details", basePath, id))
+
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.IsError() {
+		e := resp.Error().(*DiagnosticErrorv2)
+		if e.Status != 0 {
+			return nil, e
+		}
+	}
+
+	return resp.Result().(*DiagnosticLinkResult), nil
 }

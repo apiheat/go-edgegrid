@@ -1,5 +1,7 @@
 package diagnosticv2
 
+import "time"
+
 type GhostLocations struct {
 	Locations []struct {
 		ID    string `json:"id"`
@@ -44,6 +46,40 @@ type TranslatedErrorLog struct {
 //VerifyIP represents information if given IP address belongs to Akamai platform
 type VerifyIP struct {
 	IsAkamai bool `json:"isCdnIp"`
+}
+
+type DiagnosticLinkURL struct {
+	URL string `json:"diagnosticUrl"`
+}
+
+type DiagnosticLinkRequest struct {
+	EndUserName string `json:"endUserName"`
+	URL         string `json:"url"`
+}
+
+type DiagnosticLinkRequests struct {
+	EndUserIPRequests []struct {
+		EndUserName string    `json:"name"`
+		RequestID   uint32    `json:"requestId"`
+		URL         string    `json:"url"`
+		Timestamp   time.Time `json:"timestamp"`
+	} `json:"endUserIpRequests"`
+}
+
+type DiagnosticLinkResult struct {
+	EndUserIPDetails struct {
+		Name      string    `json:"name"`
+		Email     string    `json:"email"`
+		Timestamp time.Time `json:"timestamp"`
+		URL       string    `json:"url"`
+		Ips       []struct {
+			Description string `json:"description"`
+			Location    string `json:"location"`
+			IP          string `json:"ip"`
+			IPType      string `json:"ipType"`
+		} `json:"ips"`
+		Browser string `json:"browser"`
+	} `json:"endUserIpDetails"`
 }
 
 /*
@@ -153,11 +189,6 @@ type DTCurlResp struct {
 	} `json:"curlResults"`
 }
 
-type DTUserLinkReq struct {
-	EndUserName string `json:"endUserName"`
-	URL         string `json:"url"`
-}
-
 type DTCurlReq struct {
 	URL       string `json:"url"`
 	UserAgent string `json:"userAgent"`
@@ -176,21 +207,7 @@ type DTListDiagLinkRequestsResp struct {
 	} `json:"endUserIpRequests"`
 }
 
-type DTDiagLinkRequestResp struct {
-	EndUserIPDetails struct {
-		Name      string    `json:"name"`
-		Email     string    `json:"email"`
-		Timestamp time.Time `json:"timestamp"`
-		URL       string    `json:"url"`
-		Ips       []struct {
-			Description string `json:"description"`
-			Location    string `json:"location"`
-			IP          string `json:"ip"`
-			IPType      string `json:"ipType"`
-		} `json:"ips"`
-		Browser string `json:"browser"`
-	} `json:"endUserIpDetails"`
-}
+
 
 
 
