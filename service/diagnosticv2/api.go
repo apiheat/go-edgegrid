@@ -2,6 +2,7 @@ package diagnosticv2
 
 import (
 	"fmt"
+	"strconv"
 )
 
 //ListGhostLocations returns location for ghost servers
@@ -100,8 +101,8 @@ func (dts *Diagnosticv2) RetrieveTranslateErrorAsync(requestID string) (*Transla
 
 }
 
-// VerifyIPAddress checks if given IP belongs to Akamai CDN
-func (dts *Diagnosticv2) VerifyIPAddress(ip string) (*VerifyIP, error) {
+// CheckIPAddress checks if given IP belongs to Akamai CDN
+func (dts *Diagnosticv2) CheckIPAddress(ip string) (*VerifyIP, error) {
 
 	// Create and execute request
 	resp, err := dts.Client.Rclient.R().
@@ -195,4 +196,111 @@ func (dts *Diagnosticv2) RetrieveDiagnosticLinkRequest(id string) (*DiagnosticLi
 	}
 
 	return resp.Result().(*DiagnosticLinkResult), nil
+}
+
+// RetrieveIPGeolocation provides given IP geolocation details
+func (dts *Diagnosticv2) RetrieveIPGeolocation(ip string) (*Geolocation, error) {
+	// Create and execute request
+	resp, err := dts.Client.Rclient.R().
+		SetResult(Geolocation{}).
+		SetError(DiagnosticErrorv2{}).
+		Get(fmt.Sprintf("%s/ip-addresses/%s/geo-location", basePath, ip))
+
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.IsError() {
+		e := resp.Error().(*DiagnosticErrorv2)
+		if e.Status != 0 {
+			return nil, e
+		}
+	}
+
+	return resp.Result().(*Geolocation), nil
+}
+
+// ExecuteDig against a hostname to get DNS information, associating hostnames and IP addresses, from an IP address within the Akamai network not local to you. Specify the hostName as a query parameter, and an optional DNS queryType. See the Dig object for details on the response data.
+func (dts *Diagnosticv2) ExecuteDig(obj string, requestFrom AkamaiRequestFrom, hostname, query string) (*DigResult, error) {
+
+	// Create and execute request
+	resp, err := dts.Client.Rclient.R().
+		SetQueryParams(map[string]string{
+			"hostName":  hostname,
+			"queryType": query,
+		}).
+		SetResult(DigResult{}).
+		SetError(DiagnosticErrorv2{}).
+		Get(fmt.Sprintf("%s/%s/%s/dig-info", basePath, requestFrom, obj))
+
+		// /diagnostic-tools/v2/ip-addresses/{ipAddress}/dig-info{?hostName,queryType}
+		// /diagnostic-tools/v2/ghost-locations/{locationId}/dig-info{?hostName,queryType}
+
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.IsError() {
+		e := resp.Error().(*DiagnosticErrorv2)
+		if e.Status != 0 {
+			return nil, e
+		}
+	}
+
+	return resp.Result().(*DigResult), nil
+}
+
+// ExecuteMtr provides mtr functionality
+func (dts *Diagnosticv2) ExecuteMtr(obj string, requestFrom AkamaiRequestFrom, destinationDomain string, resolveDNS bool) (*MtrResult, error) {
+	// Create and execute request
+	resp, err := dts.Client.Rclient.R().
+		SetQueryParams(map[string]string{
+			"resolveDns":        strconv.FormatBool(resolveDNS),
+			"destinationDomain": destinationDomain,
+		}).
+		SetResult(MtrResult{}).
+		SetError(DiagnosticErrorv2{}).
+		Get(fmt.Sprintf("%s/%s/%s/mtr-data", basePath, requestFrom, obj))
+
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.IsError() {
+		e := resp.Error().(*DiagnosticErrorv2)
+		if e.Status != 0 {
+			return nil, e
+		}
+	}
+
+	return resp.Result().(*MtrResult), nil
+}
+
+// ExecuteCurl provides curl functionality
+func (dts *Diagnosticv2) ExecuteCurl(obj string, requestFrom AkamaiRequestFrom, testURL, userAgent string) (*CurlResult, error) {
+
+	curlRequest := CurlRequest{
+		UserAgent: userAgent,
+		URL:       testURL,
+	}
+
+	// Create and execute request
+	resp, err := dts.Client.Rclient.R().
+		SetBody(curlRequest).
+		SetResult(CurlResult{}).
+		SetError(DiagnosticErrorv2{}).
+		Post(fmt.Sprintf("%s/%s/%s/curl-results", basePath, requestFrom, obj))
+
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.IsError() {
+		e := resp.Error().(*DiagnosticErrorv2)
+		if e.Status != 0 {
+			return nil, e
+		}
+	}
+
+	return resp.Result().(*CurlResult), nil
 }

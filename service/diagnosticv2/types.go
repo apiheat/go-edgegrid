@@ -2,6 +2,14 @@ package diagnosticv2
 
 import "time"
 
+// AkamaiRequestFrom represents Akamai's source for request.
+type AkamaiRequestFrom string
+
+const (
+	RequestFromGhost     AkamaiRequestFrom = "ghost-locations"
+	RequestFromIPAddress AkamaiRequestFrom = "ip-addresses"
+)
+
 type GhostLocations struct {
 	Locations []struct {
 		ID    string `json:"id"`
@@ -82,73 +90,7 @@ type DiagnosticLinkResult struct {
 	} `json:"endUserIpDetails"`
 }
 
-/*
-type DTGTMPropertiesResp struct {
-	GtmProperties []struct {
-		Property string `json:"property"`
-		Domain   string `json:"domain"`
-		HostName string `json:"hostName"`
-	} `json:"gtmProperties"`
-}
-
-type DTGTMPropertyIpsResp struct {
-	GtmPropertyIps struct {
-		Property  string   `json:"property"`
-		Domain    string   `json:"domain"`
-		TestIps   []string `json:"testIps"`
-		TargetIps []string `json:"targetIps"`
-	} `json:"gtmPropertyIps"`
-}
-
-type DTDigResp struct {
-	DigInfo struct {
-		Hostname      string `json:"hostname"`
-		QueryType     string `json:"queryType"`
-		AnswerSection []struct {
-			Domain           string      `json:"domain"`
-			TTL              int         `json:"ttl"`
-			RecordClass      string      `json:"recordClass"`
-			RecordType       string      `json:"recordType"`
-			PreferenceValues interface{} `json:"preferenceValues"`
-			Value            string      `json:"value"`
-		} `json:"answerSection"`
-		AuthoritySection []struct {
-			Domain           string      `json:"domain"`
-			TTL              int         `json:"ttl"`
-			RecordClass      string      `json:"recordClass"`
-			RecordType       string      `json:"recordType"`
-			PreferenceValues interface{} `json:"preferenceValues"`
-			Value            string      `json:"value"`
-		} `json:"authoritySection"`
-		Result string `json:"result"`
-	} `json:"digInfo"`
-}
-
-type DTMtrResp struct {
-	Mtr struct {
-		Source      string    `json:"source"`
-		Destination string    `json:"destination"`
-		StartTime   time.Time `json:"startTime"`
-		Host        string    `json:"host"`
-		PacketLoss  float64   `json:"packetLoss"`
-		AvgLatency  float64   `json:"avgLatency"`
-		Analysis    string    `json:"analysis"`
-		Hops        []struct {
-			Number int     `json:"number"`
-			Host   string  `json:"host"`
-			Loss   float64 `json:"loss"`
-			Sent   int     `json:"sent"`
-			Last   float64 `json:"last"`
-			Avg    float64 `json:"avg"`
-			Best   float64 `json:"best"`
-			Worst  float64 `json:"worst"`
-			StDev  float64 `json:"stDev"`
-		} `json:"hops"`
-		Result string `json:"result"`
-	} `json:"mtr"`
-}
-
-type DTGeolocation struct {
+type Geolocation struct {
 	GeoLocation struct {
 		ClientIP    string  `json:"clientIp"`
 		CountryCode string  `json:"countryCode"`
@@ -173,7 +115,55 @@ type DTGeolocation struct {
 	} `json:"geoLocation"`
 }
 
-type DTCurlResp struct {
+type DigResult struct {
+	DigInfo struct {
+		Hostname      string `json:"hostname"`
+		QueryType     string `json:"queryType"`
+		AnswerSection []struct {
+			Domain           string      `json:"domain"`
+			TTL              int         `json:"ttl"`
+			RecordClass      string      `json:"recordClass"`
+			RecordType       string      `json:"recordType"`
+			PreferenceValues interface{} `json:"preferenceValues"`
+			Value            string      `json:"value"`
+		} `json:"answerSection"`
+		AuthoritySection []struct {
+			Domain           string      `json:"domain"`
+			TTL              int         `json:"ttl"`
+			RecordClass      string      `json:"recordClass"`
+			RecordType       string      `json:"recordType"`
+			PreferenceValues interface{} `json:"preferenceValues"`
+			Value            string      `json:"value"`
+		} `json:"authoritySection"`
+		Result string `json:"result"`
+	} `json:"digInfo"`
+}
+
+type MtrResult struct {
+	Mtr struct {
+		Source      string    `json:"source"`
+		Destination string    `json:"destination"`
+		StartTime   time.Time `json:"startTime"`
+		Host        string    `json:"host"`
+		PacketLoss  float64   `json:"packetLoss"`
+		AvgLatency  float64   `json:"avgLatency"`
+		Analysis    string    `json:"analysis"`
+		Hops        []struct {
+			Number int     `json:"number"`
+			Host   string  `json:"host"`
+			Loss   float64 `json:"loss"`
+			Sent   int     `json:"sent"`
+			Last   float64 `json:"last"`
+			Avg    float64 `json:"avg"`
+			Best   float64 `json:"best"`
+			Worst  float64 `json:"worst"`
+			StDev  float64 `json:"stDev"`
+		} `json:"hops"`
+		Result string `json:"result"`
+	} `json:"mtr"`
+}
+
+type CurlResult struct {
 	CurlResults struct {
 		HTTPStatusCode  int `json:"httpStatusCode"`
 		ResponseHeaders struct {
@@ -189,10 +179,35 @@ type DTCurlResp struct {
 	} `json:"curlResults"`
 }
 
-type DTCurlReq struct {
+type CurlRequest struct {
 	URL       string `json:"url"`
 	UserAgent string `json:"userAgent"`
 }
+
+/*
+type DTGTMPropertiesResp struct {
+	GtmProperties []struct {
+		Property string `json:"property"`
+		Domain   string `json:"domain"`
+		HostName string `json:"hostName"`
+	} `json:"gtmProperties"`
+}
+
+type DTGTMPropertyIpsResp struct {
+	GtmPropertyIps struct {
+		Property  string   `json:"property"`
+		Domain    string   `json:"domain"`
+		TestIps   []string `json:"testIps"`
+		TargetIps []string `json:"targetIps"`
+	} `json:"gtmPropertyIps"`
+}
+
+
+
+
+
+
+
 
 type DTGenerateDiagLinkResp struct {
 	DiagnosticURL string `json:"diagnosticUrl"`
