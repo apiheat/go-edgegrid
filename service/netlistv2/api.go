@@ -3,8 +3,6 @@ package netlistv2
 import (
 	"fmt"
 	"strconv"
-
-	"github.com/apiheat/go-edgegrid/edgegrid"
 )
 
 // ListNetworkLists List all configured Network Lists for the authenticated user.
@@ -144,7 +142,7 @@ func (nls *Netlistv2) RemoveNetworkListElement(ListID, element string) (*Network
 
 // ActivateNetworkList Activates network list on specified network ( PRODUCTION or STAGING )
 // Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html
-func (nls *Netlistv2) ActivateNetworkList(ListID string, targetEnv edgegrid.AkamaiEnvironment, opts NetworkListActivationOptsv2) (*NetworkListActivationStatusv2, error) {
+func (nls *Netlistv2) ActivateNetworkList(ListID string, targetEnv AkamaiEnvironment, opts NetworkListActivationOptsv2) (*NetworkListActivationStatusv2, error) {
 
 	// Create and execute request
 	resp, err := nls.Client.Rclient.R().
@@ -169,7 +167,7 @@ func (nls *Netlistv2) ActivateNetworkList(ListID string, targetEnv edgegrid.Akam
 
 // GetActivationStatus Gets activation network list status on specified network ( PRODUCTION or STAGING )
 // Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html
-func (nls *Netlistv2) GetActivationStatus(ListID string, targetEnv edgegrid.AkamaiEnvironment) (*NetworkListActivationStatusv2, error) {
+func (nls *Netlistv2) GetActivationStatus(ListID string, targetEnv AkamaiEnvironment) (*NetworkListActivationStatusv2, error) {
 
 	// Create and execute request
 	resp, err := nls.Client.Rclient.R().
@@ -218,7 +216,7 @@ func (nls *Netlistv2) DeleteNetworkList(ListID string) (*NetworkListDeleteRespon
 
 // NetworkListNotification Manage network list subscription
 // Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html
-func (nls *Netlistv2) NetworkListNotification(action edgegrid.AkamaiSubscription, sub NetworkListSubscription) error {
+func (nls *Netlistv2) NetworkListNotification(action AkamaiSubscription, sub NetworkListSubscription) error {
 
 	var networkListv2 NetworkListv2
 	var e NetworkListErrorv2

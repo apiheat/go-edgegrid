@@ -2,6 +2,20 @@ package netlistv2
 
 import "time"
 
+// AkamaiEnvironment represents Akamai's target environment type.
+type AkamaiEnvironment string
+
+// AkamaiSubscription represents Akamai's notification actions for subscriptions.
+type AkamaiSubscription string
+
+const (
+	Production AkamaiEnvironment = "production"
+	Staging    AkamaiEnvironment = "staging"
+
+	Subscribe   AkamaiSubscription = "subscribe"
+	Unsubscribe AkamaiSubscription = "unsubscribe"
+)
+
 // NetworkListsv2 represents array of network lists
 // Akamai API docs: https://developer.akamai.com/api/luna/network-list
 type NetworkListsv2 struct {
