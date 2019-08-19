@@ -2,11 +2,11 @@ package client
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/apiheat/go-edgegrid/edgegrid"
 	"github.com/apiheat/go-edgegrid/edgegrid/signer"
-
-	"gopkg.in/resty.v1"
+	"github.com/go-resty/resty"
 )
 
 // A Client implements the base client request and response handling
@@ -49,11 +49,11 @@ func New(cfg *edgegrid.Config, options ...func(*Client)) *Client {
 
 	// Registering Request Middleware - which will run just before every request but after
 	// preparation of the request.
-	svc.Rclient.SetPreRequestHook(func(c *resty.Client, req *resty.Request) error {
+	svc.Rclient.SetPreRequestHook(func(c *resty.Client, req *http.Request) error {
+
+		req.Header.Set("Authorization", authSigner.SignRequest(req, []string{}))
 
 		// Set authentication header with signed data based on request
-		req.SetHeader("Authorization", authSigner.SignRequest(req, []string{}))
-
 		return nil
 	})
 

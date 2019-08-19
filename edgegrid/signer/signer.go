@@ -8,13 +8,11 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
 
 	"github.com/apiheat/go-edgegrid/edgegrid"
 	uuid "github.com/satori/go.uuid"
-	"gopkg.in/resty.v1"
 )
 
 const (
@@ -52,7 +50,7 @@ func (m reader) Close() error { return nil }
 // The string returned by this method conforms to the
 // Akamai {OPEN} EdgeGrid Authentication scheme.
 // https://developer.akamai.com/introduction/Client_Auth.html
-func (sr *SignatureRequest) SignRequest(rrq *resty.Request, headersToSign []string) string {
+func (sr *SignatureRequest) SignRequest(rrq *http.Request, headersToSign []string) string {
 
 	nonce := generateNonce()
 	timestamp := generateTimestamp()
@@ -111,18 +109,14 @@ func base64HmacSha256(message, secret string) string {
 	return base64.StdEncoding.EncodeToString(h.Sum(nil))
 }
 
-func generateDataToSign(rrq *resty.Request, authHeader string, headersToSign []string) string {
-	parsedURL, err := url.Parse(rrq.URL)
-	if err != nil {
-		return ""
-	}
+func generateDataToSign(rrq *http.Request, authHeader string, headersToSign []string) string {
 
 	var data bytes.Buffer
 	values := []string{
 		rrq.Method,
-		parsedURL.Scheme,
-		parsedURL.Host,
-		urlPathWithQuery(parsedURL.Path, parsedURL.RawQuery),
+		rrq.URL.Scheme,
+		rrq.Host,
+		urlPathWithQuery(rrq.URL.Path, rrq.URL.RawQuery),
 		"", //TODO: to be implemented - not required in initial stage
 		makeContentHash(rrq),
 		authHeader,
@@ -150,18 +144,23 @@ func canonicalizeHeaders(request *http.Request, headersToSign []string) string {
 	return canonicalized.String()
 }
 
-func makeContentHash(req *resty.Request) string {
+func makeContentHash(req *http.Request) string {
 
 	if req.Method == "POST" {
-		buf, err := ioutil.ReadAll(req.RawRequest.Body)
-		req.RawRequest.Body.Close() //  must close
+		// Make sure we do have body to build content from
+		if req.Body == nil {
+			return ""
+		}
+		buf, err := ioutil.ReadAll(req.Body)
+		req.Body.Close() //  must close
 
 		if err != nil {
+			//TODO: log here
 			panic(err)
 		}
 
 		// Correct body setup based on https://github.com/go-resty/resty/issues/252
-		req.RawRequest.Body = ioutil.NopCloser(bytes.NewBuffer(buf))
+		req.Body = ioutil.NopCloser(bytes.NewBuffer(buf))
 		return base64Sha256(buf)
 	}
 
