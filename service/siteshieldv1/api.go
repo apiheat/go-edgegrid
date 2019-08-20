@@ -2,7 +2,6 @@ package siteshieldv1
 
 import (
 	"fmt"
-	"net/http"
 )
 
 //ListMaps Lists siteshield maps available in the account
@@ -28,23 +27,46 @@ func (sss *Siteshieldv1) ListMaps() (*SiteShieldMaps, error) {
 }
 
 //GetMap Retrieves specific map based on ID
-func (sss *Siteshieldv1) GetMap(id string) (*SiteShieldMap, *ClientResponse, error) {
-	qParams := QStrSiteShield{}
-	path := fmt.Sprintf("%s/%s", SiteshieldPathV1, id)
+func (sss *Siteshieldv1) GetMap(id string) (*SiteShieldMap, error) {
+	// Create and execute request
+	resp, err := sss.Client.Rclient.R().
+		SetResult(SiteShieldMap{}).
+		SetError(SiteshieldErrorv1{}).
+		Get(fmt.Sprintf("%s/%s", basePath, id))
 
-	var respStruct *SiteShieldMap
-	resp, err := nls.client.makeAPIRequest(http.MethodGet, path, qParams, &respStruct, nil, nil)
+	if err != nil {
+		return nil, err
+	}
 
-	return respStruct, resp, err
+	if resp.IsError() {
+		e := resp.Error().(*SiteshieldErrorv1)
+		if e.Status != 0 {
+			return nil, e
+		}
+	}
+
+	return resp.Result().(*SiteShieldMap), nil
 }
 
 //AcknowledgeMap Acknowledges specific map based on ID
-func (sss *Siteshieldv1) AcknowledgeMap(id string) (*SiteShieldMap, *ClientResponse, error) {
-	qParams := QStrSiteShield{}
-	path := fmt.Sprintf("%s/%s/acknowledge", SiteshieldPathV1, id)
+func (sss *Siteshieldv1) AcknowledgeMap(id string) (*SiteShieldMap, error) {
+	// Create and execute request
+	resp, err := sss.Client.Rclient.R().
+		SetResult(SiteShieldMap{}).
+		SetError(SiteshieldErrorv1{}).
+		Post(fmt.Sprintf("%s/%s/acknowledge", basePath, id))
 
-	var respStruct *SiteShieldMap
-	resp, err := nls.client.makeAPIRequest(http.MethodPost, path, qParams, &respStruct, nil, nil)
+	if err != nil {
+		return nil, err
+	}
 
-	return respStruct, resp, err
+	if resp.IsError() {
+		e := resp.Error().(*SiteshieldErrorv1)
+		if e.Status != 0 {
+			return nil, e
+		}
+	}
+
+	return resp.Result().(*SiteShieldMap), nil
+
 }
