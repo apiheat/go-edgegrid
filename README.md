@@ -18,7 +18,15 @@ import (
 
 ### Credentials
 Create new credentials object using on of the below methods:
-* credentials file
+* automatically load during config creation. AutoLoad can accept specific section if you do not want to use default 
+	```go
+	config := edgegrid.NewConfig()
+			  .WithCredentials(edgegrid.NewCredentials().AutoLoad("optional-section-name"))
+			  .WithLogVerbosity("debug")
+			  .WithRequestDebug(true)
+	```
+
+* credentials file ( if section is skipped it uses `default` )
 	```go
 	creds, err := edgegrid.NewCredentials().FromFile("/Users/rafpe/.edgerc").Section("sample")
 	```
@@ -28,7 +36,7 @@ Create new credentials object using on of the below methods:
 	```
 * ENV variables
 	```go
-	creds, err := eauth.NewCredentials().FromEnv()
+	creds, err := edgegrid.NewCredentials().FromEnv()
 	```
 
 ### Config
