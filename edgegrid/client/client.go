@@ -24,6 +24,21 @@ func New(cfg *edgegrid.Config, options ...func(*Client)) *Client {
 		Config: cfg,
 	}
 
+	switch svc.Config.LogVerbosity {
+	case "debug":
+		log.SetLevel(log.DebugLevel)
+	case "warn":
+		log.SetLevel(log.WarnLevel)
+	case "info":
+		log.SetLevel(log.InfoLevel)
+	case "error":
+		log.SetLevel(log.ErrorLevel)
+	case "fatal":
+		log.SetLevel(log.FatalLevel)
+	case "panic":
+		log.SetLevel(log.PanicLevel)
+	}
+
 	if svc.Config.Credentials == nil {
 		log.Fatalln("Cannot create client without credentials!")
 	}
