@@ -40,6 +40,7 @@ func NewConfig() *Config {
 		RequestDebug: false,
 		LogVerbosity: "info",
 		Scheme:       "https",
+		UserAgent:    "apiheat/go-edgegrid/v6.1.0",
 	}
 }
 

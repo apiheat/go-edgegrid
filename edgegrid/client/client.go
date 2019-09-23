@@ -31,6 +31,12 @@ func New(cfg *edgegrid.Config, options ...func(*Client)) *Client {
 	// Create instance of resty client
 	svc.Rclient = resty.New()
 
+	//Sets headers and customize the user agent
+	svc.Rclient.SetHeaders(map[string]string{
+		"Content-Type": "application/json",
+		"User-Agent":   svc.Config.UserAgent,
+	})
+
 	svc.Rclient.SetDebug(svc.Config.RequestDebug)
 
 	if svc.Config.LocalTesting {
