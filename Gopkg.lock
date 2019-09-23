@@ -26,14 +26,6 @@
   version = "v1.46.0"
 
 [[projects]]
-  digest = "1:d64cb03adcca1c9a4e1137281bd53162e2647a807cc5d0ed14deab8af2b18c1e"
-  name = "github.com/go-resty/resty"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "d467d573085e42a848cb49c1c28ba163b7aa5872"
-  version = "v2.0.0"
-
-[[projects]]
   digest = "1:8cff1b38298ac6c9f02bce11df3a7b9026bba6540c52adcf3fc8b328bf0fc149"
   name = "github.com/jarcoal/httpmock"
   packages = ["."]

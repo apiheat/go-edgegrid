@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"net/http"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/apiheat/go-edgegrid/edgegrid"
 	"github.com/apiheat/go-edgegrid/edgegrid/signer"
-	"github.com/go-resty/resty"
+	"github.com/go-resty/resty/v2"
 )
 
 // A Client implements the base client request and response handling
@@ -22,8 +24,33 @@ func New(cfg *edgegrid.Config, options ...func(*Client)) *Client {
 		Config: cfg,
 	}
 
+	switch svc.Config.LogVerbosity {
+	case "debug":
+		log.SetLevel(log.DebugLevel)
+	case "warn":
+		log.SetLevel(log.WarnLevel)
+	case "info":
+		log.SetLevel(log.InfoLevel)
+	case "error":
+		log.SetLevel(log.ErrorLevel)
+	case "fatal":
+		log.SetLevel(log.FatalLevel)
+	case "panic":
+		log.SetLevel(log.PanicLevel)
+	}
+
+	if svc.Config.Credentials == nil {
+		log.Fatalln("Cannot create client without credentials!")
+	}
+
 	// Create instance of resty client
 	svc.Rclient = resty.New()
+
+	//Sets headers and customize the user agent
+	svc.Rclient.SetHeaders(map[string]string{
+		"Content-Type": "application/json",
+		"User-Agent":   svc.Config.UserAgent,
+	})
 
 	svc.Rclient.SetDebug(svc.Config.RequestDebug)
 
