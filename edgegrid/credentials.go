@@ -60,7 +60,9 @@ type CredentialsBuilder struct {
 // 	fmt.Println(err)
 // }
 func NewCredentials() *CredentialsBuilder {
-	return &CredentialsBuilder{}
+	return &CredentialsBuilder{
+		edgercSection: "default",
+	}
 }
 
 // FromEnv Retrieves credentials from env variables which are prefixed with 'AKAMAI_'
