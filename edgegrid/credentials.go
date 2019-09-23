@@ -52,6 +52,34 @@ type CredentialsBuilder struct {
 	credentialsType string
 }
 
+//AutoLoad Tries to load credentials automatically from a environment variables or from section file.
+func (ea *CredentialsBuilder) AutoLoad(section string) *Credentials {
+	var creds *Credentials
+	var err error
+
+	creds = &Credentials{}
+	if section == "" {
+		section = "default"
+	}
+
+	creds, err = NewCredentials().FromEnv()
+	if err != nil {
+		homeDir, err := os.UserHomeDir()
+		if err != nil {
+			return nil
+		}
+
+		log.Infoln(homeDir + "/.edgerc")
+		log.Infoln(section)
+		creds, err = NewCredentials().FromFile(homeDir + "/.edgerc").Section(section)
+		if err != nil {
+			return nil
+		}
+	}
+
+	return creds
+}
+
 // NewCredentials is used to create new object on which we can chain our methods
 //
 // Example for environment variables retrieval
@@ -187,10 +215,14 @@ func (ea *CredentialsBuilder) Section(section string) (*Credentials, error) {
 		return nil, e
 	}
 
-	log.Debug("[FromFile/Section]::Loading section from credentials file")
+	log.Infoln("[FromFile/Section]::Loading section from credentials file")
 	sectionNames := edgerc.SectionStrings()
+	log.Infoln(sectionNames)
+	log.Infoln("print ea")
+	log.Infoln(ea.edgercSection)
+
 	if !(stringInSlice(ea.edgercSection, sectionNames)) {
-		e.ErrorMessage = fmt.Sprintf("[FromFile/Section]::%s", err.Error())
+		e.ErrorMessage = fmt.Sprintf("[FromFile/Section]::%s", "Could not find respective section in credentials file")
 		e.ErrorType = "ErrorCredentialSection"
 		log.Error(e.ErrorMessage)
 		return nil, e
