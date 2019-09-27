@@ -12,7 +12,7 @@ import (
 	"github.com/apiheat/go-edgegrid/v6/edgegrid"
 	
 	// ..... all other services u may also need
-	"github.com/apiheat/go-edgegrid/service/netlistv2"
+	"github.com/apiheat/go-edgegrid/v6/service/netlistv2"
 )
 ```
 
@@ -75,7 +75,7 @@ import (
 	"fmt"
 
 	"github.com/apiheat/go-edgegrid/v6/edgegrid"
-	"github.com/apiheat/go-edgegrid/service/netlistv2"
+	"github.com/apiheat/go-edgegrid/v6/service/netlistv2"
 )
 
 func main() {
