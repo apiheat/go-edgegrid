@@ -64,13 +64,18 @@ func (ea *CredentialsBuilder) AutoLoad(section string) *Credentials {
 
 	creds, err = NewCredentials().FromEnv()
 	if err != nil {
+		log.Debugln(err)
 		homeDir, err := os.UserHomeDir()
 		if err != nil {
+			log.Errorln(err)
 			return nil
 		}
 
-		log.Infoln(homeDir + "/.edgerc")
-		log.Infoln(section)
+		log.Debugln(fmt.Sprintf("Default edgerc file location %s/.edgerc", homeDir))
+		log.WithFields(log.Fields{
+			"section": section,
+		}).Debug("Section in credentials")
+
 		creds, err = NewCredentials().FromFile(homeDir + "/.edgerc").Section(section)
 		if err != nil {
 			return nil
@@ -140,7 +145,7 @@ func (ea *CredentialsBuilder) FromEnv() (*Credentials, error) {
 	if len(missing) > 0 {
 		e.ErrorMessage = fmt.Sprintf("[FromEnv]::Missing required environment variables: %s", missing)
 		e.ErrorType = "ErrorCredentialsMissingField"
-		log.Error(e.ErrorMessage)
+		// log.Debugln(e.ErrorMessage)
 
 		return nil, e
 	}
@@ -149,12 +154,12 @@ func (ea *CredentialsBuilder) FromEnv() (*Credentials, error) {
 	if err != nil {
 		e.ErrorMessage = fmt.Sprintf("[FromEnv]::Environment variables are not correct: %s", err.Error())
 		e.ErrorType = "ErrorCredentialValidation"
-		log.Error(e.ErrorMessage)
+		// log.Debugln(e.ErrorMessage)
 
 		return nil, e
 	}
 
-	log.Debug(fmt.Sprintf("[FromEnv]::Credentials from environment variables validated to: %v", result))
+	log.Debugln(fmt.Sprintf("[FromEnv]::Credentials from environment variables validated to: %v", result))
 
 	return envCredentials, nil
 }
