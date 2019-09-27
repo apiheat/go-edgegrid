@@ -71,10 +71,13 @@ func (ea *CredentialsBuilder) AutoLoad(section string) *Credentials {
 			return nil
 		}
 
-		log.Debugln(fmt.Sprintf("Default edgerc file location %s/.edgerc", homeDir))
+		log.WithFields(log.Fields{
+			"homedir": homeDir,
+		}).Debugln("Edgerc file location (.edgerc) ")
+
 		log.WithFields(log.Fields{
 			"section": section,
-		}).Debug("Section in credentials")
+		}).Debugln("Section in credentials")
 
 		creds, err = NewCredentials().FromFile(homeDir + "/.edgerc").Section(section)
 		if err != nil {
@@ -115,7 +118,7 @@ func NewCredentials() *CredentialsBuilder {
 func (ea *CredentialsBuilder) FromEnv() (*Credentials, error) {
 	e := ErrorCredentials{}
 
-	log.Debug("[FromEnv]::Loading credentials from environment variables")
+	log.Debugln("Loading credentials from environment variables")
 	var (
 		requiredOptions = []string{"HOST", "CLIENT_TOKEN", "CLIENT_SECRET", "ACCESS_TOKEN"}
 		missing         []string
@@ -143,23 +146,23 @@ func (ea *CredentialsBuilder) FromEnv() (*Credentials, error) {
 	}
 
 	if len(missing) > 0 {
-		e.ErrorMessage = fmt.Sprintf("[FromEnv]::Missing required environment variables: %s", missing)
+		e.ErrorMessage = fmt.Sprintf("Missing required environment variables: %s", missing)
 		e.ErrorType = "ErrorCredentialsMissingField"
-		// log.Debugln(e.ErrorMessage)
+		// log.Debuglnln(e.ErrorMessage)
 
 		return nil, e
 	}
 
 	result, err := govalidator.ValidateStruct(envCredentials)
 	if err != nil {
-		e.ErrorMessage = fmt.Sprintf("[FromEnv]::Environment variables are not correct: %s", err.Error())
+		e.ErrorMessage = fmt.Sprintf("Environment variables are not correct: %s", err.Error())
 		e.ErrorType = "ErrorCredentialValidation"
-		// log.Debugln(e.ErrorMessage)
+		// log.Debuglnln(e.ErrorMessage)
 
 		return nil, e
 	}
 
-	log.Debugln(fmt.Sprintf("[FromEnv]::Credentials from environment variables validated to: %v", result))
+	log.Debugf("Credentials from environment variables validated to: %v", result)
 
 	return envCredentials, nil
 }
@@ -172,21 +175,21 @@ func (ea *CredentialsBuilder) FromEnv() (*Credentials, error) {
 // }
 func (ea *CredentialsBuilder) FromJSON(json string) (*Credentials, error) {
 	e := ErrorCredentials{}
-	log.Debug("[FromJSON]::Loading credentials from JSON string")
+	log.Debugln("Loading credentials from JSON string")
 
 	credentials := &Credentials{}
 	gojsonq.New().FromString(json).Out(credentials)
 
 	result, err := govalidator.ValidateStruct(credentials)
 	if err != nil {
-		e.ErrorMessage = fmt.Sprintf("[FromJSON]::JSON credentials are not correct: %s", err.Error())
+		e.ErrorMessage = fmt.Sprintf("JSON credentials are not correct: %s", err.Error())
 		e.ErrorType = "ErrorCredentialValidation"
 		log.Error(e.ErrorMessage)
 
 		return nil, e
 	}
 
-	log.Debug(fmt.Sprintf("[FromJSON]::Credentials from JSON validated to: %v", result))
+	log.Debugf("Credentials from JSON validated to: %v", result)
 
 	return credentials, nil
 }
@@ -199,7 +202,7 @@ func (ea *CredentialsBuilder) FromJSON(json string) (*Credentials, error) {
 // 	}
 func (ea *CredentialsBuilder) FromFile(fileName string) *CredentialsBuilder {
 	ea.edgercFile = fileName
-	log.Debug(fmt.Sprintf("[FromFile/Section]::Set file name for retrieval: %s", fileName))
+	log.Debugf("Set file name for retrieval: %s", fileName)
 
 	return ea
 }
@@ -210,45 +213,48 @@ func (ea *CredentialsBuilder) Section(section string) (*Credentials, error) {
 
 	ea.edgercSection = section
 
-	log.Debug("[FromFile/Section]::Loading credentials file")
+	log.WithFields(log.Fields{
+		"file": ea.edgercFile,
+	}).Debugln("Loading credentials file")
+
 	edgerc, err := ini.Load(ea.edgercFile)
 	if err != nil {
-		e.ErrorMessage = fmt.Sprintf("[FromFile/Section]::%s", err.Error())
+		e.ErrorMessage = fmt.Sprintf("%s", err.Error())
 		e.ErrorType = "ErrorCredentialFile"
-		log.Error(e.ErrorMessage)
+		log.Errorln(e.ErrorMessage)
 
 		return nil, e
 	}
 
-	log.Infoln("[FromFile/Section]::Loading section from credentials file")
+	log.WithFields(log.Fields{
+		"section": section,
+	}).Debugln("Loading section from credentials file")
+
 	sectionNames := edgerc.SectionStrings()
-	log.Infoln(sectionNames)
-	log.Infoln("print ea")
-	log.Infoln(ea.edgercSection)
 
 	if !(stringInSlice(ea.edgercSection, sectionNames)) {
-		e.ErrorMessage = fmt.Sprintf("[FromFile/Section]::%s", "Could not find respective section in credentials file")
+		e.ErrorMessage = fmt.Sprintf("%s", "Could not find respective section in credentials file")
 		e.ErrorType = "ErrorCredentialSection"
-		log.Error(e.ErrorMessage)
+		log.Errorln(e.ErrorMessage)
 		return nil, e
 	}
 
-	log.Debug("[FromFile/Section]::Create & map credentials object")
+	log.Debugln("Create & map credentials object")
 	credentials := &Credentials{}
 	edgerc.Section(ea.edgercSection).MapTo(credentials)
 
-	log.Debug("[FromFile/Section]::Validate credentials")
+	log.Debugln("Validating credentials")
 
 	result, err := govalidator.ValidateStruct(credentials)
 	if err != nil {
-		e.ErrorMessage = fmt.Sprintf("[FromFile/Section]::JSON credentials are not correct: %s", err.Error())
+		e.ErrorMessage = fmt.Sprintf("JSON credentials are not correct: %s", err.Error())
 		e.ErrorType = "ErrorCredentialValidation"
-		log.Error(e.ErrorMessage)
+		log.Errorln(e.ErrorMessage)
 
 		return nil, e
 	}
 
-	log.Debug(fmt.Sprintf("[FromFile/Section]::Credentials from file validated to: %v", result))
+	log.Debugf(fmt.Sprintf("Credentials from file validated to: %v", result))
 	return credentials, nil
 
 }
