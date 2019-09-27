@@ -6,8 +6,8 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
-	"github.com/apiheat/go-edgegrid/edgegrid"
-	"github.com/apiheat/go-edgegrid/edgegrid/signer"
+	"github.com/apiheat/go-edgegrid/v6/edgegrid"
+	"github.com/apiheat/go-edgegrid/v6/edgegrid/signer"
 	"github.com/go-resty/resty/v2"
 )
 
