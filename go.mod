@@ -3,6 +3,7 @@ module github.com/apiheat/go-edgegrid/v6
 go 1.13
 
 require (
+	github.com/apiheat/go-edgegrid v6.0.1+incompatible
 	github.com/asaskevich/govalidator v0.0.0-20180315120708-ccb8e960c48f
 	github.com/davecgh/go-spew v1.1.1
 	github.com/go-ini/ini v1.46.0

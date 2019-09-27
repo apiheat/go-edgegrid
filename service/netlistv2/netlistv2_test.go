@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/apiheat/go-edgegrid/edgegrid"
+	"github.com/apiheat/go-edgegrid/v6/edgegrid"
 	"github.com/jarcoal/httpmock"
 	"github.com/stretchr/testify/assert"
 )

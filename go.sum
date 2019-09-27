@@ -1,3 +1,5 @@
+github.com/apiheat/go-edgegrid v6.0.1+incompatible h1:JvwqSU89onb4/EcH32DFrp4dNu8Ei/KNaiOmEY45EDk=
+github.com/apiheat/go-edgegrid v6.0.1+incompatible/go.mod h1:+gACyrB9+3TRIxCzdihSiCzrLSdhWvJAXq74KMfPzMs=
 github.com/asaskevich/govalidator v0.0.0-20180315120708-ccb8e960c48f h1:y2hSFdXeA1y5z5f0vfNO0Dg5qVY036qzlz3Pds0B92o=
 github.com/asaskevich/govalidator v0.0.0-20180315120708-ccb8e960c48f/go.mod h1:lB+ZfQJz7igIIfQNfa7Ml4HSf2uFQQRzpGGRXenZAgY=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

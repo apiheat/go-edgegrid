@@ -1,8 +1,8 @@
 package siteshieldv1
 
 import (
-	"github.com/apiheat/go-edgegrid/edgegrid"
-	"github.com/apiheat/go-edgegrid/edgegrid/client"
+	"github.com/apiheat/go-edgegrid/v6/edgegrid"
+	"github.com/apiheat/go-edgegrid/v6/edgegrid/client"
 )
 
 const (

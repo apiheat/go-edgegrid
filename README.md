@@ -9,10 +9,10 @@ The client has been created with simplicity in mind. After several iterations th
 Import client and all services you plan to use in your code. In example below we import network list service along with client
 ```go
 import (
-	"github.com/apiheat/go-edgegrid/edgegrid"
+	"github.com/apiheat/go-edgegrid/v6/edgegrid"
 	
 	// ..... all other services u may also need
-	"github.com/apiheat/go-edgegrid/service/netlistv2"
+	"github.com/apiheat/go-edgegrid/v6/service/netlistv2"
 )
 ```
 
@@ -74,8 +74,8 @@ package main
 import (
 	"fmt"
 
-	"github.com/apiheat/go-edgegrid/edgegrid"
-	"github.com/apiheat/go-edgegrid/service/netlistv2"
+	"github.com/apiheat/go-edgegrid/v6/edgegrid"
+	"github.com/apiheat/go-edgegrid/v6/service/netlistv2"
 )
 
 func main() {

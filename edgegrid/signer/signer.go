@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/apiheat/go-edgegrid/edgegrid"
+	"github.com/apiheat/go-edgegrid/v6/edgegrid"
 	uuid "github.com/satori/go.uuid"
 )
 
