@@ -1,4 +1,4 @@
-module github.com/apiheat/go-edgegrid
+module github.com/apiheat/go-edgegrid/v6
 
 go 1.13
 
