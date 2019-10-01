@@ -2,7 +2,11 @@ package diagnosticv2
 
 import (
 	"fmt"
+	"net/http"
 	"strconv"
+	"time"
+
+	log "github.com/sirupsen/logrus"
 )
 
 //ListGhostLocations returns location for ghost servers
@@ -99,6 +103,94 @@ func (dts *Diagnosticv2) RetrieveTranslateErrorAsync(requestID string) (*Transla
 
 	return resp.Result().(*TranslatedError), nil
 
+}
+
+// TranslateErrorAsync will make request and wait for response
+func (dts *Diagnosticv2) TranslateErrorAsync(errorCode string, retries int) (*TranslatedError, error) {
+	count := retries
+	// Create and execute request
+	resp, err := dts.Client.Rclient.R().
+		SetResult(TranslateErrorAsync{}).
+		SetError(DiagnosticErrorv2{}).
+		Post(fmt.Sprintf("%s/errors/%s/translate-error", basePath, errorCode))
+
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.IsError() {
+		e := resp.Error().(*DiagnosticErrorv2)
+		if e.Status != 0 {
+			return nil, e
+		}
+	}
+
+	req := resp.Result().(*TranslateErrorAsync)
+	requestID := req.RequestID
+	log.Debugf("Request for error code translation was submitted. Request ID is %s", requestID)
+
+	if resp.StatusCode() == http.StatusTooManyRequests {
+		log.Debugf("Request limit per 60 seconds reached. Will wait for a minute")
+		time.Sleep(61 * time.Second)
+	}
+
+	log.Debugf("Polling error code in %d seconds", req.RetryAfter)
+	time.Sleep(time.Duration(req.RetryAfter+1) * time.Second)
+
+	// Check request
+	// With requestId and retryAfter data we can try to poll data
+	log.Debugf("Making Translate Error request for ID: %s. Attempt 1 out of %d", requestID, retries)
+	response, err := dts.Client.Rclient.R().
+		SetResult(TranslatedError{}).
+		SetError(DiagnosticErrorv2{}).
+		Get(fmt.Sprintf("%s/translate-error-requests/%s/translated-error", basePath, requestID))
+
+	count -= 2
+
+	if response.StatusCode() == http.StatusBadRequest {
+		e := response.Error().(*DiagnosticErrorv2)
+		if e.Status != 0 {
+			return nil, e
+		}
+	}
+
+	if err != nil || response.StatusCode() != http.StatusOK {
+		for {
+			log.Debugf("Polling error code in %d seconds", req.RetryAfter)
+			time.Sleep(time.Duration(req.RetryAfter+1) * time.Second)
+
+			log.Debugf("Making Translate Error request for ID: %s. Attempt %d out of %d", requestID, retries-count, retries)
+
+			count--
+
+			response, err := dts.Client.Rclient.R().
+				SetResult(TranslatedError{}).
+				SetError(DiagnosticErrorv2{}).
+				Get(fmt.Sprintf("%s/translate-error-requests/%s/translated-error", basePath, requestID))
+
+			if err != nil {
+				return nil, err
+			}
+
+			if response.StatusCode() == http.StatusBadRequest {
+				return nil, response.Error().(*DiagnosticErrorv2)
+			}
+
+			if response.StatusCode() == http.StatusForbidden {
+				return nil, response.Error().(*DiagnosticErrorv2)
+			}
+
+			if response.StatusCode() == http.StatusOK {
+				break
+			}
+
+			if count == 0 {
+				return nil, DiagnosticErrorv2{Detail: "Operation took too long. Exiting..."}
+			}
+		}
+	}
+
+	return response.Result().(*TranslatedError), nil
 }
 
 // CheckIPAddress checks if given IP belongs to Akamai CDN
