@@ -33,8 +33,8 @@ func (dts *Diagnosticv2) ListGhostLocations() (*GhostLocations, error) {
 
 }
 
-// StartTranslateErrorAsync start async translation for given Akamai error code reference
-func (dts *Diagnosticv2) StartTranslateErrorAsync(errorCode string) (*TranslateErrorAsync, error) {
+// LaunchTranslateErrorAsync start async translation for given Akamai error code reference
+func (dts *Diagnosticv2) LaunchTranslateErrorAsync(errorCode string) (*TranslateErrorAsync, error) {
 
 	// Create and execute request
 	resp, err := dts.Client.Rclient.R().
@@ -148,10 +148,7 @@ func (dts *Diagnosticv2) TranslateErrorAsync(errorCode string, retries int) (*Tr
 	count -= 2
 
 	if response.StatusCode() == http.StatusBadRequest {
-		e := response.Error().(*DiagnosticErrorv2)
-		if e.Status != 0 {
-			return nil, e
-		}
+		return nil, response.Error().(*DiagnosticErrorv2)
 	}
 
 	if err != nil || response.StatusCode() != http.StatusOK {
