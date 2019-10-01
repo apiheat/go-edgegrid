@@ -160,7 +160,7 @@ func (dts *Diagnosticv2) TranslateErrorAsync(errorCode string, retries int) (*Tr
 
 			count--
 
-			response, err := dts.Client.Rclient.R().
+			response, err = dts.Client.Rclient.R().
 				SetResult(TranslatedError{}).
 				SetError(DiagnosticErrorv2{}).
 				Get(fmt.Sprintf("%s/translate-error-requests/%s/translated-error", basePath, requestID))

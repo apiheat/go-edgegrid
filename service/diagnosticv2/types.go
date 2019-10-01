@@ -25,30 +25,100 @@ type TranslateErrorAsync struct {
 	RetryAfter int    `json:"retryAfter"`
 }
 
+// type TranslatedError struct {
+// 	TranslatedError TranslatedErrorClass `json:"translatedError"`
+// }
+
+// type TranslatedErrorClass struct {
+// 	URL              string               `json:"url"`
+// 	HTTPResponseCode int64                `json:"httpResponseCode"`
+// 	Timestamp        string               `json:"timestamp"`
+// 	EpochTime        int64                `json:"epochTime"`
+// 	ClientIP         string               `json:"clientIp"`
+// 	ConnectingIP     string               `json:"connectingIp"`
+// 	ServerIP         string               `json:"serverIp"`
+// 	OriginHostname   string               `json:"originHostname"`
+// 	OriginIP         string               `json:"originIp"`
+// 	UserAgent        string               `json:"userAgent"`
+// 	RequestMethod    string               `json:"requestMethod"`
+// 	ReasonForFailure string               `json:"reasonForFailure"`
+// 	WafDetails       string               `json:"wafDetails"`
+// 	Logs             []TranslatedErrorLog `json:"logs"`
+// }
+
+// type TranslatedErrorLog struct {
+// 	Description string            `json:"description"`
+// 	Fields      map[string]string `json:"fields"`
+// }
+
 type TranslatedError struct {
-	TranslatedError TranslatedErrorClass `json:"translatedError"`
-}
-
-type TranslatedErrorClass struct {
-	URL              string               `json:"url"`
-	HTTPResponseCode int64                `json:"httpResponseCode"`
-	Timestamp        string               `json:"timestamp"`
-	EpochTime        int64                `json:"epochTime"`
-	ClientIP         string               `json:"clientIp"`
-	ConnectingIP     string               `json:"connectingIp"`
-	ServerIP         string               `json:"serverIp"`
-	OriginHostname   string               `json:"originHostname"`
-	OriginIP         string               `json:"originIp"`
-	UserAgent        string               `json:"userAgent"`
-	RequestMethod    string               `json:"requestMethod"`
-	ReasonForFailure string               `json:"reasonForFailure"`
-	WafDetails       string               `json:"wafDetails"`
-	Logs             []TranslatedErrorLog `json:"logs"`
-}
-
-type TranslatedErrorLog struct {
-	Description string            `json:"description"`
-	Fields      map[string]string `json:"fields"`
+	TranslatedError struct {
+		URL              string `json:"url"`
+		HTTPResponseCode int    `json:"httpResponseCode"`
+		Timestamp        string `json:"timestamp"`
+		EpochTime        int    `json:"epochTime"`
+		ClientIP         string `json:"clientIp"`
+		ConnectingIP     string `json:"connectingIp"`
+		ServerIP         string `json:"serverIp"`
+		OriginHostname   string `json:"originHostname"`
+		OriginIP         string `json:"originIp"`
+		UserAgent        string `json:"userAgent"`
+		RequestMethod    string `json:"requestMethod"`
+		ReasonForFailure string `json:"reasonForFailure"`
+		WafDetails       string `json:"wafDetails"`
+		Logs             []struct {
+			Description string `json:"description"`
+			Fields      struct {
+				EdgeServerIP                      string `json:"Edge server IP"`
+				ClientRequestR                    string `json:"client request (r)"`
+				DateTime                          string `json:"Date & Time"`
+				EpochTime                         string `json:"Epoch Time"`
+				ObjectSize                        string `json:"object size"`
+				ContentBytesServed                string `json:"content bytes served"`
+				TotalEstimatedBytesServed         string `json:"total estimated bytes served"`
+				ClientIP                          string `json:"client IP"`
+				HTTPMethod                        string `json:"HTTP method"`
+				ARL                               string `json:"ARL"`
+				HTTPStatusCode                    string `json:"HTTP status code"`
+				Error                             string `json:"error"`
+				ContentType                       string `json:"content-type"`
+				HostHeader                        string `json:"host header"`
+				Cookie                            string `json:"cookie"`
+				Referrer                          string `json:"referrer"`
+				UserAgent                         string `json:"user-agent"`
+				IMS                               string `json:"IMS"`
+				SSL                               string `json:"SSL"`
+				PersistentRequestNumber           string `json:"persistent request number"`
+				ClientRequestHeaderSize           string `json:"Client request header size"`
+				AcceptLanguage                    string `json:"Accept-Language"`
+				SSLOverheadBytes                  string `json:"SSL overhead bytes"`
+				SerialNumberAndMap                string `json:"Serial number and map"`
+				RequestByteRange                  string `json:"Request byte-range"`
+				UncompressedLength                string `json:"Uncompressed length"`
+				OtherErrorIndication              string `json:"Other-Error-Indication"`
+				DcaData                           string `json:"dca-data"`
+				XForwardedFor                     string `json:"X-Forwarded-For"`
+				XAkamaiEdgeLog                    string `json:"X-Akamai-Edge-Log"`
+				ObjectMaxAgeS                     string `json:"object-max-age_s"`
+				CustomField                       string `json:"custom-field"`
+				ObjectStatus2                     string `json:"object-status-2"`
+				SslByte                           string `json:"ssl-byte"`
+				CHTTPOverhead                     string `json:"c-http-overhead"`
+				ClientRateLimiting                string `json:"Client-rate-limiting"`
+				ClientRequestBodySize             string `json:"Client-request-body-size"`
+				FlvSeekProcessingInfo             string `json:"flv seek processing info"`
+				TrueClientIP                      string `json:"True client ip"`
+				WebApplicationFirewallInformation string `json:"Web Application Firewall Information"`
+				EdgeTokenizationInformation       string `json:"Edge Tokenization Information"`
+				OriginFileSize                    string `json:"Origin File Size"`
+				HTTPStreamingInfo                 string `json:"HTTP Streaming info"`
+				ReasonForNotCachingPrivReleased   string `json:"Reason for not caching (priv/released)"`
+				RateAccountingInfo                string `json:"Rate Accounting info"`
+				RequestBodyInspection             string `json:"Request body inspection"`
+				ResponseBodyInspection            string `json:"Response body inspection"`
+			} `json:"fields"`
+		} `json:"logs"`
+	} `json:"translatedError"`
 }
 
 //VerifyIP represents information if given IP address belongs to Akamai platform
