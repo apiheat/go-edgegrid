@@ -393,3 +393,55 @@ func (dts *Diagnosticv2) ExecuteCurl(obj string, requestFrom AkamaiRequestFrom, 
 
 	return resp.Result().(*CurlResult), nil
 }
+
+// ListGTMProperties provides available GTM properties
+func (dts *Diagnosticv2) ListGTMProperties() (*GTMPropertiesResp, error) {
+	// Create and execute request
+	resp, err := dts.Client.Rclient.R().
+		SetResult(GTMPropertiesResp{}).
+		SetError(DiagnosticErrorv2{}).
+		Get(fmt.Sprintf("%s/gtm/gtm-properties", basePath))
+
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.IsError() {
+		e := resp.Error().(*DiagnosticErrorv2)
+		if e.Status != 0 {
+			return nil, e
+		}
+	}
+
+	return resp.Result().(*GTMPropertiesResp), nil
+}
+
+// ListGTMPropertyIPs provides available GTM properties
+func (dts *Diagnosticv2) ListGTMPropertyIPs(property, domain string) (*GTMPropertyIpsResp, error) {
+
+	if property == "" {
+		return nil, fmt.Errorf("'property' is required parameter: '%s'", property)
+	}
+
+	if domain == "" {
+		return nil, fmt.Errorf("'domain' is required parameter: '%s'", domain)
+	}
+
+	resp, err := dts.Client.Rclient.R().
+		SetResult(GTMPropertyIpsResp{}).
+		SetError(DiagnosticErrorv2{}).
+		Get(fmt.Sprintf("%s/gtm/%s/%s/gtm-property-ips", basePath, property, domain))
+
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.IsError() {
+		e := resp.Error().(*DiagnosticErrorv2)
+		if e.Status != 0 {
+			return nil, e
+		}
+	}
+
+	return resp.Result().(*GTMPropertyIpsResp), nil
+}
