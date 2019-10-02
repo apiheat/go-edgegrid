@@ -214,7 +214,7 @@ func (dts *Diagnosticv2) CheckIPAddress(ip string) (*VerifyIP, error) {
 }
 
 // CreateDiagnosticLink generates user link and request
-func (dts *Diagnosticv2) CreateDiagnosticLink(username, testURL string) (*DiagnosticLinkURL, error) {
+func (dts *Diagnosticv2) GenerateDiagnosticLink(username, testURL string) (*DiagnosticLinkURL, error) {
 
 	diagnosticLinkRequest := DiagnosticLinkRequest{
 		EndUserName: username,
