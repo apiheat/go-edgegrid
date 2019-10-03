@@ -2,14 +2,6 @@ package diagnosticv2
 
 import "time"
 
-// AkamaiRequestFrom represents Akamai's source for request.
-type AkamaiRequestFrom string
-
-const (
-	RequestFromGhost     AkamaiRequestFrom = "ghost-locations"
-	RequestFromIPAddress AkamaiRequestFrom = "ip-addresses"
-)
-
 type GhostLocations struct {
 	Locations []struct {
 		ID    string `json:"id"`
@@ -95,8 +87,8 @@ type TranslatedError struct {
 	} `json:"translatedError"`
 }
 
-//VerifyIP represents information if given IP address belongs to Akamai platform
-type VerifyIP struct {
+//CDNStatus represents information if given IP address belongs to Akamai platform
+type CDNStatus struct {
 	IsAkamai bool `json:"isCdnIp"`
 }
 
@@ -228,7 +220,7 @@ type CurlRequest struct {
 	UserAgent string `json:"userAgent"`
 }
 
-type GTMPropertiesResp struct {
+type GTMPropertiesResult struct {
 	GtmProperties []struct {
 		Property string `json:"property"`
 		Domain   string `json:"domain"`
@@ -236,7 +228,7 @@ type GTMPropertiesResp struct {
 	} `json:"gtmProperties"`
 }
 
-type GTMPropertyIpsResp struct {
+type GTMPropertyIpsResult struct {
 	GtmPropertyIps struct {
 		Property  string   `json:"property"`
 		Domain    string   `json:"domain"`

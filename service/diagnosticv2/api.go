@@ -9,6 +9,28 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// IsStringInSlice returns TRUE is slice contains string and false if not
+func isStringInSlice(a string, list []string) bool {
+	// We need that to not filter for empty list
+	if len(list) > 0 {
+		for _, b := range list {
+			if b == a {
+				return true
+			}
+		}
+		return false
+	}
+	return true
+}
+
+func executeFromSourceSupported(str string) bool {
+	if isStringInSlice(str, []string{"ghost-locations", "ip-addresses"}) {
+		return true
+	}
+
+	return false
+}
+
 //ListGhostLocations returns location for ghost servers
 func (dts *Diagnosticv2) ListGhostLocations() (*GhostLocations, error) {
 
@@ -191,11 +213,11 @@ func (dts *Diagnosticv2) TranslateErrorAsync(errorCode string, retries int) (*Tr
 }
 
 // CheckIPAddress checks if given IP belongs to Akamai CDN
-func (dts *Diagnosticv2) CheckIPAddress(ip string) (*VerifyIP, error) {
+func (dts *Diagnosticv2) CheckIPAddress(ip string) (*CDNStatus, error) {
 
 	// Create and execute request
 	resp, err := dts.Client.Rclient.R().
-		SetResult(VerifyIP{}).
+		SetResult(CDNStatus{}).
 		SetError(DiagnosticErrorv2{}).
 		Get(fmt.Sprintf("%s/ip-addresses/%s/is-cdn-ip", basePath, ip))
 
@@ -210,7 +232,7 @@ func (dts *Diagnosticv2) CheckIPAddress(ip string) (*VerifyIP, error) {
 		}
 	}
 
-	return resp.Result().(*VerifyIP), nil
+	return resp.Result().(*CDNStatus), nil
 }
 
 // CreateDiagnosticLink generates user link and request
@@ -310,7 +332,10 @@ func (dts *Diagnosticv2) RetrieveIPGeolocation(ip string) (*Geolocation, error) 
 }
 
 // ExecuteDig against a hostname to get DNS information, associating hostnames and IP addresses, from an IP address within the Akamai network not local to you. Specify the hostName as a query parameter, and an optional DNS queryType. See the Dig object for details on the response data.
-func (dts *Diagnosticv2) ExecuteDig(obj string, requestFrom AkamaiRequestFrom, hostname, query string) (*DigResult, error) {
+func (dts *Diagnosticv2) ExecuteDig(obj, requestFrom, hostname, query string) (*DigResult, error) {
+	if !executeFromSourceSupported(requestFrom) {
+		return nil, fmt.Errorf("requestFrom value should be one of ['ghost-locations', 'ip-addresses'], you provided %s", requestFrom)
+	}
 
 	// Create and execute request
 	resp, err := dts.Client.Rclient.R().
@@ -340,7 +365,11 @@ func (dts *Diagnosticv2) ExecuteDig(obj string, requestFrom AkamaiRequestFrom, h
 }
 
 // ExecuteMtr provides mtr functionality
-func (dts *Diagnosticv2) ExecuteMtr(obj string, requestFrom AkamaiRequestFrom, destinationDomain string, resolveDNS bool) (*MtrResult, error) {
+func (dts *Diagnosticv2) ExecuteMtr(obj, requestFrom, destinationDomain string, resolveDNS bool) (*MtrResult, error) {
+	if !executeFromSourceSupported(requestFrom) {
+		return nil, fmt.Errorf("requestFrom value should be one of ['ghost-locations', 'ip-addresses'], you provided %s", requestFrom)
+	}
+
 	// Create and execute request
 	resp, err := dts.Client.Rclient.R().
 		SetQueryParams(map[string]string{
@@ -366,7 +395,10 @@ func (dts *Diagnosticv2) ExecuteMtr(obj string, requestFrom AkamaiRequestFrom, d
 }
 
 // ExecuteCurl provides curl functionality
-func (dts *Diagnosticv2) ExecuteCurl(obj string, requestFrom AkamaiRequestFrom, testURL, userAgent string) (*CurlResult, error) {
+func (dts *Diagnosticv2) ExecuteCurl(obj, requestFrom, testURL, userAgent string) (*CurlResult, error) {
+	if !executeFromSourceSupported(requestFrom) {
+		return nil, fmt.Errorf("requestFrom value should be one of ['ghost-locations', 'ip-addresses'], you provided %s", requestFrom)
+	}
 
 	curlRequest := CurlRequest{
 		UserAgent: userAgent,
@@ -395,10 +427,10 @@ func (dts *Diagnosticv2) ExecuteCurl(obj string, requestFrom AkamaiRequestFrom, 
 }
 
 // ListGTMProperties provides available GTM properties
-func (dts *Diagnosticv2) ListGTMProperties() (*GTMPropertiesResp, error) {
+func (dts *Diagnosticv2) ListGTMProperties() (*GTMPropertiesResult, error) {
 	// Create and execute request
 	resp, err := dts.Client.Rclient.R().
-		SetResult(GTMPropertiesResp{}).
+		SetResult(GTMPropertiesResult{}).
 		SetError(DiagnosticErrorv2{}).
 		Get(fmt.Sprintf("%s/gtm/gtm-properties", basePath))
 
@@ -413,11 +445,11 @@ func (dts *Diagnosticv2) ListGTMProperties() (*GTMPropertiesResp, error) {
 		}
 	}
 
-	return resp.Result().(*GTMPropertiesResp), nil
+	return resp.Result().(*GTMPropertiesResult), nil
 }
 
 // ListGTMPropertyIPs provides available GTM properties
-func (dts *Diagnosticv2) ListGTMPropertyIPs(property, domain string) (*GTMPropertyIpsResp, error) {
+func (dts *Diagnosticv2) ListGTMPropertyIPs(property, domain string) (*GTMPropertyIpsResult, error) {
 
 	if property == "" {
 		return nil, fmt.Errorf("'property' is required parameter: '%s'", property)
@@ -428,7 +460,7 @@ func (dts *Diagnosticv2) ListGTMPropertyIPs(property, domain string) (*GTMProper
 	}
 
 	resp, err := dts.Client.Rclient.R().
-		SetResult(GTMPropertyIpsResp{}).
+		SetResult(GTMPropertyIpsResult{}).
 		SetError(DiagnosticErrorv2{}).
 		Get(fmt.Sprintf("%s/gtm/%s/%s/gtm-property-ips", basePath, property, domain))
 
@@ -443,5 +475,5 @@ func (dts *Diagnosticv2) ListGTMPropertyIPs(property, domain string) (*GTMProper
 		}
 	}
 
-	return resp.Result().(*GTMPropertyIpsResp), nil
+	return resp.Result().(*GTMPropertyIpsResult), nil
 }
