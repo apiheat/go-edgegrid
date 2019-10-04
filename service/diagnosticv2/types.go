@@ -2,14 +2,6 @@ package diagnosticv2
 
 import "time"
 
-// AkamaiRequestFrom represents Akamai's source for request.
-type AkamaiRequestFrom string
-
-const (
-	RequestFromGhost     AkamaiRequestFrom = "ghost-locations"
-	RequestFromIPAddress AkamaiRequestFrom = "ip-addresses"
-)
-
 type GhostLocations struct {
 	Locations []struct {
 		ID    string `json:"id"`
@@ -26,33 +18,77 @@ type TranslateErrorAsync struct {
 }
 
 type TranslatedError struct {
-	TranslatedError TranslatedErrorClass `json:"translatedError"`
+	TranslatedError struct {
+		URL              string `json:"url"`
+		HTTPResponseCode int    `json:"httpResponseCode"`
+		Timestamp        string `json:"timestamp"`
+		EpochTime        int    `json:"epochTime"`
+		ClientIP         string `json:"clientIp"`
+		ConnectingIP     string `json:"connectingIp"`
+		ServerIP         string `json:"serverIp"`
+		OriginHostname   string `json:"originHostname"`
+		OriginIP         string `json:"originIp"`
+		UserAgent        string `json:"userAgent"`
+		RequestMethod    string `json:"requestMethod"`
+		ReasonForFailure string `json:"reasonForFailure"`
+		WafDetails       string `json:"wafDetails"`
+		Logs             []struct {
+			Description string `json:"description"`
+			Fields      struct {
+				EdgeServerIP                      string `json:"Edge server IP"`
+				ClientRequestR                    string `json:"client request (r)"`
+				DateTime                          string `json:"Date & Time"`
+				EpochTime                         string `json:"Epoch Time"`
+				ObjectSize                        string `json:"object size"`
+				ContentBytesServed                string `json:"content bytes served"`
+				TotalEstimatedBytesServed         string `json:"total estimated bytes served"`
+				ClientIP                          string `json:"client IP"`
+				HTTPMethod                        string `json:"HTTP method"`
+				ARL                               string `json:"ARL"`
+				HTTPStatusCode                    string `json:"HTTP status code"`
+				Error                             string `json:"error"`
+				ContentType                       string `json:"content-type"`
+				HostHeader                        string `json:"host header"`
+				Cookie                            string `json:"cookie"`
+				Referrer                          string `json:"referrer"`
+				UserAgent                         string `json:"user-agent"`
+				IMS                               string `json:"IMS"`
+				SSL                               string `json:"SSL"`
+				PersistentRequestNumber           string `json:"persistent request number"`
+				ClientRequestHeaderSize           string `json:"Client request header size"`
+				AcceptLanguage                    string `json:"Accept-Language"`
+				SSLOverheadBytes                  string `json:"SSL overhead bytes"`
+				SerialNumberAndMap                string `json:"Serial number and map"`
+				RequestByteRange                  string `json:"Request byte-range"`
+				UncompressedLength                string `json:"Uncompressed length"`
+				OtherErrorIndication              string `json:"Other-Error-Indication"`
+				DcaData                           string `json:"dca-data"`
+				XForwardedFor                     string `json:"X-Forwarded-For"`
+				XAkamaiEdgeLog                    string `json:"X-Akamai-Edge-Log"`
+				ObjectMaxAgeS                     string `json:"object-max-age_s"`
+				CustomField                       string `json:"custom-field"`
+				ObjectStatus2                     string `json:"object-status-2"`
+				SslByte                           string `json:"ssl-byte"`
+				CHTTPOverhead                     string `json:"c-http-overhead"`
+				ClientRateLimiting                string `json:"Client-rate-limiting"`
+				ClientRequestBodySize             string `json:"Client-request-body-size"`
+				FlvSeekProcessingInfo             string `json:"flv seek processing info"`
+				TrueClientIP                      string `json:"True client ip"`
+				WebApplicationFirewallInformation string `json:"Web Application Firewall Information"`
+				EdgeTokenizationInformation       string `json:"Edge Tokenization Information"`
+				OriginFileSize                    string `json:"Origin File Size"`
+				HTTPStreamingInfo                 string `json:"HTTP Streaming info"`
+				ReasonForNotCachingPrivReleased   string `json:"Reason for not caching (priv/released)"`
+				RateAccountingInfo                string `json:"Rate Accounting info"`
+				RequestBodyInspection             string `json:"Request body inspection"`
+				ResponseBodyInspection            string `json:"Response body inspection"`
+			} `json:"fields"`
+		} `json:"logs"`
+	} `json:"translatedError"`
 }
 
-type TranslatedErrorClass struct {
-	URL              string               `json:"url"`
-	HTTPResponseCode int64                `json:"httpResponseCode"`
-	Timestamp        string               `json:"timestamp"`
-	EpochTime        int64                `json:"epochTime"`
-	ClientIP         string               `json:"clientIp"`
-	ConnectingIP     string               `json:"connectingIp"`
-	ServerIP         string               `json:"serverIp"`
-	OriginHostname   string               `json:"originHostname"`
-	OriginIP         string               `json:"originIp"`
-	UserAgent        string               `json:"userAgent"`
-	RequestMethod    string               `json:"requestMethod"`
-	ReasonForFailure string               `json:"reasonForFailure"`
-	WafDetails       string               `json:"wafDetails"`
-	Logs             []TranslatedErrorLog `json:"logs"`
-}
-
-type TranslatedErrorLog struct {
-	Description string            `json:"description"`
-	Fields      map[string]string `json:"fields"`
-}
-
-//VerifyIP represents information if given IP address belongs to Akamai platform
-type VerifyIP struct {
+//CDNStatus represents information if given IP address belongs to Akamai platform
+type CDNStatus struct {
 	IsAkamai bool `json:"isCdnIp"`
 }
 
@@ -184,8 +220,7 @@ type CurlRequest struct {
 	UserAgent string `json:"userAgent"`
 }
 
-/*
-type DTGTMPropertiesResp struct {
+type GTMPropertiesResult struct {
 	GtmProperties []struct {
 		Property string `json:"property"`
 		Domain   string `json:"domain"`
@@ -193,7 +228,7 @@ type DTGTMPropertiesResp struct {
 	} `json:"gtmProperties"`
 }
 
-type DTGTMPropertyIpsResp struct {
+type GTMPropertyIpsResult struct {
 	GtmPropertyIps struct {
 		Property  string   `json:"property"`
 		Domain    string   `json:"domain"`
@@ -201,88 +236,3 @@ type DTGTMPropertyIpsResp struct {
 		TargetIps []string `json:"targetIps"`
 	} `json:"gtmPropertyIps"`
 }
-
-
-
-
-
-
-
-
-type DTGenerateDiagLinkResp struct {
-	DiagnosticURL string `json:"diagnosticUrl"`
-}
-
-type DTListDiagLinkRequestsResp struct {
-	EndUserIPRequests []struct {
-		EndUserName string    `json:"name"`
-		RequestID   uint32    `json:"requestId"`
-		URL         string    `json:"url"`
-		Timestamp   time.Time `json:"timestamp"`
-	} `json:"endUserIpRequests"`
-}
-
-
-
-
-
-
-
-type DTTranslatedErrorResp struct {
-	TranslatedError struct {
-		URL              string `json:"url"`
-		HTTPResponseCode int    `json:"httpResponseCode"`
-		Timestamp        string `json:"timestamp"`
-		EpochTime        int    `json:"epochTime"`
-		ClientIP         string `json:"clientIp"`
-		ConnectingIP     string `json:"connectingIp"`
-		ServerIP         string `json:"serverIp"`
-		OriginHostname   string `json:"originHostname"`
-		OriginIP         string `json:"originIp"`
-		UserAgent        string `json:"userAgent"`
-		RequestMethod    string `json:"requestMethod"`
-		ReasonForFailure string `json:"reasonForFailure"`
-		WafDetails       string `json:"wafDetails"`
-		Logs             []struct {
-			Description string `json:"description"`
-			Fields      struct {
-				GhostIP                         string `json:"Ghost IP"`
-				ForwardRequest                  string `json:"Forward Request"`
-				Timestamp                       string `json:"timestamp"`
-				ContentBytesReceived            string `json:"content bytes received"`
-				TotalEstimatedBytesReceived     string `json:"total estimated bytes received"`
-				ForwardIP                       string `json:"Forward IP"`
-				ClientIPPPrefresh               string `json:"client IP (p-prefresh)"`
-				HTTPMethodGETHEADEtc            string `json:"HTTP method (GET HEAD etc)"`
-				ARL                             string `json:"ARL"`
-				HTTPStatusCode                  string `json:"HTTP status code"`
-				ContentType                     string `json:"content-type"`
-				IMSIIms                         string `json:"IMS (i-ims)"`
-				SSL                             string `json:"SSL"`
-				RequestNumber                   string `json:"Request Number"`
-				Edgescape                       string `json:"Edgescape"`
-				ForwardHostname                 string `json:"Forward Hostname"`
-				GhostRequestHeaderSize          string `json:"Ghost request header size"`
-				GhostRequestSize                string `json:"Ghost request size"`
-				SSLOverheadBytes                string `json:"SSL overhead bytes"`
-				ForwardARLIfRewrittenInMetadata string `json:"Forward ARL (if rewritten in metadata)"`
-				RequestID                       string `json:"Request id"`
-				ReceivedB                       string `json:"received_b"`
-				ObjectMaxAgeS                   string `json:"object-max-age_s"`
-				Sureroute2Info                  string `json:"Sureroute2info"`
-				Range                           string `json:"range"`
-				SureRouteRaceStatIndirRoute     string `json:"SureRouteRaceStat-indirRoute"`
-				SureRouteRaceStatDirRoute       string `json:"SureRouteRace-stat-dirRoute"`
-				ForwardSideHTTPOverhead         string `json:"Forward-side-http-overhead"`
-				ReasonForThrottling             string `json:"Reason for Throttling"`
-				TimeSpentDeferringForwardRead   string `json:"Time spent deferring forward read"`
-				ObjectStatus2                   string `json:"Object Status 2"`
-				MultiFeatureStatusField         string `json:"Multi-Feature Status Field"`
-				MultiPurposeKeyValueField       string `json:"Multi-Purpose Key/Value Field"`
-				RealIPOfForwardGhostESSL        string `json:"Real IP of Forward Ghost (ESSL)"`
-			} `json:"fields"`
-		} `json:"logs"`
-	} `json:"translatedError"`
-}
-
-*/
