@@ -56,6 +56,7 @@ type CredentialsBuilder struct {
 func (ea *CredentialsBuilder) AutoLoad(section string) *Credentials {
 	var creds *Credentials
 	var err error
+	var homeDir string
 
 	creds = &Credentials{}
 	if section == "" {
@@ -65,7 +66,7 @@ func (ea *CredentialsBuilder) AutoLoad(section string) *Credentials {
 	creds, err = NewCredentials().FromEnv()
 	if err != nil {
 		log.Debugln(err)
-		homeDir, err := os.UserHomeDir()
+		homeDir, err = os.UserHomeDir()
 		if err != nil {
 			log.Errorln(err)
 			return nil
