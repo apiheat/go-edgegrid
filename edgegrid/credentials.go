@@ -219,7 +219,6 @@ func (ea *CredentialsBuilder) Section(section string) (*Credentials, error) {
 	if err != nil {
 		e.ErrorMessage = fmt.Sprintf("%s", err.Error())
 		e.ErrorType = "ErrorCredentialFile"
-		log.Errorln(e.ErrorMessage)
 
 		return nil, e
 	}
@@ -233,7 +232,7 @@ func (ea *CredentialsBuilder) Section(section string) (*Credentials, error) {
 	if !(stringInSlice(ea.edgercSection, sectionNames)) {
 		e.ErrorMessage = fmt.Sprintf("%s", "Could not find respective section in credentials file")
 		e.ErrorType = "ErrorCredentialSection"
-		log.Errorln(e.ErrorMessage)
+
 		return nil, e
 	}
 
@@ -247,7 +246,6 @@ func (ea *CredentialsBuilder) Section(section string) (*Credentials, error) {
 	if err != nil {
 		e.ErrorMessage = fmt.Sprintf("JSON credentials are not correct: %s", err.Error())
 		e.ErrorType = "ErrorCredentialValidation"
-		log.Errorln(e.ErrorMessage)
 
 		return nil, e
 	}
