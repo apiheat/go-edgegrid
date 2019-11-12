@@ -65,13 +65,10 @@ func (ea *CredentialsBuilder) AutoLoad(section string) *Credentials {
 
 	creds, err = NewCredentials().FromEnv()
 	if err != nil {
-		log.Debugln(err)
 		homeDir, err = os.UserHomeDir()
 		if err != nil {
-			log.Errorln(err)
 			return nil
 		}
-
 		log.WithFields(log.Fields{
 			"homedir": homeDir,
 		}).Debugln("Edgerc file location (.edgerc) ")
