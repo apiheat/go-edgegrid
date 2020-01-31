@@ -242,13 +242,13 @@ func (nls *Netlistv2) NetworkListNotification(action AkamaiSubscription, sub Net
 
 // GetActivationSnapshot Gets state of network list for a specific sync point
 // Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html
-func (nls *Netlistv2) GetActivationSnapshot(ListID string, syncPoint int) (*NetworkListv2, error) {
+func (nls *Netlistv2) GetActivationSnapshot(ListID string, syncPoint int, extended bool) (*NetworkListv2, error) {
 
 	// Create and execute request
 	resp, err := nls.Client.Rclient.R().
 		SetResult(NetworkListv2{}).
 		SetQueryParams(map[string]string{
-			"extended": strconv.FormatBool(true),
+			"extended": strconv.FormatBool(extended),
 		}).
 		SetError(NetworkListErrorv2{}).
 		Get(fmt.Sprintf("%s/%s/sync-points/%d/history", basePath, ListID, syncPoint))
