@@ -7,7 +7,7 @@ import (
 
 const (
 	// Represents base path used for Akamai calls towards APIs.
-	basePath = "/siteshield/v1"
+	basePath = "/siteshield/v1/maps"
 )
 
 // Siteshieldv1 provides the API operation methods for making requests to
