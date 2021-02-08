@@ -5,6 +5,31 @@ import (
 	"strconv"
 )
 
+// ModifyNetworkList Modify an existing network list
+// Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html#postlists
+func (nls *Netlistv2) ModifyNetworkList(ListID string, opts NetworkListsOptionsv2) (*NetworkListv2, error) {
+
+	// Create and execute request
+	resp, err := nls.Client.Rclient.R().
+		SetResult(NetworkListv2{}).
+		SetError(NetworkListErrorv2{}).
+		SetBody(opts).
+		Put(fmt.Sprintf("%s/%s", basePath, ListID))
+
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.IsError() {
+		e := resp.Error().(*NetworkListErrorv2)
+		if e.Status != 0 {
+			return nil, e
+		}
+	}
+
+	return resp.Result().(*NetworkListv2), nil
+}
+
 // ListNetworkLists List all configured Network Lists for the authenticated user.
 // Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html#getlists
 func (nls *Netlistv2) ListNetworkLists(opts ListNetworkListsOptionsv2) (*NetworkListsv2, error) {
