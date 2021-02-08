@@ -31,7 +31,10 @@ type NetworkListv2 struct {
 	NetworkListType    string `json:"networkListType,omitempty`
 	AccessControlGroup string `json:"accessControlGroup,omitempty"`
 	Name               string `json:"name,omitempty"`
+	Description        string `json:"description,omitempty"`
 	ElementCount       int    `json:"elementCount,omitempty"`
+	ReadOnly           bool   `json:"readOnly,omitempty"`
+	Shared             bool   `json:"shared,omitempty"`
 	Links              struct {
 		ActivateInProduction NetworkListLinkv2 `json:"activateInProduction,omitempty"`
 		ActivateInStaging    NetworkListLinkv2 `json:"activateInStaging,omitempty"`
