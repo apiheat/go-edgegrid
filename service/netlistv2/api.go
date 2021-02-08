@@ -7,14 +7,14 @@ import (
 
 // ModifyNetworkList Modify an existing network list
 // Akamai API docs: https://developer.akamai.com/api/cloud_security/network_lists/v2.html#postlists
-func (nls *Netlistv2) ModifyNetworkList(ListID string, opts NetworkListsOptionsv2) (*NetworkListv2, error) {
+func (nls *Netlistv2) ModifyNetworkList(mod NetworkListv2) (*NetworkListv2, error) {
 
 	// Create and execute request
 	resp, err := nls.Client.Rclient.R().
 		SetResult(NetworkListv2{}).
 		SetError(NetworkListErrorv2{}).
-		SetBody(opts).
-		Put(fmt.Sprintf("%s/%s", basePath, ListID))
+		SetBody(mod).
+		Put(fmt.Sprintf("%s/%s", basePath, mod.UniqueID))
 
 	if err != nil {
 		return nil, err
