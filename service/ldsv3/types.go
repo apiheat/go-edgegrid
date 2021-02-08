@@ -37,26 +37,12 @@ type ConfigurationsRespElem struct {
 		LogRetentionDays int      `json:"logRetentionDays"`
 	} `json:"logSource"`
 	AggregationDetails struct {
-		Type              string `json:"type"`
-		DeliveryFrequency struct {
-			ID    string `json:"id"`
-			Value string `json:"value"`
-			Links []struct {
-				Rel  string `json:"rel"`
-				Href string `json:"href"`
-			} `json:"links"`
-		} `json:"deliveryFrequency"`
+		Type              string                     `json:"type"`
+		DeliveryFrequency ConfigurationParameterElem `json:"deliveryFrequency"`
 	} `json:"aggregationDetails"`
 	ContactDetails struct {
-		MailAddresses []string `json:"mailAddresses"`
-		Contact       struct {
-			ID    string `json:"id"`
-			Value string `json:"value"`
-			Links []struct {
-				Rel  string `json:"rel"`
-				Href string `json:"href"`
-			} `json:"links"`
-		} `json:"contact"`
+		MailAddresses []string                   `json:"mailAddresses"`
+		Contact       ConfigurationParameterElem `json:"contact"`
 	} `json:"contactDetails"`
 	DeliveryDetails struct {
 		Type         string `json:"type"`
@@ -65,35 +51,54 @@ type ConfigurationsRespElem struct {
 		Directory    string `json:"directory"`
 	} `json:"deliveryDetails"`
 	EncodingDetails struct {
-		Encoding struct {
-			ID    string `json:"id"`
-			Value string `json:"value"`
-			Links []struct {
-				Rel  string `json:"rel"`
-				Href string `json:"href"`
-			} `json:"links"`
-		} `json:"encoding"`
+		Encoding ConfigurationParameterElem `json:"encoding"`
 	} `json:"encodingDetails"`
 	LogFormatDetails struct {
-		LogIdentifier string `json:"logIdentifier"`
-		LogFormat     struct {
-			ID    string `json:"id"`
-			Value string `json:"value"`
-			Links []struct {
-				Rel  string `json:"rel"`
-				Href string `json:"href"`
-			} `json:"links"`
-		} `json:"logFormat"`
+		LogIdentifier string                     `json:"logIdentifier"`
+		LogFormat     ConfigurationParameterElem `json:"logFormat"`
 	} `json:"logFormatDetails"`
-	MessageSize struct {
+	MessageSize ConfigurationParameterElem `json:"messageSize"`
+	Links       []struct {
+		Rel    string `json:"rel"`
+		Href   string `json:"href"`
+		Title  string `json:"title,omitempty"`
+		Method string `json:"method,omitempty"`
+	} `json:"links"`
+}
+
+// ConfigurationParameterResp
+type ConfigurationParameterResp []ConfigurationParameterElem
+
+// ConfigurationParameterElem
+type ConfigurationParameterElem struct {
+	ID    string `json:"id"`
+	Value string `json:"value"`
+	Links []struct {
+		Rel  string `json:"rel"`
+		Href string `json:"href"`
+	} `json:"links"`
+}
+
+// LogRedeliveryResp
+type LogRedeliveryResp []LogRedeliveryElem
+
+// LogRedeliveryElem
+type LogRedeliveryElem struct {
+	LogConfiguration struct {
 		ID    string `json:"id"`
-		Value string `json:"value"`
 		Links []struct {
 			Rel  string `json:"rel"`
 			Href string `json:"href"`
 		} `json:"links"`
-	} `json:"messageSize"`
-	Links []struct {
+	} `json:"logConfiguration"`
+	ID             string `json:"id"`
+	BeginTime      int    `json:"beginTime"`
+	EndTime        int    `json:"endTime"`
+	RedeliveryDate string `json:"redeliveryDate"`
+	Status         string `json:"status"`
+	CreatedDate    string `json:"createdDate"`
+	ModifiedDate   string `json:"modifiedDate"`
+	Links          []struct {
 		Rel    string `json:"rel"`
 		Href   string `json:"href"`
 		Title  string `json:"title,omitempty"`
