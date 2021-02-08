@@ -45,7 +45,7 @@ type NetworkListv2 struct {
 		Update               NetworkListLinkv2 `json:"update,omitempty"`
 	} `json:"links"`
 	List                                []string  `json:"list"`
-	SyncPoint                           int       `json:"syncPoint,omitempty"`
+	SyncPoint                           int       `json:"syncPoint"`
 	Type                                string    `json:"type,omitempty"`
 	UniqueID                            string    `json:"uniqueId,omitempty"`
 	CreateDate                          time.Time `json:"createDate,omitempty"`
