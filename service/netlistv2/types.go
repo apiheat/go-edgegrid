@@ -71,6 +71,8 @@ type NetworkListsOptionsv2 struct {
 	Name        string   `json:"name,omitempty"`
 	Type        string   `json:"type,omitempty"`
 	Description string   `json:"description,omitempty"`
+	GroupID     int      `json:"groupId,omitempty"`
+	ContractID  string   `json:"contractId,omitempty"`
 	List        []string `json:"list,omitempty"`
 }
 
