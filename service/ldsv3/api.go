@@ -176,14 +176,13 @@ func (lds *Ldsv3) ListLogFormatPerID(logSourceID, logSourceType string) (*Config
 	return resp.Result().(*ConfigurationParameterResp), nil
 }
 
-// ListLogEncodingsByType returns all available log formats for the specified logSourceType type.
-// You need the Id of log format to create new log delivery configurations.
+// ListLogEncodingsByType retrieves all allowable log encodings.
 func (lds *Ldsv3) ListLogEncodingsByType(logSourceType, deliveryType string) (*ConfigurationParameterResp, error) {
 	if logSourceType == "" {
 		return nil, fmt.Errorf("Missing argument 'logSourceType'. Most probably you need cpcode-products as argument")
 	}
 
-	apiURI := fmt.Sprintf("%s/log-sources/%s/log-formats", basePath, logSourceType)
+	apiURI := fmt.Sprintf("%s/log-sources/%s/encodings", basePath, logSourceType)
 
 	query := map[string]string{}
 
@@ -461,7 +460,7 @@ func (lds *Ldsv3) GetLogEncoding(encodingID string) (*ConfigurationParameterElem
 
 // GetMessageSize retrieves a specific message size.
 func (lds *Ldsv3) GetMessageSize(messageSizeID string) (*ConfigurationParameterElem, error) {
-	resp, err := lds.GetLogConfigurationParameter(messageSizeID, "encodings")
+	resp, err := lds.GetLogConfigurationParameter(messageSizeID, "message-sizes")
 
 	if err != nil {
 		return nil, err
