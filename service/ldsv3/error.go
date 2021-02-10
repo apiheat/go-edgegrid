@@ -12,6 +12,7 @@ type LsdErrorv3 struct {
 		} `json:"data"`
 	} `json:"details"`
 	Code       string `json:"code"`
+	Status     int    `json:"status"`
 	Title      string `json:"title"`
 	IncidentID string `json:"incidentId"`
 }
@@ -26,7 +27,7 @@ type Errors struct {
 // See ErrorWithExtra for formatting.
 // Satisfies the error interface.
 func (lde LsdErrorv3) Error() string {
-	msg := fmt.Sprintf("%s\n\t%s", lde.Title, lde.Code)
+	msg := fmt.Sprintf("%s\n\t%s(%d)", lde.Title, lde.Code, lde.Status)
 
 	return msg
 }

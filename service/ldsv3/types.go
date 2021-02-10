@@ -108,14 +108,14 @@ type LogRedeliveryElem struct {
 
 // LogConfigurationOptions
 type ConfigurationOptions struct {
-	StartDate          string                           `json:"startDate,omitempty"`
-	LogSource          *ConfigurationMember             `json:"logSource,omitempty"`
-	ContactDetails     *ConfigurationContactDetails     `json:"contactDetails,omitempty"`
-	LogFormatDetails   *ConfigurationLogFormatDetails   `json:"logFormatDetails,omitempty"`
-	MessageSize        *ConfigurationMember             `json:"messageSize,omitempty,omitempty"`
-	AggregationDetails *ConfigurationAggregationDetails `json:"aggregationDetails,omitempty"`
-	EncodingDetails    *ConfigurationEncodingDetails    `json:"encodingDetails,omitempty"`
-	DeliveryDetails    *ConfigurationDeliveryDetails    `json:"deliveryDetails,omitempty"`
+	StartDate          string                          `json:"startDate"`
+	LogSource          ConfigurationMember             `json:"logSource"`
+	ContactDetails     ConfigurationContactDetails     `json:"contactDetails"`
+	LogFormatDetails   ConfigurationLogFormatDetails   `json:"logFormatDetails"`
+	MessageSize        ConfigurationMember             `json:"messageSize"`
+	AggregationDetails ConfigurationAggregationDetails `json:"aggregationDetails"`
+	EncodingDetails    ConfigurationEncodingDetails    `json:"encodingDetails"`
+	DeliveryDetails    ConfigurationDeliveryDetails    `json:"deliveryDetails"`
 }
 
 // Generic Configuration type
@@ -125,26 +125,26 @@ type ConfigurationMember struct {
 }
 
 type ConfigurationContactDetails struct {
-	Contact       *ConfigurationMember `json:"contact,omitempty"`
-	MailAddresses []string             `json:"mailAddresses,omitempty"`
+	Contact       ConfigurationMember `json:"contact"`
+	MailAddresses []string            `json:"mailAddresses"`
 }
 
 type ConfigurationLogFormatDetails struct {
-	LogFormat     *ConfigurationMember `json:"logFormat,omitempty"`
-	LogIdentifier string               `json:"logIdentifier,omitempty"`
+	LogFormat     ConfigurationMember `json:"logFormat"`
+	LogIdentifier string              `json:"logIdentifier"`
 }
 
 type ConfigurationAggregationDetails struct {
-	Type              string               `json:"type,omitempty"`
-	DeliveryFrequency *ConfigurationMember `json:"deliveryFrequency,omitempty"`
+	Type              string              `json:"type"`
+	DeliveryFrequency ConfigurationMember `json:"deliveryFrequency"`
 }
 
 type ConfigurationEncodingDetails struct {
-	Encoding *ConfigurationMember `json:"encoding,omitempty"`
+	Encoding ConfigurationMember `json:"encoding"`
 }
 
 type ConfigurationDeliveryDetails struct {
-	Type         string `json:"type,omitempty"`
+	Type         string `json:"type"`
 	EmailAddress string `json:"emailAddress,omitempty"`
 	DomainPrefix string `json:"domainPrefix,omitempty"`
 	CpcodeID     int    `json:"cpcodeId,omitempty"`
