@@ -132,6 +132,8 @@ type ConfigurationBody struct {
 type GenericBodyMember struct {
 	// Unique identifier for the object
 	ID string `json:"id"`
+	// Type is required only if used in ConfigurationCopyBodyTarget
+	Type string `json:"type,omitempty"`
 }
 
 // ConfigurationBodyContactDetails contains details about contact person for this log delivery configuration.
@@ -156,14 +158,14 @@ type ConfigurationBodyAggregationDetails struct {
 	Type string `json:"type"`
 	// Used with byLogArrival type
 	// Period of time that will be covered by log delivery, provided as a simple GenericBodyMember object.
-	DeliveryFrequency GenericBodyMember `json:"deliveryFrequency,omitempty"`
+	DeliveryFrequency *GenericBodyMember `json:"deliveryFrequency,omitempty"`
 	// Used with byHitTime type
 	// Indicates whether residual data should be sent at regular intervals after each day.
 	DeliverResidualData bool `json:"deliverResidualData,omitempty"`
 	// Used with byHitTime type
 	// Data completion threshold, or the percentage of expected logs to be processed
 	// before the log data is sent to you, provided as a simple GenericBodyMember object.
-	DeliveryThreshold GenericBodyMember `json:"deliveryThreshold,omitempty"`
+	DeliveryThreshold *GenericBodyMember `json:"deliveryThreshold,omitempty"`
 }
 
 // ConfigurationBodyEncodingDetails describes the log encoding.
@@ -172,7 +174,7 @@ type ConfigurationBodyEncodingDetails struct {
 	Encoding GenericBodyMember `json:"encoding"`
 	// Public key value for encrypted encoding.
 	// You need to set the public key value if GPG encrypted encoding is used.
-	EncodingKey string `json:"encoding,omitempty"`
+	EncodingKey string `json:"encodingKey,omitempty"`
 }
 
 // ConfigurationBodyDeliveryDetails encapsulates log delivery sent by email, ftp or netstorage(httpsns4)
