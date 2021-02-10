@@ -46,7 +46,6 @@ func (lds *Ldsv3) UpdateLogConfiguration(logConfigurationID string, body Configu
 
 	// Create and execute request
 	resp, err := lds.Client.Rclient.R().
-		//SetResult(ConfigurationsRespElem{}).
 		SetError(LsdErrorv3{}).
 		SetHeader("Content-Type", "application/json").
 		SetBody(body).
@@ -81,7 +80,6 @@ func (lds *Ldsv3) RemoveLogConfiguration(logConfigurationID string) error {
 
 	// Create and execute request
 	resp, err := lds.Client.Rclient.R().
-		//SetResult(ConfigurationsRespElem{}).
 		SetError(LsdErrorv3{}).
 		Delete(apiURI)
 
@@ -109,7 +107,6 @@ func (lds *Ldsv3) CopyLogConfiguration(logConfigurationID string, body Configura
 
 	// Create and execute request
 	resp, err := lds.Client.Rclient.R().
-		//SetResult(ConfigurationsRespElem{}).
 		SetError(LsdErrorv3{}).
 		SetHeader("Content-Type", "application/json").
 		SetBody(body).
