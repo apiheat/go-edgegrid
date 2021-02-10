@@ -105,3 +105,56 @@ type LogRedeliveryElem struct {
 		Method string `json:"method,omitempty"`
 	} `json:"links"`
 }
+
+// LogConfigurationOptions
+type ConfigurationOptions struct {
+	StartDate          string                           `json:"startDate,omitempty"`
+	LogSource          *ConfigurationMember             `json:"logSource,omitempty"`
+	ContactDetails     *ConfigurationContactDetails     `json:"contactDetails,omitempty"`
+	LogFormatDetails   *ConfigurationLogFormatDetails   `json:"logFormatDetails,omitempty"`
+	MessageSize        *ConfigurationMember             `json:"messageSize,omitempty,omitempty"`
+	AggregationDetails *ConfigurationAggregationDetails `json:"aggregationDetails,omitempty"`
+	EncodingDetails    *ConfigurationEncodingDetails    `json:"encodingDetails,omitempty"`
+	DeliveryDetails    *ConfigurationDeliveryDetails    `json:"deliveryDetails,omitempty"`
+}
+
+// Generic Configuration type
+type ConfigurationMember struct {
+	Type string `json:"type,omitempty"`
+	ID   string `json:"id,omitempty"`
+}
+
+type ConfigurationContactDetails struct {
+	Contact       *ConfigurationMember `json:"contact,omitempty"`
+	MailAddresses []string             `json:"mailAddresses,omitempty"`
+}
+
+type ConfigurationLogFormatDetails struct {
+	LogFormat     *ConfigurationMember `json:"logFormat,omitempty"`
+	LogIdentifier string               `json:"logIdentifier,omitempty"`
+}
+
+type ConfigurationAggregationDetails struct {
+	Type              string               `json:"type,omitempty"`
+	DeliveryFrequency *ConfigurationMember `json:"deliveryFrequency,omitempty"`
+}
+
+type ConfigurationEncodingDetails struct {
+	Encoding *ConfigurationMember `json:"encoding,omitempty"`
+}
+
+type ConfigurationDeliveryDetails struct {
+	Type         string `json:"type,omitempty"`
+	EmailAddress string `json:"emailAddress,omitempty"`
+	DomainPrefix string `json:"domainPrefix,omitempty"`
+	CpcodeID     int    `json:"cpcodeId,omitempty"`
+	Directory    string `json:"directory,omitempty"`
+}
+
+type ConfigurationCopyOptions struct {
+	CopyTarget ConfigurationCopyTarget `json:"copyTarget"`
+}
+
+type ConfigurationCopyTarget struct {
+	LogSource ConfigurationMember `json:"logSource"`
+}
