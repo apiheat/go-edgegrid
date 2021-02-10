@@ -36,6 +36,7 @@ func (lds *Ldsv3) GetLogConfiguration(logConfigurationID string) (*Configuration
 // UpdateLogConfiguration modifies a specific log delivery.
 // You need to specify all the data members in the request, or missing members are removed from the configuration.
 // The response’s Location header reflects where you can access the new configuration.
+// You have to have top group account permissions for this call
 func (lds *Ldsv3) UpdateLogConfiguration(logConfigurationID string, body ConfigurationBody) (string, error) {
 	if logConfigurationID == "" {
 		return "", fmt.Errorf("Please provide log configuration ID")
@@ -98,6 +99,7 @@ func (lds *Ldsv3) RemoveLogConfiguration(logConfigurationID string) error {
 }
 
 // CopyLogConfiguration copies a specific log delivery configuration to a target log source to produce a new log delivery configuration.
+// You have to have top group account permissions for this call
 func (lds *Ldsv3) CopyLogConfiguration(logConfigurationID string, body ConfigurationCopyBody) (string, error) {
 	if logConfigurationID == "" {
 		return "", fmt.Errorf("Please provide log configuration ID")
@@ -191,6 +193,7 @@ func (lds *Ldsv3) ResumeLogConfiguration(logConfigurationID string) error {
 
 // CreateLogConfiguration creates new log configuration.
 // The response’s Location header reflects where you can access the new configuration.
+// You have to have top group account permissions for this call
 func (lds *Ldsv3) CreateLogConfiguration(logCSourceID, logSourceType string, body ConfigurationBody) (string, error) {
 	if logCSourceID == "" {
 		return "", fmt.Errorf("Please provide log source ID")
