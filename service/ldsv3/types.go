@@ -110,10 +110,14 @@ type LogRedeliveryElem struct {
 // that creates and updates a log delivery configuration.
 type ConfigurationBody struct {
 	// Start date from which logs will be collected.
+	// Start date has to be set at least one day after current date
 	StartDate string `json:"startDate"`
 	// (Optional) End date to which logs will be collected.
 	EndDate string `json:"endDate,omitempty"`
-	//LogSource GenericBodyMember `json:"logSource"`
+	// (Optional) Used in Update call only. In other call will cause error
+	// Describes detailed log source information for configuration
+	// Both type and ID of log source are required
+	LogSource *GenericBodyMember `json:"logSource,omitempty"`
 	// Contains details about contact person for this log delivery configuration.
 	ContactDetails ConfigurationBodyContactDetails `json:"contactDetails"`
 	// Describes the log format.
