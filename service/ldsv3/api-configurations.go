@@ -7,7 +7,7 @@ import (
 )
 
 // GetLogConfiguration retrieves a specific log delivery configuration.
-func (lds *Ldsv3) GetLogConfiguration(logConfigurationID string) (*ConfigurationsRespElem, error) {
+func (lds *Ldsv3) GetLogConfiguration(logConfigurationID string) (*OutputConfigurationElement, error) {
 	if logConfigurationID == "" {
 		return nil, fmt.Errorf("Please provide log configuration ID")
 	}
@@ -16,7 +16,7 @@ func (lds *Ldsv3) GetLogConfiguration(logConfigurationID string) (*Configuration
 
 	// Create and execute request
 	resp, err := lds.Client.Rclient.R().
-		SetResult(ConfigurationsRespElem{}).
+		SetResult(OutputConfigurationElement{}).
 		SetError(LsdErrorv3{}).
 		Get(apiURI)
 
@@ -30,7 +30,7 @@ func (lds *Ldsv3) GetLogConfiguration(logConfigurationID string) (*Configuration
 		return nil, e
 	}
 
-	return resp.Result().(*ConfigurationsRespElem), nil
+	return resp.Result().(*OutputConfigurationElement), nil
 }
 
 // UpdateLogConfiguration modifies a specific log delivery.

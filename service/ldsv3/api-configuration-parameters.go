@@ -7,7 +7,7 @@ import (
 // List calls
 
 // ListLogConfigurationParameter generic get log configuration parameters call
-func (lds *Ldsv3) ListLogConfigurationParameter(parameterType string) (*ConfigurationParameterResp, error) {
+func (lds *Ldsv3) ListLogConfigurationParameter(parameterType string) (*ConfigurationParameterResponse, error) {
 	if parameterType == "" {
 		return nil, fmt.Errorf("Please provide parameter type", parameterType)
 	}
@@ -16,7 +16,7 @@ func (lds *Ldsv3) ListLogConfigurationParameter(parameterType string) (*Configur
 
 	// Create and execute request
 	resp, err := lds.Client.Rclient.R().
-		SetResult(ConfigurationParameterResp{}).
+		SetResult(ConfigurationParameterResponse{}).
 		SetError(LsdErrorv3{}).
 		Get(apiURI)
 
@@ -30,12 +30,12 @@ func (lds *Ldsv3) ListLogConfigurationParameter(parameterType string) (*Configur
 		return nil, e
 	}
 
-	return resp.Result().(*ConfigurationParameterResp), nil
+	return resp.Result().(*ConfigurationParameterResponse), nil
 }
 
 // ListDeliveryFrequencies returns all available delivery frequencies, each with an id and descriptive value.
 // You need the id to create or modify a log delivery configuration.
-func (lds *Ldsv3) ListDeliveryFrequencies() (*ConfigurationParameterResp, error) {
+func (lds *Ldsv3) ListDeliveryFrequencies() (*ConfigurationParameterResponse, error) {
 	resp, err := lds.ListLogConfigurationParameter("delivery-frequencies")
 
 	if err != nil {
@@ -46,7 +46,7 @@ func (lds *Ldsv3) ListDeliveryFrequencies() (*ConfigurationParameterResp, error)
 }
 
 // ListDeliveryThresholds returns all available log delivery thresholds, each with an id and descriptive value.
-func (lds *Ldsv3) ListDeliveryThresholds() (*ConfigurationParameterResp, error) {
+func (lds *Ldsv3) ListDeliveryThresholds() (*ConfigurationParameterResponse, error) {
 	resp, err := lds.ListLogConfigurationParameter("delivery-thresholds")
 
 	if err != nil {
@@ -59,7 +59,7 @@ func (lds *Ldsv3) ListDeliveryThresholds() (*ConfigurationParameterResp, error) 
 // ListLogEncodings returns all available log encoding options.
 // You can restrict the response by specifying optional values for the deliveryType and logSourceType,
 // since available encoding types are based on these characteristics of a log delivery configuration.
-func (lds *Ldsv3) ListLogEncodings(deliveryType, logSourceType string) (*ConfigurationParameterResp, error) {
+func (lds *Ldsv3) ListLogEncodings(deliveryType, logSourceType string) (*ConfigurationParameterResponse, error) {
 	apiURI := fmt.Sprintf("%s/log-configuration-parameters/encodings", basePath)
 
 	query := map[string]string{}
@@ -74,7 +74,7 @@ func (lds *Ldsv3) ListLogEncodings(deliveryType, logSourceType string) (*Configu
 
 	// Create and execute request
 	resp, err := lds.Client.Rclient.R().
-		SetResult(ConfigurationParameterResp{}).
+		SetResult(ConfigurationParameterResponse{}).
 		SetError(LsdErrorv3{}).
 		SetQueryParams(query).
 		Get(apiURI)
@@ -89,12 +89,12 @@ func (lds *Ldsv3) ListLogEncodings(deliveryType, logSourceType string) (*Configu
 		return nil, e
 	}
 
-	return resp.Result().(*ConfigurationParameterResp), nil
+	return resp.Result().(*ConfigurationParameterResponse), nil
 }
 
 // ListMessageSizes returns all available message sizes, each with an id and descriptive value.
 // You need the id to create or modify a log delivery configuration.
-func (lds *Ldsv3) ListMessageSizes() (*ConfigurationParameterResp, error) {
+func (lds *Ldsv3) ListMessageSizes() (*ConfigurationParameterResponse, error) {
 	resp, err := lds.ListLogConfigurationParameter("message-sizes")
 
 	if err != nil {
@@ -105,7 +105,7 @@ func (lds *Ldsv3) ListMessageSizes() (*ConfigurationParameterResp, error) {
 }
 
 // ListContacts returns all contacts to which you have access.
-func (lds *Ldsv3) ListContacts() (*ConfigurationParameterResp, error) {
+func (lds *Ldsv3) ListContacts() (*ConfigurationParameterResponse, error) {
 	resp, err := lds.ListLogConfigurationParameter("contacts")
 
 	if err != nil {
@@ -116,7 +116,7 @@ func (lds *Ldsv3) ListContacts() (*ConfigurationParameterResp, error) {
 }
 
 // ListNetStorageGroups returns all NetStorage4 groups to which you have access.
-func (lds *Ldsv3) ListNetStorageGroups() (*ConfigurationParameterResp, error) {
+func (lds *Ldsv3) ListNetStorageGroups() (*ConfigurationParameterResponse, error) {
 	resp, err := lds.ListLogConfigurationParameter("netstorage-groups")
 
 	if err != nil {
@@ -127,7 +127,7 @@ func (lds *Ldsv3) ListNetStorageGroups() (*ConfigurationParameterResp, error) {
 }
 
 // GetLogConfigurationParameter generic get log configuration parameters call
-func (lds *Ldsv3) GetLogConfigurationParameter(ID, parameterType string) (*ConfigurationParameterElem, error) {
+func (lds *Ldsv3) GetLogConfigurationParameter(ID, parameterType string) (*GenericConfigurationParameterElement, error) {
 	if ID == "" {
 		return nil, fmt.Errorf("Please provide %s ID", parameterType)
 	}
@@ -140,7 +140,7 @@ func (lds *Ldsv3) GetLogConfigurationParameter(ID, parameterType string) (*Confi
 
 	// Create and execute request
 	resp, err := lds.Client.Rclient.R().
-		SetResult(ConfigurationParameterElem{}).
+		SetResult(GenericConfigurationParameterElement{}).
 		SetError(LsdErrorv3{}).
 		Get(apiURI)
 
@@ -154,11 +154,11 @@ func (lds *Ldsv3) GetLogConfigurationParameter(ID, parameterType string) (*Confi
 		return nil, e
 	}
 
-	return resp.Result().(*ConfigurationParameterElem), nil
+	return resp.Result().(*GenericConfigurationParameterElement), nil
 }
 
 // GetDeliveryFrequency returns a specific delivery frequency.
-func (lds *Ldsv3) GetDeliveryFrequency(deliveryFrequencyID string) (*ConfigurationParameterElem, error) {
+func (lds *Ldsv3) GetDeliveryFrequency(deliveryFrequencyID string) (*GenericConfigurationParameterElement, error) {
 	resp, err := lds.GetLogConfigurationParameter(deliveryFrequencyID, "delivery-frequencies")
 
 	if err != nil {
@@ -169,7 +169,7 @@ func (lds *Ldsv3) GetDeliveryFrequency(deliveryFrequencyID string) (*Configurati
 }
 
 // GetDeliveryThreshold returns a specific delivery frequency.
-func (lds *Ldsv3) GetDeliveryThreshold(deliveryThresholdID string) (*ConfigurationParameterElem, error) {
+func (lds *Ldsv3) GetDeliveryThreshold(deliveryThresholdID string) (*GenericConfigurationParameterElement, error) {
 	resp, err := lds.GetLogConfigurationParameter(deliveryThresholdID, "delivery-thresholds")
 
 	if err != nil {
@@ -181,7 +181,7 @@ func (lds *Ldsv3) GetDeliveryThreshold(deliveryThresholdID string) (*Configurati
 
 // GetLogFormat returns a specific log format.
 // You need this id to specify the log format for a log delivery configuration.
-func (lds *Ldsv3) GetLogFormat(logFormatID string) (*ConfigurationParameterElem, error) {
+func (lds *Ldsv3) GetLogFormat(logFormatID string) (*GenericConfigurationParameterElement, error) {
 	resp, err := lds.GetLogConfigurationParameter(logFormatID, "log-formats")
 
 	if err != nil {
@@ -192,7 +192,7 @@ func (lds *Ldsv3) GetLogFormat(logFormatID string) (*ConfigurationParameterElem,
 }
 
 // GetLogEncoding returns a specific log encoding.
-func (lds *Ldsv3) GetLogEncoding(encodingID string) (*ConfigurationParameterElem, error) {
+func (lds *Ldsv3) GetLogEncoding(encodingID string) (*GenericConfigurationParameterElement, error) {
 	resp, err := lds.GetLogConfigurationParameter(encodingID, "encodings")
 
 	if err != nil {
@@ -203,7 +203,7 @@ func (lds *Ldsv3) GetLogEncoding(encodingID string) (*ConfigurationParameterElem
 }
 
 // GetMessageSize retrieves a specific message size.
-func (lds *Ldsv3) GetMessageSize(messageSizeID string) (*ConfigurationParameterElem, error) {
+func (lds *Ldsv3) GetMessageSize(messageSizeID string) (*GenericConfigurationParameterElement, error) {
 	resp, err := lds.GetLogConfigurationParameter(messageSizeID, "message-sizes")
 
 	if err != nil {
@@ -214,7 +214,7 @@ func (lds *Ldsv3) GetMessageSize(messageSizeID string) (*ConfigurationParameterE
 }
 
 // GetContact returns a specific contact, assuming the identity associated with the API client has access to it.
-func (lds *Ldsv3) GetContact(contactID string) (*ConfigurationParameterElem, error) {
+func (lds *Ldsv3) GetContact(contactID string) (*GenericConfigurationParameterElement, error) {
 	resp, err := lds.GetLogConfigurationParameter(contactID, "contacts")
 
 	if err != nil {

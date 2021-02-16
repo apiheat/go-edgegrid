@@ -7,7 +7,7 @@ import (
 )
 
 // GetLogRedelivery retrieves a specific log redelivery request.
-func (lds *Ldsv3) GetLogRedelivery(redeliveryID string) (*LogRedeliveryElem, error) {
+func (lds *Ldsv3) GetLogRedelivery(redeliveryID string) (*OutputLogRedeliveryElement, error) {
 	if redeliveryID == "" {
 		return nil, fmt.Errorf("Please provide log redelivery ID")
 	}
@@ -16,7 +16,7 @@ func (lds *Ldsv3) GetLogRedelivery(redeliveryID string) (*LogRedeliveryElem, err
 
 	// Create and execute request
 	resp, err := lds.Client.Rclient.R().
-		SetResult(LogRedeliveryElem{}).
+		SetResult(OutputLogRedeliveryElement{}).
 		SetError(LsdErrorv3{}).
 		Get(apiURI)
 
@@ -30,16 +30,16 @@ func (lds *Ldsv3) GetLogRedelivery(redeliveryID string) (*LogRedeliveryElem, err
 		return nil, e
 	}
 
-	return resp.Result().(*LogRedeliveryElem), nil
+	return resp.Result().(*OutputLogRedeliveryElement), nil
 }
 
 // ListLogRedeliveries retrieves a list of requests to redeliver logs.
-func (lds *Ldsv3) ListLogRedeliveries() (*LogRedeliveryResp, error) {
+func (lds *Ldsv3) ListLogRedeliveries() (*OutputLogRedelivery, error) {
 	apiURI := fmt.Sprintf("%s/log-redeliveries", basePath)
 
 	// Create and execute request
 	resp, err := lds.Client.Rclient.R().
-		SetResult(LogRedeliveryResp{}).
+		SetResult(OutputLogRedelivery{}).
 		SetError(LsdErrorv3{}).
 		Get(apiURI)
 
@@ -53,7 +53,7 @@ func (lds *Ldsv3) ListLogRedeliveries() (*LogRedeliveryResp, error) {
 		return nil, e
 	}
 
-	return resp.Result().(*LogRedeliveryResp), nil
+	return resp.Result().(*OutputLogRedelivery), nil
 }
 
 // CreateLogRedeliveries creates a new request to resend a log.
