@@ -63,11 +63,15 @@ func (lds *Ldsv3) UpdateLogConfiguration(logConfigurationID string, body Configu
 	}
 
 	headers := resp.Header()
-
-	fmt.Println(headers)
 	location := headers.Get("Location")
 
-	return location, nil
+	configurationURL, err := url.Parse(location)
+
+	if err != nil {
+		return location, err
+	}
+
+	return path.Base(configurationURL.Path), nil
 }
 
 // RemoveLogConfiguration deletes a specific log delivery configuration.
