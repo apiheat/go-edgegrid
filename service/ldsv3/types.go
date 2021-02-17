@@ -117,7 +117,7 @@ type ConfigurationBody struct {
 	// (Optional) Used in Update call only.
 	// Describes detailed log source information for configuration
 	// Both type and ID of log source are required
-	LogSource *GenericConfigurationParameterElement `json:"logSource,omitempty"`
+	LogSource *LogSourceBodyMember `json:"logSource,omitempty"`
 	// Contains details about contact person for this log delivery configuration.
 	ContactDetails ConfigurationBodyContactDetails `json:"contactDetails"`
 	// Describes the log format.
