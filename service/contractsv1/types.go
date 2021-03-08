@@ -1,5 +1,15 @@
 package contractsv1
 
+const (
+	// Top returns only parent contracts
+	Top ContractsDepth = "TOP"
+	// All returns both parent and child contracts.
+	All ContractsDepth = "ALL"
+)
+
+// ContractsDepth represents Akamai's contracts depth type.
+type ContractsDepth string
+
 // OutputContractIDs lists the contract ids the requesting user has access to.
 type OutputContractIDs []string
 

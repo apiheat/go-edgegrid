@@ -2,27 +2,13 @@ package contractsv1
 
 import "fmt"
 
-func depthAllowedValues(val string) (ok bool) {
-	values := []string{"TOP", "ALL"}
-	for i := range values {
-		if ok = values[i] == val; ok {
-			return
-		}
-	}
-	return
-}
-
 // ListContracts gets the list of contracts that a user has access to.
 // 'depth' returns a specific set of contracts.
 // Select TOP to return only parent contracts or ALL to return both parent and child contracts.
-func (c *Contractsv1) ListContracts(depth string) (*OutputContractIDs, error) {
+func (c *Contractsv1) ListContracts(depth ContractsDepth) (*OutputContractIDs, error) {
 	query := map[string]string{}
 	if depth != "" {
-		if !depthAllowedValues(depth) {
-			return nil, fmt.Errorf("Unsupported argument 'depth' value. Use 'TOP' or 'ALL' value. You provided %s", depth)
-		}
-
-		query["depth"] = depth
+		query["depth"] = string(depth)
 	}
 
 	apiURI := fmt.Sprintf("%s/contracts/identifiers", basePath)
