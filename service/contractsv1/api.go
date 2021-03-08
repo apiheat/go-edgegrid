@@ -18,8 +18,8 @@ func depthAllowedValues(val string) (ok bool) {
 func (c *Contractsv1) ListContracts(depth string) (*OutputContractIDs, error) {
 	query := map[string]string{}
 	if depth != "" {
-		if depthAllowedValues(depth) {
-			return nil, fmt.Errorf("Unsupported argument 'depth' value. Use 'TOP' or 'ALL' value")
+		if !depthAllowedValues(depth) {
+			return nil, fmt.Errorf("Unsupported argument 'depth' value. Use 'TOP' or 'ALL' value. You provided %s", depth)
 		}
 
 		query["depth"] = depth

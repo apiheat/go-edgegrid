@@ -8,14 +8,13 @@ const (
 
 // ListEnrollments retrieves all enrollments.
 func (cps *Cpsv2) ListEnrollments(contractID string) (*OutputEnrollments, error) {
-	if contractID == "" {
-		return nil, fmt.Errorf("Missing argument 'contractID'")
+	query := map[string]string{}
+
+	if contractID != "" {
+		query["contractId"] = contractID
 	}
 
 	apiURI := fmt.Sprintf("%s/enrollments", basePath)
-
-	query := map[string]string{}
-	query["contractId"] = contractID
 
 	// Create and execute request
 	resp, err := cps.Client.Rclient.R().

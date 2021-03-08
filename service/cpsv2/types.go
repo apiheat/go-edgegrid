@@ -1,7 +1,9 @@
 package cpsv2
 
 // OutputEnrollments identifies a collection of OutputEnrollmentElement objects
-type OutputEnrollments []OutputEnrollmentElement
+type OutputEnrollments struct {
+	Enrollments []OutputEnrollmentElement `json:"enrollments"`
+}
 
 // OutputEnrollmentElement displays all the information about the process that your certificate goes through
 // from the time you request it, through renewal, and as you obtain subsequent versions
