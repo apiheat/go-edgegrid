@@ -41,7 +41,7 @@ func (c *Contractsv1) ListContracts(depth ContractsDepth) (*OutputContractIDs, e
 //        For expired contracts, you are limited to a date range of 30 days within the 15 month window.
 // To - Ex: 2016-03-31. The end date, in UTC, to use when looking for products associated with a contract.
 //      The search always ends at 23:59:59 UTC of the specified date. The default end date is the current date.
-func (c *Contractsv1) ListProductsPerContract(contractID, from, to string) (*OutputContracts, error) {
+func (c *Contractsv1) ListProductsPerContract(contractID, from, to string) (*OutputProducts, error) {
 	query := map[string]string{}
 	if contractID == "" {
 		return nil, fmt.Errorf("Missing argument 'contractID'")
@@ -59,7 +59,7 @@ func (c *Contractsv1) ListProductsPerContract(contractID, from, to string) (*Out
 
 	// Create and execute request
 	resp, err := c.Client.Rclient.R().
-		SetResult(OutputContracts{}).
+		SetResult(OutputProducts{}).
 		SetError(ContractsErrorv1{}).
 		SetQueryParams(query).
 		Get(apiURI)
@@ -74,7 +74,7 @@ func (c *Contractsv1) ListProductsPerContract(contractID, from, to string) (*Out
 		return nil, e
 	}
 
-	return resp.Result().(*OutputContracts), nil
+	return resp.Result().(*OutputProducts), nil
 }
 
 // ListReportingGroups gets the IDs of the Content Provider (CP) reporting groups that you have access to along with their names.
