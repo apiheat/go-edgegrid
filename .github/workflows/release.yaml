@@ -1,11 +1,15 @@
 name: Auto release
 
-on: push
+on:
+  pull_request:
+    branches: [ master ]
+    types: [ closed ]
 
 jobs:
   release:
     name: Create release
     runs-on: ['self-hosted']
+    if: github.event.pull_request.merged == true
     steps:
       - name: Create release - minor
         id: create_release
@@ -13,5 +17,4 @@ jobs:
         auto_increment_type: "minor"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
 
