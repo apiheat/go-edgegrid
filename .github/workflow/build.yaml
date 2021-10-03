@@ -1,0 +1,17 @@
+name: Auto release
+
+on: push
+
+jobs:
+  release:
+    name: Create release
+    runs-on: ['self-hosted']
+    steps:
+      - name: Create release - minor
+        id: create_release
+        uses: zendesk/action-create-release@v1
+        auto_increment_type: "minor"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+
