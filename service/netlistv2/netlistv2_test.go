@@ -270,7 +270,7 @@ func TestActivateNetworkList(t *testing.T) {
 		Fast:                   true,
 		NotificationRecipients: []string{"dummy@mailinator.com"},
 	}
-	apiResp, err := apiClient.ActivateNetworkList("345_BOTLIST", edgegrid.Production, actNetworkListOpts)
+	apiResp, err := apiClient.ActivateNetworkList("345_BOTLIST", Production, actNetworkListOpts)
 	if assert.NoError(t, err) {
 		assert.IsType(t, expectedType, apiResp)
 	}
